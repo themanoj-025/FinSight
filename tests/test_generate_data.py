@@ -77,9 +77,9 @@ def test_multiple_focal_users_each_get_full_balanced_ledgers():
                 if row["type"] in {"SALARY", "CASH_IN"}
                 else row["oldbalanceOrg"] - row["amount"]
             )
-            assert np.isclose(
-                row["newbalanceOrig"], expected_new, atol=0.02
-            ), f"{u} step={row['step']}"
+            assert np.isclose(row["newbalanceOrig"], expected_new, atol=0.02), (
+                f"{u} step={row['step']}"
+            )
         for i in range(1, len(focal)):
             assert np.isclose(
                 focal.loc[i, "oldbalanceOrg"], focal.loc[i - 1, "newbalanceOrig"], atol=0.02
