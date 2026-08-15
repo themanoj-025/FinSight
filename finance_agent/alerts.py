@@ -136,9 +136,7 @@ def post_webhook(url: str, payload: dict[str, Any], *, timeout: float = 15.0) ->
     body = json.dumps(payload, default=str).encode("utf-8")
     req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})
     try:
-        with urllib.request.urlopen(
-            req, timeout=timeout
-        ) as resp:  # noqa: S310 — user-configured webhook
+        with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310 — user-configured webhook
             if resp.status >= 400:
                 log.warning("Webhook %s returned HTTP %s", _safe_url(url), resp.status)
                 return False
