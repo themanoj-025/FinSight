@@ -6,7 +6,7 @@
 
 ![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.12-3776AB?logo=python&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-green)
-[![CI](https://github.com/themanoj-025/FinSight-Agent/actions/workflows/ci.yml/badge.svg)](https://github.com/themanoj-025/FinSight-Agent/actions/workflows/ci.yml)
+[![CI](https://github.com/themanoj-025/FinSight/actions/workflows/ci.yml/badge.svg)](https://github.com/themanoj-025/FinSight/actions/workflows/ci.yml)
 ![Models](https://img.shields.io/badge/models-6%20benchmarked-2563EB)
 ![PR-AUC](https://img.shields.io/badge/CV%20PR--AUC-0.828%20%C2%B1%200.055-16A34A)
 ![Stack](https://img.shields.io/badge/Stack-Streamlit%20%C2%B7%20FastAPI%20%C2%B7%20LightGBM-64748B)
@@ -138,8 +138,8 @@ application flows are in [`docs/design/AppFlow.md`](docs/design/AppFlow.md).
 ## 🚀 Quickstart
 
 ```bash
-git clone https://github.com/themanoj-025/FinSight-Agent
-cd FinSight-Agent
+git clone https://github.com/themanoj-025/FinSight
+cd FinSight
 make setup && make run
 ```
 
@@ -623,7 +623,7 @@ MIT — see [LICENSE](LICENSE).
 ## ⭐ Show Your Support
 
 - ⭐ Star the repository if you found the honest-evaluation approach useful
-- 🐛 Report issues via the [issue tracker](https://github.com/themanoj-025/FinSight-Agent/issues)
+- 🐛 Report issues via the [issue tracker](https://github.com/themanoj-025/FinSight/issues)
 - 💬 Ask questions or suggest features — contributions are welcome
 
 <div align="center">
@@ -631,3 +631,11 @@ MIT — see [LICENSE](LICENSE).
 *Built with Python, pandas, scikit-learn, LightGBM, Streamlit, FastAPI, and a healthy respect for honest evaluation.*
 
 </div>
+---
+
+## ⭐ Star History
+
+[![Last Commit](https://img.shields.io/github/last-commit/themanoj-025/FinSight?style=flat-square)](https://github.com/themanoj-025/FinSight)
+[![Contributors](https://img.shields.io/github/contributors/themanoj-025/FinSight?style=flat-square)](https://github.com/themanoj-025/FinSight/graphs/contributors)
+
+[![Star History Chart](https://api.star-history.com/svg?repos=themanoj-025/FinSight&type=Date)](https://star-history.com/#FinSight&Date)
