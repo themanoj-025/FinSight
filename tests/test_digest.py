@@ -10,12 +10,7 @@ from unittest import mock
 
 import pytest
 
-from finance_agent.digest import (
-    build_weekly_digest,
-    run_digest,
-    send_email,
-    send_slack,
-)
+from finance_agent.digest import build_weekly_digest, run_digest, send_email, send_slack
 
 
 @pytest.fixture()

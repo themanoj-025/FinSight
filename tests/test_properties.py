@@ -134,9 +134,9 @@ def test_generator_invariants_hold_for_any_valid_params(params: dict) -> None:
     assert np.isclose(
         focal["newbalanceOrig"].to_numpy(), expected_new.to_numpy(), atol=0.02
     ).all(), f"balance arithmetic broken for params={params}"
-    assert (focal["newbalanceOrig"] >= -0.02).all(), (
-        f"clamped balance went negative for params={params}"
-    )
+    assert (
+        focal["newbalanceOrig"] >= -0.02
+    ).all(), f"clamped balance went negative for params={params}"
 
     # -- per-account old -> new chaining ------------------------------------
     for _, g in focal.groupby("nameOrig", sort=False):
@@ -203,6 +203,6 @@ def test_fraud_labels_carry_archetype_metadata(params: dict) -> None:
     fraud = df[df["isFraud"] == 1]
     if fraud.empty:
         return  # short windows legitimately produce no fraud — upper band is tested above
-    assert fraud["fraud_archetype"].notna().all(), (
-        f"fraud rows without an archetype label (params={params})"
-    )
+    assert (
+        fraud["fraud_archetype"].notna().all()
+    ), f"fraud rows without an archetype label (params={params})"

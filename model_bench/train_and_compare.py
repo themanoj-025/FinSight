@@ -537,9 +537,9 @@ def main() -> None:
                     "cohort": str(r["cohort"]),
                     "recall": None if pd.isna(r["recall"]) else float(r["recall"]),
                     "support": int(r["support"]),
-                    "disparity_ratio": None
-                    if pd.isna(r.get("disparity_ratio"))
-                    else float(r["disparity_ratio"]),
+                    "disparity_ratio": (
+                        None if pd.isna(r.get("disparity_ratio")) else float(r["disparity_ratio"])
+                    ),
                 }
                 for r in cohort_fairness.to_dict(orient="records")
             ]
