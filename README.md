@@ -27,18 +27,17 @@ in plain English — all behind a polished Streamlit app.*
 - [🏗️ Architecture](#️-architecture)
 - [🚀 Quickstart](#-quickstart)
   - [Service mode (optional)](#service-mode-optional)
-  - [Docker](#docker)
-- [🖥️ Usage](#️-usage)
+  - [🖥️ Usage](#️-usage)
   - [The app](#the-app)
   - [The CLI](#the-cli)
 - [📁 Project structure](#-project-structure)
 - [🧪 What's inside](#-whats-inside)
-- [📊 The model benchmark](#-the-model-benchmark)
+- [📊 The model benchmark](#-the-model-benchmark-evidence-not-claims)
   - [Evaluation methodology & limitations](#evaluation-methodology--limitations)
-- [🤔 Design decisions](#-design-decisions)
-- [✅ Testing & code quality](#-testing-code-quality)
+- [🤔 Design decisions](#-design-decisions-and-the-trade-offs)
+- [✅ Testing & code quality](#-testing--code-quality)
 - [📚 Documentation](#-documentation)
-- [❓ FAQ & troubleshooting](#-faq-troubleshooting)
+- [❓ FAQ & troubleshooting](#-faq--troubleshooting)
 - [🛣️ Roadmap](#️-roadmap)
 - [🤝 Contributing](#-contributing)
 - [📄 License](#-license)
@@ -618,6 +617,14 @@ security policy and vulnerability-reporting process are in [SECURITY.md](SECURIT
 ## 📄 License
 
 MIT — see [LICENSE](LICENSE).
+
+---
+
+## ⭐ Show Your Support
+
+- ⭐ Star the repository if you found the honest-evaluation approach useful
+- 🐛 Report issues via the [issue tracker](https://github.com/themanoj-025/FinSight-Agent/issues)
+- 💬 Ask questions or suggest features — contributions are welcome
 
 <div align="center">
 
