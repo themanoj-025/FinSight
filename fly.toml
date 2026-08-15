@@ -1,0 +1,86 @@
+# Fly.io deploy config for FinSight Agent (Phase E.1 — §3a agent prep).
+#
+# Two processes share one image (the repo's digest-pinned Dockerfile):
+#   app — the Streamlit UI on :8501
+#   api — the FastAPI facts service on :8000
+# Persistent volumes mounted at /app/data and /app/model_bench mean the
+# docker-entrypoint.sh bootstrap (generate + train) only ever runs on the very
+# first deploy, not on every restart/scale event.
+#
+# TODO(deploy): after `fly apps create` (see DEPLOY.md §2), set the `app`
+# line below to your chosen app name, then `fly deploy`. Do NOT bake a
+# personal ANTHROPIC_API_KEY into any env — the public instance must run in
+# BYO-key/offline-narrator mode by default (the app banners that clearly).
+
+app = "finsight-agent"
+primary_region = "iad"
+
+[env]
+  # The Streamlit process calls the API process of the same app through its
+  # public hostname. Replace the placeholder app name when you rename above.
+  FINSIGHT_API_URL = "https://finsight-agent.fly.dev:8000"
+  FINSIGHT_PUBLIC = "1"
+  # Security audit §5/§6: per-IP rate limit for /api/* (sliding window,
+  # in-process) and a locked-down CORS allow-list (the app's own origin).
+  # The API process still needs FINSIGHT_API_KEY set via `fly secrets set`
+  # (DEPLOY.md) — without it /api/* is open to anyone who can reach :8000.
+  FINSIGHT_RATE_LIMIT_PER_MIN = "600"
+  FINSIGHT_CORS_ORIGINS = "https://finsight-agent.fly.dev"
+
+# Persistent volumes: data ledger + model artifacts survive redeploys, so the
+# entrypoint bootstrap is a one-time cost.
+[[mounts]]
+  source = "data_volume"
+  destination = "/app/data"
+
+[[mounts]]
+  source = "model_volume"
+  destination = "/app/model_bench"
+
+[processes]
+  app = "docker-entrypoint.sh streamlit run app/Home.py --server.port 8501 --server.address 0.0.0.0"
+  api = "docker-entrypoint.sh uvicorn finance_agent.api:app --host 0.0.0.0 --port 8000"
+
+[[services]]
+  processes = ["app"]
+  internal_port = 8501
+  protocol = "tcp"
+  [services.concurrency]
+    type = "connections"
+    hard_limit = 100
+    soft_limit = 50
+  [[services.ports]]
+    handlers = ["http"]
+    port = 80
+    force_https = true
+  [services.http_checks]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "180s"
+    path = "/_stcore/health"
+    method = "GET"
+
+[[services]]
+  processes = ["api"]
+  internal_port = 8000
+  protocol = "tcp"
+  [services.concurrency]
+    type = "connections"
+    hard_limit = 100
+    soft_limit = 50
+  [[services.ports]]
+    handlers = ["http"]
+    port = 8000
+    # Security audit §6: the facts API is a public service — force HTTPS on it
+    # too, matching the app listener above.
+    force_https = true
+  [services.http_checks]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "300s"  # first boot trains the model (~1-2 min)
+    path = "/api/v1/health"
+    method = "GET"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "1gb"

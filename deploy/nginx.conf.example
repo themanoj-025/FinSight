@@ -1,0 +1,82 @@
+# nginx reverse-proxy template for FinSight Agent (security audit §4).
+#
+# IMPORTANT SCOPE NOTE: Fly.io's built-in proxy already does TLS termination,
+# so if you're deploying with fly.toml you do NOT need this file — use
+# fly.toml's [http_service] config instead. This template is specifically for
+# anyone self-hosting behind their own nginx (a VPS, a home server, Railway's
+# static proxy if you prefer nginx semantics), where YOU terminate TLS.
+#
+# Copy to /etc/nginx/sites-available/finsight and symlink into sites-enabled.
+# TLS certificates: use certbot (Let's Encrypt) — run `certbot --nginx -d
+# your-domain.example.com -d api.your-domain.example.com` to fill the
+# certificate paths below automatically.
+#
+# Streamlit needs 'unsafe-inline' scripts/styles for its own inline bootstrap;
+# the CSP is as strict as the framework markup allows. The API keeps a looser
+# CSP only for Swagger UI at /docs.
+
+# HTTP -> HTTPS redirect.
+server {
+    listen 80;
+    server_name your-domain.example.com api.your-domain.example.com;
+    return 301 https://$host$request_uri;
+}
+
+# --- Streamlit UI (:8501) -------------------------------------------------
+server {
+    listen 443 ssl http2;
+    server_name your-domain.example.com;
+
+    ssl_certificate     /etc/letsencrypt/live/your-domain.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/your-domain.example.com/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    # Streamlit's websocket transport.
+    location / {
+        proxy_pass http://localhost:8501;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Baseline + CSP headers on every response (HSTS once HTTPS is confirmed).
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "no-referrer" always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' ws: wss:; font-src 'self' data:;" always;
+
+    # Hard per-IP cap at the proxy (the API also has its own in-process
+    # limiter for /api/*): uncomment to enable.
+    # limit_req_zone $binary_remote_addr zone=finsight:10m rate=10r/s;
+    # location / { ...; limit_req zone=finsight burst=20 nodelay; }
+}
+
+# --- FastAPI facts service (:8000) ------------------------------------------
+server {
+    listen 443 ssl http2;
+    server_name api.your-domain.example.com;
+
+    ssl_certificate     /etc/letsencrypt/live/api.your-domain.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/api.your-domain.example.com/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    location / {
+        proxy_pass http://localhost:8000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "no-referrer" always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    # Looser CSP only for Swagger UI (/docs); tighten to the app block's if
+    # the API runs with docs disabled in production.
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'" always;
+}

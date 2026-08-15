@@ -1,0 +1,142 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "finsight-agent"
+version = "0.1.0"
+description = "FinSight Agent - an autonomous personal finance analyst: raw transactions in, fraud alerts, spending insight, and plain-English advice out."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "FinSight Agent contributors" }]
+# Ranges are capped at the tested major versions (deterministic within a major,
+# and still resolvable on the 3.10 CI leg where pandas 3.x isn't installable).
+# The committed requirements.lock (generated with `uv pip compile pyproject.toml
+# -o requirements.lock --python-version 3.10 --python-platform linux`) pins the
+# exact set for reproducible installs across the 3.10/3.12 CI matrix. The
+# `--python-platform linux` flag keeps the compile deterministic on Windows
+# dev machines too — otherwise Windows-only deps (colorama via click) leak
+# into the lockfile and the CI lockfile job (a Linux recompile) reports drift.
+dependencies = [
+    # numpy <2.5: numpy 2.5 dropped Python 3.10 (so `requires-python>=3.10`
+    # alone doesn't keep it off the 3.12 CI leg), and its stubs use PEP 695
+    # `type` statements that mypy's python_version=3.10 target can't parse —
+    # pinning <2.5 keeps the typecheck gate green on the 3.12 leg too.
+    "numpy>=1.26,<2.5",
+    "pandas>=2.1,<3.1",
+    "scikit-learn>=1.4,<1.9",
+    "matplotlib>=3.8,<3.12",
+    "plotly>=5.18,<7",
+    "streamlit>=1.47,<1.62",  # uses width='stretch' (use_container_width is deprecated)
+    "PyYAML>=6.0,<7",
+    "joblib>=1.3,<2",
+    "lightgbm>=4.0,<5",
+    "fastapi>=0.110,<1",  # optional HTTP API (finance_agent/api.py); uvicorn already ships via streamlit
+    "uvicorn>=0.27,<1",
+]
+
+[project.optional-dependencies]
+# The LLM agent is optional at runtime — the app degrades to the offline
+# narrator without it, so `pip install .` must not require the Anthropic SDK.
+llm = [
+    "anthropic>=0.25,<1",
+]
+# Similar-transaction retrieval (finance_agent/retrieval.py): faiss-cpu is
+# optional — without it the code uses an exact-L2 numpy fallback that is
+# numerically identical for this index size, so the core install stays light.
+retrieval = [
+    "faiss-cpu>=1.7,<2",
+]
+# Optuna hyperparameter optimization (`make hpo`, model_bench/hpo.py): an
+# optional extra so `make train` and the app never pull it — every optuna
+# import in the codebase is lazy. Also declared in dev so the HPO smoke test
+# (tests/test_hpo.py) actually runs in CI.
+hpo = [
+    "optuna>=3.6,<5",
+]
+# Contract fuzzing (F.3): schemathesis runs the committed
+# docs/technical/openapi.v1.json against a live API in the nightly
+# `contract-fuzz` CI job — dev-only, never a runtime dep.
+contract = [
+    "schemathesis>=4.0,<5",
+]
+# Accessibility + mobile-viewport render checks (F.4): the optional
+# `accessibility` workflow runs scripts/accessibility_check.py (Playwright +
+# axe-core) against a locally-launched Streamlit instance. The pip wheel is
+# small; the Chromium browser itself is downloaded by `playwright install`
+# inside that job, never by `pip install .`.
+a11y = [
+    "playwright>=1.40,<2",
+]
+# Load testing (F.5): loadtest/locustfile.py hammers the cached-facts API
+# endpoints at 50 concurrent users and compares p95 against the SLOs in
+# docs/technical/SLOs.md (scripts/loadtest_check.py). Dev-only extra so the
+# gevent/zmq stack never reaches the base or `make setup` install.
+loadtest = [
+    "locust>=2.20,<3",
+]
+dev = [
+    "pytest>=8.0,<10",
+    "pytest-cov>=5,<8",
+    "pytest-timeout>=2.3,<3",  # the CI slow-suite job runs `pytest -m slow --timeout`
+    "ruff>=0.16.2,<0.17",  # floor = the version CI resolves; 0.16.2 tightened the I001 blank-line rule
+    "mypy>=1.8,<3",
+    "black>=24.0,<27",
+    "optuna>=3.6,<5",  # HPO smoke test (tests/test_hpo.py) — matches the hpo extra
+    "hypothesis>=6.100,<7",  # property-based generator invariants (tests/test_properties.py, F.2)
+    "mutmut>=3.2,<4",  # mutation testing (`make mutate`, D.4) — dev-only, never a runtime dep
+]
+
+[project.scripts]
+finsight = "finance_agent.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["finance_agent*", "model_bench*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q -m 'not slow'"
+markers = [
+    "slow: long-running tests (full server boot, 100k-row perf) — excluded from the default run; run with `pytest -m slow` or `make test-slow`",
+    "data_realism: data-generator realism suite (demo-tier ledger; runs against demo-tier data in the nightly benchmark job, not on every push)",
+]
+
+[tool.mutmut]
+# Phase D.4: mutmut 3.x is fully config-driven (no --paths-to-mutate / --runner
+# CLI flags — they were removed from the CLI). source_paths MUST be an array:
+# a bare string is iterated character-by-character by mutmut's config loader,
+# which silently yields zero files ("0 files mutated"). only_mutate restricts
+# mutation to the two correctness-critical modules; also_copy ships the
+# root-level module that tests/test_features.py imports at collection time
+# (the mutants/ sandbox only mirrors source_paths + tests/ + also_copy);
+# pytest_add_cli_args_test_selection scopes each mutant's test run to exactly
+# the tests that exercise them.
+source_paths = ["finance_agent"]
+only_mutate = ["finance_agent/rules.py", "finance_agent/features.py"]
+also_copy = ["generate_data.py"]
+pytest_add_cli_args_test_selection = ["tests/test_rules.py", "tests/test_features.py"]
+pytest_add_cli_args = ["-p", "no:cacheprovider", "-q", "--tb=no"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+extend-exclude = [".venv", "data", "model_bench/results"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM"]
+ignore = ["E501"]
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+warn_unused_ignores = false
+# `app/` and `app/pages/` are namespace packages (Streamlit layout — no
+# __init__.py), so explicit targets need namespace resolution to type-check
+# them. The gate covers the whole project: finance_agent/ model_bench/ app/ tests/.
+explicit_package_bases = true
+namespace_packages = true

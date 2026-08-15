@@ -1,0 +1,531 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "17 3 * * *"   # nightly full benchmark (not on every push)
+  workflow_dispatch:
+    inputs:
+      tier:
+        description: "Generation tier for the nightly benchmark (demo = app/README evidence; bench = multi-million-row benchmark)"
+        required: false
+        default: "demo"
+        type: choice
+        options:
+          - demo
+          - bench
+
+env:
+  PY_COLORS: "1"
+
+concurrency:
+  # Cancel superseded runs for the same branch/PR to save CI minutes.
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read   # CI never writes to the repo; retrain.yml is the only writer
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - run: ruff check .
+      - run: ruff format --check .
+
+  typecheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - run: mypy finance_agent model_bench app tests
+
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - run: pip install -e ".[dev]"
+      # AppTest render tests need real data + a model bundle on disk. The fast
+      # leg uses the tiny tier; the nightly benchmark job runs the bench tier.
+      - run: python generate_data.py --tier tiny --config config.yaml
+      - name: Train model bundle
+        run: python model_bench/train_and_compare.py --data data/transactions.csv --config config.yaml
+      - name: Fast suite (target < 30s)
+        run: python -m pytest tests/ -m "not slow" -q
+      # The data-realism suite (tests/test_data_realism.py) runs in the
+      # dedicated `data-realism` job, not here on every push — it is marked
+      # `slow` and the per-test timeout below would be too tight for its
+      # multi-year fixture.
+      - name: Slow suite (server boot + 100k-row perf, minus realism)
+        run: python -m pytest tests/ -m "slow and not data_realism" -q --timeout 300
+      - name: "Coverage report (gate: stay above 75%)"
+        run: python -m pytest tests/ -m "not slow" --cov=finance_agent --cov=model_bench --cov-report=xml --cov-fail-under=75 -q
+      - uses: actions/upload-artifact@v7
+        with:
+          name: coverage-${{ matrix.python-version }}
+          path: coverage.xml
+
+  lockfile:
+    # Phase 4.4: requirements.lock must never drift from pyproject.toml.
+    # Recompiles in a temp dir (same relative filename so the uv header comment
+    # is byte-identical) and diffs against the committed lockfile — a stale
+    # lockfile fails this job loudly on every PR. Same script the pre-push git
+    # hook runs (scripts/check_lockfile.sh), so CI and local can't drift.
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      # Pin uv: the lockfile was generated with uv 0.12.2, and its compiled
+      # output (header, comments, ordering) is stable within a version.
+      - run: pip install uv==0.12.2
+      - name: Recompile lockfile and diff (shared script)
+        run: bash scripts/check_lockfile.sh --require-uv
+
+  security:
+    # Phase 4.4: CI fails on a known-vulnerable dependency.
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install pip-audit uv==0.12.2
+      # Scope note: the lockfile covers BASE dependencies only (it is compiled
+      # from pyproject.toml without extras); dev/llm extras are not audited here.
+      - name: Audit committed lockfile for known vulnerabilities
+        run: pip-audit -r requirements.lock
+      # The lockfile must actually install on the oldest supported Python
+      # (3.10), not just resolve — dry-run proves wheels exist for that target.
+      # `--system` is required: uv refuses `pip install` outside a venv on the
+      # runner (no venv exists in this job), and the dry-run touches nothing.
+      - name: Lockfile installable on Python 3.10
+        run: uv pip install --system --python-version 3.10 --dry-run -r requirements.lock
+
+  supply-chain:
+    # Phase E.2: dependency scan beyond pip-audit. Trivy scans the repo
+    # filesystem (lockfile + vendored code) and fails on any CRITICAL
+    # vulnerability with a known fix. SARIF is uploaded to the Security tab.
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      security-events: write  # to upload the SARIF report
+    steps:
+      - uses: actions/checkout@v7
+      - name: Trivy filesystem scan (fail on CRITICAL)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL
+          exit-code: "1"
+          ignore-unfixed: true  # only advisories with a known fix can fail the gate
+      - name: Upload SARIF to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v4
+        if: always()  # upload even when the scan fails the gate (fail-loud + evidence)
+        with:
+          sarif_file: trivy-results.sarif
+
+  install-check:
+    # 4.4: `pip install .` (no extras) must succeed without pulling in Anthropic.
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install .
+      - name: "Anthropic is optional — not installed by default"
+        run: |
+          python -c "import importlib.util; assert importlib.util.find_spec('anthropic') is None, 'anthropic must not be a base dependency'"
+          python -c "import finance_agent; print('base install OK')"
+
+  docs:
+    # Docs-code consistency (Phase 0.4): docs/*.md must never claim a schema,
+    # test, or security control that doesn't exist. The script regenerates a
+    # tiny frame with generate_data and diffs Schema.md's columns/features,
+    # cross-checks Testing.md TC rows against tests/, verifies README links,
+    # and maps SecurityAndCompliance claims to real symbols.
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e .
+      - name: Docs-code consistency
+        run: python scripts/check_docs_consistency.py
+
+  benchmark-nightly:
+    # The full training pipeline runs on a schedule / on demand — never on
+    # every push. `tier` is dispatch-selectable: `demo` (default, app/README
+    # evidence) or `bench` (millions of rows, the model-benchmark tier). The
+    # data-realism gate lives in the dedicated `data-realism` job below; the
+    # bench-tier wall-clock gates (generation + training, regression budgets)
+    # live here — they activate only when the dispatch tier is `bench`.
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e .
+      - name: Generate ledger (${{ github.event.inputs.tier || 'demo' }} tier; wall-clock gate when bench)
+        # The tier arrives via env var (all heredoc lines share the block-scalar
+        # baseline indent — a heredoc nested deeper in a bash `if` would leave
+        # its `EOF` indented and never terminate). Demo runs ungated (the
+        # data-realism job owns the 60s demo budget); bench runs under a
+        # 900s regression gate vs the ~299s baseline measured 2026-08-08 (the
+        # old O(n^2)-scale generator blew past 600s — Data-Gen §1).
+        run: |
+          TIER="${{ github.event.inputs.tier || 'demo' }}" python - <<'EOF'
+          import os, subprocess, sys, time
+          tier = os.environ["TIER"]
+          budget = 900 if tier == "bench" else None
+          t0 = time.monotonic()
+          rc = subprocess.run(
+              [sys.executable, "generate_data.py", "--tier", tier, "--config", "config.yaml"]
+          ).returncode
+          elapsed = time.monotonic() - t0
+          print(f"{tier}-tier generation wall-clock: {elapsed:.1f}s")
+          if rc != 0:
+              sys.exit(rc)
+          if budget is not None and elapsed >= budget:
+              print(f"::error::bench-tier generation took {elapsed:.1f}s — exceeds the {budget}s budget (regression gate; ~299s baseline)")
+              sys.exit(1)
+          EOF
+      - name: Train + benchmark (wall-clock gate when bench)
+        run: |
+          TIER="${{ github.event.inputs.tier || 'demo' }}" python - <<'EOF'
+          import os, subprocess, sys, time
+          tier = os.environ["TIER"]
+          data = "data/transactions.parquet" if tier == "bench" else "data/transactions.csv"
+          # Bench training regression gate: ~563s baseline (measured 2026-08-08)
+          # for the 6-model 5-fold TimeSeriesSplit CV + full holdout
+          # diagnostics; a 1800s budget leaves ~3x headroom and catches
+          # CV/training regressions before the job's 120-min timeout.
+          budget = 1800 if tier == "bench" else None
+          t0 = time.monotonic()
+          rc = subprocess.run(
+              [sys.executable, "model_bench/train_and_compare.py",
+               "--data", data, "--config", "config.yaml"]
+          ).returncode
+          elapsed = time.monotonic() - t0
+          print(f"{tier}-tier training wall-clock: {elapsed:.1f}s")
+          if rc != 0:
+              sys.exit(rc)
+          if budget is not None and elapsed >= budget:
+              print(f"::error::bench-tier training took {elapsed:.1f}s — exceeds the {budget}s budget (regression gate; ~563s baseline)")
+              sys.exit(1)
+          EOF
+      - name: Verify artifacts + honest CV metadata
+        run: |
+          python - <<'EOF'
+          import json, os
+          for f in ["model_bench/best_model.joblib", "model_bench/risk_model_bundle.joblib",
+                    "model_bench/best_model_metadata.json", "model_bench/results/metrics_table.csv",
+                    "model_bench/results/model_comparison_bar.png", "model_bench/results/roc_curves.png",
+                    "model_bench/results/pr_curves.png", "model_bench/results/confusion_matrix_grid.png",
+                    "model_bench/results/feature_importance.png",
+                    "model_bench/results/per_archetype_recall.csv",
+                    "model_bench/results/cohort_fairness.csv",
+                    "model_bench/results/temporal_stability.csv",
+                    "model_bench/results/calibration_curve.csv",
+                    "model_bench/results/temporal_stability.png",
+                    "model_bench/results/calibration.png"]:
+              assert os.path.exists(f), f"missing {f}"
+          meta = json.load(open("model_bench/best_model_metadata.json"))
+          assert meta.get("pr_auc_mean") is not None, "metadata must carry CV pr_auc_mean (0.1)"
+          assert meta.get("pr_auc_std") is not None, "metadata must carry CV pr_auc_std (0.1)"
+          assert meta.get("cv_folds", 0) >= 1, "metadata must carry cv_folds (0.1)"
+          assert meta["pr_auc_mean"] > 0, "CV PR-AUC must be positive"
+          assert len(meta["feature_list"]) >= 20, "feature list too small"
+          assert "archetype_recall" in meta, "metadata must carry per-archetype recall (5)"
+          assert "calibration" in meta, "metadata must carry calibration (12)"
+          print("pipeline OK —", meta["algorithm"],
+                "pr_auc", meta["pr_auc_mean"], "+/-", meta["pr_auc_std"])
+          EOF
+
+  mutation:
+    # Phase D.4: mutation testing over the two correctness-critical modules
+    # (rules.py + features.py). Slow (~5-8 min: one pytest run per mutant), so
+    # it runs on the schedule / on demand only — never on every push. The job
+    # fails loudly if mutmut itself errors; the measured kill score is the
+    # evidence (committed to docs/technical/MutationTesting.md).
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - name: Mutation-test rules.py + features.py
+        # Scope (only_mutate) + test selection are config-driven
+        # ([tool.mutmut] in pyproject.toml — mutmut 3.x has no CLI flags for
+        # these). `mutmut results` prints the kill summary; the step then
+        # computes per-file kill rates and enforces the documented regression
+        # floor (docs/technical/MutationTesting.md).
+        run: |
+          python -m mutmut run
+          echo '--- mutation summary ---'
+          # `--all true`: mutmut 3.7 declares `--all` as a VALUE option
+          # (@click.option("--all", default=False)), not a boolean flag — a bare
+          # `--all` errors with "requires an argument" and yields an empty
+          # results file (score 0.0). `--all true` prints every mutant
+          # INCLUDING killed ones (the default skips them, which would
+          # under-count both totals and the kill score).
+          python -m mutmut results --all true | tee /tmp/mutmut_results.txt
+          python - <<'EOF'
+          from collections import Counter
+
+          # Kill-rate formula (documented in docs/technical/MutationTesting.md):
+          #   score = killed / (killed + survived + timeout)
+          # Timeout counts as NOT killed (the tests didn't fail — the run hung).
+          # Suspicious/skipped/no-tests are reported but excluded: they aren't
+          # meaningful kill outcomes (broken-injection / pragma-skipped).
+          COUNTED = {"killed", "survived", "timeout"}
+
+          per_file: dict[str, Counter[str]] = {}
+          for raw in open("/tmp/mutmut_results.txt", encoding="utf-8"):
+              line = raw.strip()
+              if ":" not in line or "__mutmut_" not in line:
+                  continue
+              mutant, _, status = line.partition(":")
+              # Mutant keys look like `finance_agent.rules.x_<fn>__mutmut_<id>`
+              # (module name with os.sep replaced by "."). Map back to a
+              # readable file label for the per-file table.
+              module = mutant.split(".x_", 1)[0]
+              file_ = module.replace(".", "/") + ".py"
+              per_file.setdefault(file_, Counter())[status.strip()] += 1
+
+          total_killed = total_counted = 0
+          for f, c in sorted(per_file.items()):
+              killed = c.get("killed", 0)
+              counted = sum(c[s] for s in COUNTED)
+              total_killed += killed
+              total_counted += counted
+              print(
+                  f"{f}: {killed}/{counted} killed "
+                  f"({killed / counted * 100:.1f}%) "
+                  f"[{dict(c)}]"
+              )
+
+          score = total_killed / total_counted * 100 if total_counted else 0.0
+          print(f"TOTAL: {total_killed}/{total_counted} killed ({score:.1f}%)")
+          floor = 55.0  # keep in sync with docs/technical/MutationTesting.md
+          if score < floor:
+              print(f"::error::mutation kill score {score:.1f}% below documented floor {floor:.0f}%")
+              exit(1)
+          EOF
+
+  contract-fuzz:
+    # Phase F.3: schemathesis contract fuzzing against the committed
+    # docs/technical/openapi.v1.json, pointed at a live local API. Runs on the
+    # schedule / on demand only — never on every push (a full fuzz pass is ~2
+    # minutes of hypothesis-generated requests). Failures are 500s or responses
+    # that violate the documented schema — i.e. real contract drift.
+    #
+    # Scope-down (deliberate): `POST /api/v1/reload` is excluded via
+    # --exclude-path — a nightly job must not repeatedly force the API to drop
+    # its facts snapshot (state mutation, not a read). Everything else is
+    # fuzzed, including negative/nullable-param cases.
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[dev,contract]"
+      # The API serves a startup snapshot of the ledger + model bundle, so the
+      # fuzz target needs the same tiny-tier artifacts the test job builds.
+      - run: python generate_data.py --tier tiny --config config.yaml
+      - name: Train model bundle
+        run: python model_bench/train_and_compare.py --data data/transactions.csv --config config.yaml
+      # Boots a throwaway API, fuzzes every operation from the committed
+      # schema (deterministic seed; /reload excluded — see the job comment),
+      # and fails on 500s or schema-violating responses. Same script as
+      # `make contract-fuzz`, so local and CI can't drift.
+      - name: Fuzz the API against the committed contract
+        run: python scripts/contract_fuzz.py --port 8123 --max-examples 5 --seed 0
+
+  load-test:
+    # Phase F.5: Locust load test against the cached-facts endpoints on a local
+    # API (the same endpoints the SLOs in docs/technical/SLOs.md target).
+    # Runs on the schedule / on demand only. Writes CSV + HTML artifacts and
+    # compares p50/p95/p99 + error rate against the documented SLO targets with
+    # a pass/fail readout (scripts/loadtest_check.py). Never /reload.
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[dev,loadtest]"
+      - run: python generate_data.py --tier tiny --config config.yaml
+      - name: Train model bundle
+        run: python model_bench/train_and_compare.py --data data/transactions.csv --config config.yaml
+      - name: Run load test and compare against SLOs
+        run: |
+          python - <<'EOF'
+          import subprocess, sys, time, urllib.request
+
+          proc = subprocess.Popen(
+              [sys.executable, "-m", "uvicorn", "finance_agent.api:app",
+               "--host", "127.0.0.1", "--port", "8123", "--log-level", "warning"],
+              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+          )
+          try:
+              for _ in range(60):
+                  try:
+                      with urllib.request.urlopen("http://127.0.0.1:8123/api/v1/health", timeout=2) as r:
+                          if r.status == 200:
+                              break
+                  except Exception:
+                      pass
+                  time.sleep(1)
+              else:
+                  raise SystemExit("API never became healthy")
+
+              # Warmup pass: the first request per endpoint pays the one-time
+              # cost of building the scored frame / retrieval index / facts
+              # snapshot. The SLO (docs/technical/SLOs.md) is about the CACHED
+              # path, so warm before the timed window — otherwise a handful of
+              # cold requests dominate the percentiles and the run measures
+              # startup, not steady state.
+              BASE = "http://127.0.0.1:8123"
+              for path in [
+                  "/api/v1/health", "/api/v1/meta", "/api/v1/monthly-summary",
+                  "/api/v1/category-breakdown", "/api/v1/budget-status",
+                  "/api/v1/recurring-payments", "/api/v1/spend-spikes",
+                  "/api/v1/financial-health", "/api/v1/forecast", "/api/v1/tips",
+                  "/api/v1/similar-transactions", "/api/v1/risk-scored?limit=10",
+              ]:
+                  for _ in range(3):
+                      try:
+                          urllib.request.urlopen(BASE + path, timeout=30).read()
+                      except Exception as exc:
+                          print(f"::warning::warmup {path} failed: {exc}")
+                  print(f"warmed {path}")
+
+              rc = subprocess.call(
+                  [sys.executable, "-m", "locust",
+                   "-f", "loadtest/locustfile.py",
+                   "--host", "http://127.0.0.1:8123",
+                   "--headless", "-u", "50", "-r", "2", "--run-time", "120s",
+                   "--csv", "loadtest/results", "--html", "loadtest/report.html",
+                   "--logfile", "/dev/null",
+                  ]
+              )
+              if rc != 0:
+                  print("::error::load test run failed")
+                  sys.exit(rc)
+
+              # Compare against the documented SLOs (SLOs.md: p95 < 200 ms on
+              # cached facts endpoints). Exits non-zero on a miss.
+              rc2 = subprocess.call(
+                  [sys.executable, "scripts/loadtest_check.py", "--csv", "loadtest/results_stats.csv"]
+              )
+              sys.exit(rc2)
+          finally:
+              proc.terminate()
+              proc.wait(timeout=10)
+          EOF
+      - name: Upload load-test artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: loadtest-${{ github.run_id }}
+          path: |
+            loadtest/results_stats*.csv
+            loadtest/report.html
+            loadtest/results_slo_report.txt
+
+  data-realism:
+    # §13 realism gate + §1 generation-budget gate on the demo tier: a
+    # statistically broken dataset fails loudly, AND demo-tier generation must
+    # stay within its wall-clock budget (< 60s, Data-Gen §1 acceptance
+    # criterion). Runs on a schedule / on demand — never on every push (the
+    # push leg only generates the tiny tier).
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - name: Generate demo-tier ledger (wall-clock gate < 60s)
+        run: |
+          python - <<'EOF'
+          import subprocess, sys, time
+          t0 = time.monotonic()
+          rc = subprocess.run(
+              [sys.executable, "generate_data.py", "--tier", "demo", "--config", "config.yaml"]
+          ).returncode
+          elapsed = time.monotonic() - t0
+          print(f"demo-tier generation wall-clock: {elapsed:.1f}s")
+          if rc != 0:
+              sys.exit(rc)
+          if elapsed >= 60:
+              print(f"::error::demo-tier generation took {elapsed:.1f}s — exceeds the 60s budget (Data-Gen §1)")
+              sys.exit(1)
+          EOF
+      - name: Data realism suite (slow gate)
+        # `-m data_realism` is required: the pyproject addopts `-m 'not slow'`
+        # would deselect every slow-marked realism test (exit 5, "no tests
+        # ran") instead of running the gate.
+        run: python -m pytest tests/test_data_realism.py -m data_realism -q --timeout 900

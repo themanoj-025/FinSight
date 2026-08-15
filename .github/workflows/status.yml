@@ -1,0 +1,78 @@
+# Phase D.2 — SLO status page: pings the deployed API health endpoint every
+# 15 minutes and appends one line to status/health.log (rolling, capped at the
+# last 100 probes), which doubles as a static status page (status/health.log
+# is visible in the repo). The scheduled run turns red when the service is
+# down — that IS the SLO signal.
+#
+# Pre-deploy state: STATUS_URL is a *repository variable* (Settings → Secrets
+# and variables → Actions). Until it is set, this job is a no-op so the repo
+# isn't full of red runs pointing at a placeholder.
+#   TODO(deploy, §3b): set the `STATUS_URL` repo variable to
+#   https://<your-app>.fly.dev/api/v1/health the moment the app is live —
+#   that one variable flip activates monitoring; nothing else changes.
+name: status-page
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: status-page
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+      - name: Probe health endpoint and append to status log
+        id: probe
+        env:
+          STATUS_URL: ${{ vars.STATUS_URL }}
+        run: |
+          set -euo pipefail
+          if [ -z "${STATUS_URL:-}" ]; then
+            echo "STATUS_URL repo variable not set yet — deploy first (see DEPLOY.md §3b), then set it to activate monitoring."
+            exit 0
+          fi
+          URL="$STATUS_URL"
+          TS=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          # One curl: body|http_code|time_total (000 on connection failure).
+          OUT=$(curl -s -o /dev/null -w '%{http_code}|%{time_total}' --max-time 10 "$URL" || echo '000|0')
+          CODE=$(echo "$OUT" | cut -d'|' -f1)
+          LATENCY=$(echo "$OUT" | cut -d'|' -f2)
+          if [ "$CODE" = "200" ]; then STATE=up; else STATE=down; fi
+          mkdir -p status
+          { echo "$TS $STATE code=$CODE latency=${LATENCY}s $URL"; cat status/health.log 2>/dev/null; } | head -100 > status/health.log.new
+          mv status/health.log.new status/health.log
+          echo "state=$STATE" >> "$GITHUB_OUTPUT"
+          echo "code=$CODE" >> "$GITHUB_OUTPUT"
+          if [ "$STATE" = "down" ]; then
+            echo "::error::health endpoint $URL returned HTTP $CODE at $TS"
+            exit 1
+          fi
+      - name: Commit status log
+        if: always()
+        run: |
+          # The ping step may have exited early (STATUS_URL unset → no probe →
+          # no status/ dir created), but this step still runs and `git add` on
+          # a missing pathspec fails. Ensure the file always exists so the add
+          # is a no-op in that case (git diff --cached --quiet handles it).
+          mkdir -p status
+          [ -f status/health.log ] || : > status/health.log
+          git config user.name "finsight-bot"
+          git config user.email "noreply@github.com"
+          git add status/health.log
+          if git diff --cached --quiet; then
+            echo "no status change — nothing to commit"
+          else
+            git commit -m "chore(status): record health probe at $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            git push origin main
+          fi

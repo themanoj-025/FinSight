@@ -1,0 +1,46 @@
+name: Weekly digest
+
+# Scheduled delivery of the weekly digest (finance_agent/digest.py). This is
+# the "scheduled job" half of the stretch feature: it regenerates the ledger
+# (deterministic seed → stable), builds the digest, and posts it to any
+# configured channel. Delivery is opt-in — configure the repository secrets
+# below (or remove the channel steps) to enable. The workflow never writes to
+# the repo (contents: read), and it fails loudly if a configured channel errors
+# so a silently dropped digest can't go unnoticed.
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"   # every Monday 06:00 UTC — the weekly recap
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PY_COLORS: "1"
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e .
+      - name: Regenerate deterministic ledger
+        run: python generate_data.py --config config.yaml
+      - name: Build + deliver weekly digest
+        env:
+          DIGEST_SLACK_WEBHOOK: ${{ secrets.DIGEST_SLACK_WEBHOOK }}
+          DIGEST_SMTP_PASSWORD: ${{ secrets.DIGEST_SMTP_PASSWORD }}
+        run: python -m finance_agent digest
+      - name: Fail loudly if no delivery channel is configured
+        # A digest nobody receives is a silent failure; this step keeps the
+        # scheduled run visibly "not configured" rather than pretending.
+        if: env.DIGEST_SLACK_WEBHOOK == '' && env.DIGEST_SMTP_PASSWORD == ''
+        run: |
+          echo "::warning::No delivery channel configured — digest file written only."
+          echo "Set DIGEST_SLACK_WEBHOOK and/or digest.email SMTP settings to enable delivery."

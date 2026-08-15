@@ -1,0 +1,309 @@
+{
+  "algorithm": "Gradient Boosting (LightGBM)",
+  "selection_metric": "pr_auc (mean over TimeSeriesSplit CV)",
+  "metrics_on_holdout": {
+    "precision": 0.1024,
+    "recall": 0.8615,
+    "f1": 0.183,
+    "roc_auc": 0.998,
+    "pr_auc": 0.7282
+  },
+  "cv_folds": 5,
+  "pr_auc_mean": 0.8284,
+  "pr_auc_std": 0.0554,
+  "roc_auc_mean": 0.9975,
+  "roc_auc_std": 0.0007,
+  "f1_mean": 0.7328,
+  "f1_std": 0.066,
+  "per_model_cv": [
+    {
+      "model": "Logistic Regression",
+      "pr_auc_mean": 0.5365,
+      "pr_auc_std": 0.1165,
+      "roc_auc_mean": 0.9913,
+      "f1_mean": 0.2972
+    },
+    {
+      "model": "Random Forest",
+      "pr_auc_mean": 0.8548,
+      "pr_auc_std": 0.0566,
+      "roc_auc_mean": 0.9935,
+      "f1_mean": 0.6076
+    },
+    {
+      "model": "Gradient Boosting (LightGBM)",
+      "pr_auc_mean": 0.8284,
+      "pr_auc_std": 0.0554,
+      "roc_auc_mean": 0.9975,
+      "f1_mean": 0.7328
+    },
+    {
+      "model": "SGD (linear SVM)",
+      "pr_auc_mean": 0.1637,
+      "pr_auc_std": 0.0417,
+      "roc_auc_mean": 0.9734,
+      "f1_mean": 0.2773
+    },
+    {
+      "model": "Isolation Forest",
+      "pr_auc_mean": 0.1538,
+      "pr_auc_std": 0.0806,
+      "roc_auc_mean": 0.9615,
+      "f1_mean": 0.0896
+    },
+    {
+      "model": "MLP Autoencoder (recon. error)",
+      "pr_auc_mean": 0.2871,
+      "pr_auc_std": 0.0931,
+      "roc_auc_mean": 0.9498,
+      "f1_mean": 0.2522
+    }
+  ],
+  "training_timestamp_utc": "2026-08-08T11:51:50.779341+00:00",
+  "git_commit": "75af5adce963176cca405dafd200aa7ee35f1b4a",
+  "feature_list": [
+    "amount",
+    "log_amount",
+    "amount_ratio_orig",
+    "amount_ratio_dest",
+    "balance_after_ratio",
+    "log_oldbalance_orig",
+    "log_oldbalance_dest",
+    "is_focal",
+    "count_prior_orig",
+    "sum_amount_prev7_orig",
+    "steps_since_prev_orig",
+    "count_prior_dest",
+    "sum_amount_prev7_dest",
+    "hour_of_day",
+    "amount_vs_category_mean",
+    "region_distance_miles",
+    "is_out_of_home_region",
+    "is_new_merchant",
+    "is_new_payee",
+    "account_checking",
+    "account_savings",
+    "account_credit",
+    "account_background",
+    "is_weekend",
+    "type_CASH_IN",
+    "type_CASH_OUT",
+    "type_DEBIT",
+    "type_PAYMENT",
+    "type_SALARY",
+    "type_SHOP",
+    "type_SUBSCRIPTION",
+    "type_TRANSFER"
+  ],
+  "dataset": {
+    "rows": 10700142,
+    "fraud_rate": 0.0006,
+    "path": "data/transactions.parquet",
+    "train_rows": 600000,
+    "test_rows": 2675036,
+    "personas": 20200,
+    "focal_personas": 200
+  },
+  "archetype_recall": [
+    {
+      "archetype": "account_takeover",
+      "recall": 1.0,
+      "support": 48
+    },
+    {
+      "archetype": "balance_drain",
+      "recall": 1.0,
+      "support": 153
+    },
+    {
+      "archetype": "card_testing",
+      "recall": 0.9951,
+      "support": 205
+    },
+    {
+      "archetype": "mimicry",
+      "recall": 0.2121,
+      "support": 99
+    },
+    {
+      "archetype": "new_payee_transfer",
+      "recall": 0.8649,
+      "support": 74
+    },
+    {
+      "archetype": "refund_abuse",
+      "recall": 0.7376,
+      "support": 343
+    },
+    {
+      "archetype": "seasonal_mimicry",
+      "recall": 0.475,
+      "support": 80
+    },
+    {
+      "archetype": "slow_balance_drain",
+      "recall": 1.0,
+      "support": 402
+    },
+    {
+      "archetype": "subscription_creep",
+      "recall": 1.0,
+      "support": 192
+    }
+  ],
+  "cohort_fairness": [
+    {
+      "cohort": "dual_income_family",
+      "recall": 0.8349,
+      "support": 218,
+      "disparity_ratio": 1.139
+    },
+    {
+      "cohort": "gig_worker",
+      "recall": 0.815,
+      "support": 200,
+      "disparity_ratio": 1.139
+    },
+    {
+      "cohort": "recent_graduate",
+      "recall": 0.9282,
+      "support": 209,
+      "disparity_ratio": 1.139
+    },
+    {
+      "cohort": "retiree",
+      "recall": 0.8408,
+      "support": 402,
+      "disparity_ratio": 1.139
+    },
+    {
+      "cohort": "small_business_owner",
+      "recall": 0.8717,
+      "support": 265,
+      "disparity_ratio": 1.139
+    },
+    {
+      "cohort": "young_professional",
+      "recall": 0.8841,
+      "support": 302,
+      "disparity_ratio": 1.139
+    }
+  ],
+  "temporal_stability": [
+    {
+      "bucket": 0,
+      "start_step": 26271,
+      "end_step": 28044,
+      "precision": 0.1099,
+      "recall": 0.9701,
+      "support": 636
+    },
+    {
+      "bucket": 1,
+      "start_step": 28044,
+      "end_step": 29849,
+      "precision": 0.0793,
+      "recall": 0.9167,
+      "support": 276
+    },
+    {
+      "bucket": 2,
+      "start_step": 29849,
+      "end_step": 31606,
+      "precision": 0.063,
+      "recall": 0.76,
+      "support": 175
+    },
+    {
+      "bucket": 3,
+      "start_step": 31606,
+      "end_step": 33372,
+      "precision": 0.1316,
+      "recall": 0.7836,
+      "support": 268
+    },
+    {
+      "bucket": 4,
+      "start_step": 33372,
+      "end_step": 35038,
+      "precision": 0.1759,
+      "recall": 0.6722,
+      "support": 241
+    }
+  ],
+  "calibration": {
+    "brier": 0.0032,
+    "expected_calibration_error": 0.0056,
+    "curve_rows": [
+      {
+        "bin": 0,
+        "mean_pred": 0.0004,
+        "frac_pos": 0.0,
+        "count": 2641625
+      },
+      {
+        "bin": 1,
+        "mean_pred": 0.145,
+        "frac_pos": 0.0056,
+        "count": 7849
+      },
+      {
+        "bin": 2,
+        "mean_pred": 0.2474,
+        "frac_pos": 0.0074,
+        "count": 5139
+      },
+      {
+        "bin": 3,
+        "mean_pred": 0.3485,
+        "frac_pos": 0.0072,
+        "count": 3879
+      },
+      {
+        "bin": 4,
+        "mean_pred": 0.4493,
+        "frac_pos": 0.0077,
+        "count": 3111
+      },
+      {
+        "bin": 5,
+        "mean_pred": 0.5492,
+        "frac_pos": 0.0105,
+        "count": 2859
+      },
+      {
+        "bin": 6,
+        "mean_pred": 0.6483,
+        "frac_pos": 0.0135,
+        "count": 2511
+      },
+      {
+        "bin": 7,
+        "mean_pred": 0.7503,
+        "frac_pos": 0.0161,
+        "count": 2295
+      },
+      {
+        "bin": 8,
+        "mean_pred": 0.8486,
+        "frac_pos": 0.0178,
+        "count": 2136
+      },
+      {
+        "bin": 9,
+        "mean_pred": 0.9675,
+        "frac_pos": 0.3403,
+        "count": 3632
+      }
+    ]
+  },
+  "config": {
+    "random_state": 42,
+    "test_size": 0.25,
+    "split": "temporal (sort by step, no shuffle)",
+    "cv": "TimeSeriesSplit(k=5)",
+    "features": "strictly backward-looking",
+    "max_train_rows": 600000,
+    "selection_policy": "best mean CV PR-AUC, preferring the SHAP-capable model (Gradient Boosting (LightGBM)) when within 1 CV std of the leader (explainability tie-break, see KNOWN_LIMITATIONS)"
+  }
+}

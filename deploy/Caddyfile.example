@@ -1,0 +1,66 @@
+# Caddy reverse-proxy template for FinSight Agent (security audit §4).
+#
+# Pick this template when you self-host behind Caddy (Caddy terminates TLS
+# automatically via Let's Encrypt — no certbot step). If you deploy on Fly.io,
+# Fly's built-in proxy already does TLS termination and fly.toml is the
+# canonical path; you only need a proxy in front of the Streamlit UI for the
+# extra headers below (and the same for the API if you expose :8000).
+#
+# Copy to Caddyfile and replace your-domain.example.com. Reload with:
+#   caddy reload
+#
+# Notes:
+#  * Streamlit needs 'unsafe-inline' scripts/styles for its own inline
+#    bootstrapping — the CSP below is as strict as Streamlit's framework
+#    markup allows. It still blocks external script/style/img sources and
+#    connections, which is the meaningful part.
+#  * The API block keeps a looser CSP ONLY so /docs (Swagger UI) renders its
+#    inline scripts. If you run with the docs disabled in production, tighten
+#    it to match the app block.
+#  * Rate limiting at the proxy is optional (the API already ships an
+#    in-process per-IP limiter, FINSIGHT_RATE_LIMIT_PER_MIN); uncomment the
+#    rate_limit lines for a hard cap per IP.
+
+{
+    admin off
+}
+
+your-domain.example.com {
+    # Streamlit UI (:8501) — app/Home.py
+    reverse_proxy localhost:8501
+    encode zstd gzip
+    header {
+        # Baseline headers (the API already sets these on its own responses).
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "no-referrer"
+        # CSP as strict as Streamlit's inline-bootstrap markup allows.
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' ws: wss:; font-src 'self' data:;"
+        # HSTS (only after you've confirmed HTTPS works end-to-end).
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    }
+    # Uncomment for a hard per-IP cap at the proxy (the API limiter still
+    # applies to /api/* regardless):
+    # rate_limit {
+    #     zone dynamic
+    #     events 1000
+    #     window 1m
+    #     key {remote_host}
+    #     limit 600
+    # }
+}
+
+api.your-domain.example.com {
+    # FastAPI facts service (:8000) — finance_agent.api:app
+    reverse_proxy localhost:8000
+    encode zstd gzip
+    header {
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "no-referrer"
+        # Looser CSP ONLY so Swagger UI (/docs) renders its inline scripts.
+        # If you set docs disabled in production, tighten to the app block's.
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'"
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    }
+}

@@ -1,0 +1,45 @@
+name: accessibility
+
+# Phase F.4 — accessibility + mobile render pass over all 8 Streamlit pages
+# (Home + 7 multipage files) using Playwright + axe-core. Runs against a
+# LOCALLY-launched Streamlit instance on the tiny tier — deliberately
+# independent of the live deployment, so this job is green before §3b exists.
+#
+# Optional by design: it is scheduled / dispatch-only (never on every push),
+# because each run downloads Chromium and boots the app.
+
+on:
+  schedule:
+    # Weekly — Monday 05:15 UTC, after the retrain digest lands.
+    - cron: "15 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  axe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[dev,a11y]"
+      - name: Install Chromium (Playwright)
+        run: python -m playwright install --with-deps chromium
+      # The app bootstraps data/model itself if missing, but generate + train
+      # explicitly so the check exercises the same artifacts CI always uses.
+      - run: python generate_data.py --tier tiny --config config.yaml
+      - name: Train model bundle
+        run: python model_bench/train_and_compare.py --data data/transactions.csv --config config.yaml
+      - name: Run axe + mobile render checks (all pages)
+        run: python scripts/accessibility_check.py
+      - name: Upload accessibility report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: accessibility-report-${{ github.run_id }}
+          path: a11y/report.txt

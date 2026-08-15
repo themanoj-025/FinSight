@@ -1,0 +1,185 @@
+name: Weekly retrain
+
+on:
+  schedule:
+    - cron: "0 3 * * 1"   # Monday 03:00 UTC
+  workflow_dispatch:
+    inputs:
+      seed:
+        description: "Optional fixed seed override; default is the next counter value"
+        required: false
+        type: number
+
+concurrency:
+  group: retrain-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write      # to push the retrain branch
+  pull-requests: write # to open the retrain PR
+
+jobs:
+  retrain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[dev]"  # dev extras: pytest + hypothesis are required by the data-realism gate below
+
+      - name: Read committed seed counter
+        id: seed
+        run: |
+          n=$(cat model_bench/SEED_COUNTER 2>/dev/null || echo 0)
+          echo "counter=$n" >> "$GITHUB_OUTPUT"
+          echo "next=$(( n + 1 ))" >> "$GITHUB_OUTPUT"
+
+      - name: Keep previous metadata for comparison
+        run: git show HEAD:model_bench/best_model_metadata.json > /tmp/old_meta.json 2>/dev/null || echo "no previous metadata"
+
+      # Phase A.3 canary: keep the incumbent bundle from git so the freshly
+      # trained candidate can be scored against it on the SAME holdout window.
+      # The bundle is force-added by the previous retrain PR; on the first run
+      # after canary ships there is no baseline and canary.py degrades to a
+      # no-baseline profile (see model_bench/canary.py).
+      - name: Keep previous model bundle for canary comparison
+        run: git show HEAD:model_bench/risk_model_bundle.joblib > /tmp/old_bundle.joblib 2>/dev/null || echo "no previous bundle in git"
+
+      # Fixed, versioned seed strategy (4.3): the seed is derived from a
+      # committed counter (incremented in the PR), so re-running the workflow
+      # with the same recorded seed reproduces the same metrics.
+      - name: Regenerate data with fixed seed
+        run: python generate_data.py --tier demo --days 90 --seed "${{ inputs.seed || steps.seed.outputs.next }}" --config config.yaml
+
+      - name: Retrain + benchmark
+        run: python model_bench/train_and_compare.py --data data/transactions.csv --config config.yaml
+
+      # Data realism gate (§13): a statistically broken dataset must never
+      # silently become the new benchmark. Runs the demo-tier realism suite on
+      # its own seeded fixture; a failure fails the job and blocks the PR.
+      # `-m data_realism` is required: the pyproject addopts `-m 'not slow'`
+      # would deselect every slow-marked realism test (exit 5) otherwise.
+      - name: Data realism gate (blocks the retrain PR)
+        run: python -m pytest tests/test_data_realism.py -m data_realism -q --timeout 900
+
+      - name: Decide whether metrics changed materially
+        id: gate
+        run: |
+          python - <<'EOF'
+          import json, os
+          new = json.load(open("model_bench/best_model_metadata.json"))
+          new_pr = float(new["pr_auc_mean"])
+          changed = True
+          if os.path.exists("/tmp/old_meta.json"):
+              old = json.load(open("/tmp/old_meta.json"))
+              old_pr = float(old.get("pr_auc_mean", 0.0))
+              changed = abs(new_pr - old_pr) >= 0.005
+          print(f"pr_auc {old_pr if os.path.exists('/tmp/old_meta.json') else 'n/a'} -> {new_pr} — changed={changed}")
+          open("/tmp/changed.txt", "w").write("yes" if changed else "no")
+          open("/tmp/pr_auc.txt", "w").write(f"{new_pr:.4f}")
+          EOF
+          echo "changed=$(cat /tmp/changed.txt)" >> "$GITHUB_OUTPUT"
+          echo "pr_auc=$(cat /tmp/pr_auc.txt)" >> "$GITHUB_OUTPUT"
+
+      # Repo-hygiene (G.4): the demo-tier CSV is NOT committed every week (~0.5-1
+      # GB/year of repo growth). It is uploaded as a workflow artifact instead;
+      # the PR commits only the small tracked artifacts (metadata JSON, seed
+      # counter, charts, model files) so the repo stays lean and the diff stays
+      # reviewable. Download the CSV artifact from the run if you need it.
+      - name: Upload regenerated ledger as artifact (repo-hygiene, G.4)
+        if: steps.gate.outputs.changed == 'yes'
+        uses: actions/upload-artifact@v7
+        with:
+          name: retrain-ledger-${{ steps.seed.outputs.next }}
+          path: data/transactions.csv
+          retention-days: 30
+
+      # Phase A.3 canary / shadow evaluation: score BOTH the incumbent bundle
+      # (/tmp/old_bundle.joblib) and the freshly trained candidate on the same
+      # temporal holdout, and write the per-archetype recall diff table for the
+      # PR body. Prints REGRESSION or CLEAN — nothing else.
+      - name: Canary / shadow evaluation (per-archetype recall diff)
+        id: canary
+        if: steps.gate.outputs.changed == 'yes'
+        run: |
+          verdict=$(python model_bench/canary.py \
+            --old /tmp/old_bundle.joblib \
+            --new model_bench/risk_model_bundle.joblib \
+            --data data/transactions.csv \
+            --config config.yaml \
+            --out /tmp/canary_body.md)
+          echo "verdict=$verdict" >> "$GITHUB_OUTPUT"
+          echo "canary verdict: $verdict"
+
+      # The PR body comes from the committed template
+      # (.github/PULL_REQUEST_TEMPLATE/retrain.md) so the format can't drift:
+      # only the live values are substituted here.
+      - name: Render retrain PR body from template
+        id: body
+        if: steps.gate.outputs.changed == 'yes'
+        run: |
+          python - <<'EOF'
+          from pathlib import Path
+
+          tpl = Path(".github/PULL_REQUEST_TEMPLATE/retrain.md").read_text(encoding="utf-8")
+          canary = ""
+          if Path("/tmp/canary_body.md").exists():
+              canary = Path("/tmp/canary_body.md").read_text(encoding="utf-8").strip()
+          body = (
+              tpl.replace("{{SEED}}", "${{ steps.seed.outputs.next }}")
+                 .replace("{{PR_AUC}}", "${{ steps.gate.outputs.pr_auc }}")
+                 .replace("{{CANARY_BODY}}", canary)
+          )
+          Path("/tmp/retrain_pr_body.md").write_text(body, encoding="utf-8")
+          print(f"rendered retrain PR body: {len(body)} bytes")
+          EOF
+
+      # PR-based flow (4.3): never push straight to main; a human reviews the
+      # refreshed metadata/models before merging. The CSV stays out of git — see
+      # the artifact uploaded above.
+      - name: Open retrain PR
+        id: pr
+        if: steps.gate.outputs.changed == 'yes'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          branch="retrain/$(date +%Y-%m-%d)"
+          git config user.name "finsight-retrain-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          echo "${{ steps.seed.outputs.next }}" > model_bench/SEED_COUNTER
+          # Bundles + their C.2.4 signatures are gitignored (reproducible via
+          # `make train`) but force-added here so the retrain PR carries them.
+          git add model_bench/best_model_metadata.json \
+            model_bench/SEED_COUNTER \
+            model_bench/results/ \
+            model_bench/MODEL_CARD.md
+          git add -f model_bench/best_model.joblib model_bench/best_model.joblib.sig \
+            model_bench/risk_model_bundle.joblib model_bench/risk_model_bundle.joblib.sig
+          git commit -m "chore(retrain): refresh models + metadata (seed ${{ steps.seed.outputs.next }})" || exit 0
+          git push -u origin "$branch"
+          url=$(gh pr create --base main --head "$branch" \
+            --title "chore(retrain): refresh models + metadata (PR-AUC ${{ steps.gate.outputs.pr_auc }})" \
+            --body-file /tmp/retrain_pr_body.md)
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "opened $url"
+
+      # Phase A.3: a candidate that regressed an archetype's recall beyond the
+      # canary tolerance gets a warning label so it requires explicit human
+      # sign-off instead of a routine merge.
+      - name: Flag canary regression (requires human sign-off)
+        if: steps.gate.outputs.changed == 'yes' && steps.canary.outputs.verdict == 'REGRESSION'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh label create canary-regression \
+            --description "Per-archetype recall dropped beyond the canary tolerance — requires explicit human sign-off" \
+            --force 2>/dev/null || true
+          gh pr edit "${{ steps.pr.outputs.url }}" --add-label canary-regression
+          echo "labeled ${{ steps.pr.outputs.url }} canary-regression"
+      - name: Nothing materially changed
+        if: steps.gate.outputs.changed != 'yes'
+        run: echo "No material metric change — skipping PR."

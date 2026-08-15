@@ -1,0 +1,67 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# Generated data & model artifacts (reproducible via `make data` / `make train`).
+# best_model_metadata.json stays tracked so the weekly retrain job can diff metrics.
+data/transactions.csv
+data/*.parquet
+data/agent_activity.jsonl
+data/transactions.db
+data/transactions.db-wal
+data/transactions.db-shm
+model_bench/best_model.joblib
+model_bench/risk_model_bundle.joblib
+# C.2.4 bundle signatures travel with the (gitignored) bundles
+model_bench/*.joblib.sig
+model_bench/results/
+reports/
+
+# Mutation-testing cache (D.4) — regenerate with `make mutate`
+mutmut-cache/
+mutants/  # mutmut 3.x sandbox (mirrors source + tests; regenerated on every run)
+
+# Locust load-test artifacts (F.5) — regenerated every `make loadtest` run;
+# only loadtest/locustfile.py is tracked (the CI job uploads the results as
+# workflow artifacts instead of committing them).
+loadtest/report.html
+loadtest/results_*.csv
+loadtest/results_slo_report.txt
+
+# Accessibility report (F.4) — regenerated every `make a11y` run; the CI job
+# uploads it as a workflow artifact.
+a11y/
+
+# Coverage artifacts
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Local build / scratch artifacts (never commit these)
+build.log
+*.log
+# ...except the status-page probe log (D.2), which is committed deliberately:
+# it doubles as the static status page (status/health.log). The negation must
+# come after the `*.log` rule above.
+!status/health.log
+dist/
+build/
+*.whl
+.streamlit/secrets.toml
+
+# Environment
+.env
+*.local
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
