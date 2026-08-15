@@ -17,8 +17,8 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 from sklearn.inspection import permutation_importance  # noqa: E402
-from sklearn.metrics import (  # noqa: E402
-    average_precision_score,
+from sklearn.metrics import (
+    average_precision_score,  # noqa: E402
     confusion_matrix,
     f1_score,
     precision_recall_curve,

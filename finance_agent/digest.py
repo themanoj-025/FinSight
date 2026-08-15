@@ -199,7 +199,9 @@ def send_slack(webhook_url: str, text: str) -> None:
         webhook_url, data=payload, headers={"Content-Type": "application/json"}
     )
     try:
-        with urllib.request.urlopen(req, timeout=15) as resp:  # noqa: S310 — user-configured webhook
+        with urllib.request.urlopen(
+            req, timeout=15
+        ) as resp:  # noqa: S310 — user-configured webhook
             if resp.status >= 400:
                 raise RuntimeError(f"Slack webhook returned HTTP {resp.status}")
     except urllib.error.HTTPError as exc:

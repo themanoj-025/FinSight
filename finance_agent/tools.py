@@ -25,11 +25,7 @@ from finance_agent.bundle_security import verify_bundle
 from finance_agent.config_schema import validate_config
 from finance_agent.constants import CREDIT_TYPES, fmt_money
 from finance_agent.features import build_features
-from finance_agent.retrieval import (
-    SimilarTransactionIndex,
-    build_embeddings,
-    neighbor_rows,
-)
+from finance_agent.retrieval import SimilarTransactionIndex, build_embeddings, neighbor_rows
 from finance_agent.storage import TransactionStore
 from model_bench import models as bench_models
 

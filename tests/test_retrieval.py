@@ -267,6 +267,6 @@ def test_archetype_purity_fraud_neighbors_cluster(env, k):
         f"same-archetype fraction among fraud neighbors too low: "
         f"mean {np.mean(all_frac):.2f} over {queries} queries"
     )
-    assert nearest_ok / queries >= 0.6, (
-        f"nearest fraud neighbor shares the archetype only {nearest_ok}/{queries} times"
-    )
+    assert (
+        nearest_ok / queries >= 0.6
+    ), f"nearest fraud neighbor shares the archetype only {nearest_ok}/{queries} times"

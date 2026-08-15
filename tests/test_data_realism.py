@@ -101,9 +101,9 @@ def test_all_fraud_archetypes_appear(ledger):
     labeled = ledger[(ledger["isFraud"] == 1) | (ledger["is_anomaly"] == 1)]
     seen = set(labeled["fraud_archetype"])
     # every labeled archetype fires somewhere in a 7-month window
-    assert set(FRAUD_ARCHETYPES) - {"bust_out"} <= seen, (
-        f"missing archetypes: {set(FRAUD_ARCHETYPES) - {'bust_out'} - seen}"
-    )
+    assert (
+        set(FRAUD_ARCHETYPES) - {"bust_out"} <= seen
+    ), f"missing archetypes: {set(FRAUD_ARCHETYPES) - {'bust_out'} - seen}"
     # hard negatives are present but must NOT be fraud or anomaly
     hard = ledger[ledger["fraud_archetype"].isin(HARD_NEGATIVE_ARCHETYPES)]
     assert not hard.empty
@@ -133,9 +133,9 @@ def test_seasonality_holiday_shopping_bump(ledger):
     per_day = d.groupby("_is_holiday").size() / pd.Series(
         {False: float(len(dates) - n_holiday), True: float(n_holiday)}, dtype=float
     )
-    assert per_day.get(True, 0.0) > per_day.get(False, 0.0) * 1.15, (
-        "holiday shopping frequency/day should be visibly above the baseline"
-    )
+    assert (
+        per_day.get(True, 0.0) > per_day.get(False, 0.0) * 1.15
+    ), "holiday shopping frequency/day should be visibly above the baseline"
     # the multiplier table itself is monotonic the right way
     assert SEASONAL_MULTIPLIER["shopping"][11] > SEASONAL_MULTIPLIER["shopping"][5]
 
@@ -252,9 +252,9 @@ def test_life_events_do_not_trip_fraud_labels(multi_year):
     # clamps a debit to the available balance when it would overdraw (realistic
     # behavior), so an *attempted* large purchase can land below the nominal
     # minimum for a thin-buffer persona — assert the median stays large.
-    assert life["amount"].median() >= 500, (
-        f"life events should be large: {life['amount'].describe()}"
-    )
+    assert (
+        life["amount"].median() >= 500
+    ), f"life events should be large: {life['amount'].describe()}"
     assert life["fraud_archetype"].nunique() == 1
 
 

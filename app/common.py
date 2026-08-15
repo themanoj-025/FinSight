@@ -24,11 +24,7 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-from finance_agent.observability import (
-    configure_logging,
-    report_exception,
-    set_correlation_id,
-)
+from finance_agent.observability import configure_logging, report_exception, set_correlation_id
 
 ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
