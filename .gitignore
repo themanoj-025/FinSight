@@ -56,6 +56,9 @@ build/
 *.whl
 .streamlit/secrets.toml
 
+# Node.js
+node_modules/
+
 # Environment
 .env
 *.local
