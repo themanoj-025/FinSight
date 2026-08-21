@@ -41,4 +41,5 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=120s --retries=3 \
 # persist them across restarts, so `docker compose restart` does not retrain).
 # A failing bootstrap exits the container (bounded by compose `on-failure:5`),
 # instead of an unbounded `unless-stopped` crash loop.
+STOPSIGNAL SIGTERM
 CMD ["/app/docker-entrypoint.sh", "streamlit", "run", "app/Home.py", "--server.port", "8501", "--server.address", "0.0.0.0"]
