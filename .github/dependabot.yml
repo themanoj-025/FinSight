@@ -1,53 +1,56 @@
-# Keep dependencies current: weekly `pip` updates (via pyproject.toml) and
-# GitHub Actions updates.
-#
-# NOTE on the lockfile: requirements.lock is compiled with `uv pip compile
-# pyproject.toml -o requirements.lock --python-version 3.10`. Dependabot bumps
-# the ranges in pyproject.toml; the CI `lockfile` job (scripts/check_lockfile.sh)
-# and the pre-push hook (`make hooks`) then fail loudly until the lockfile is
-# recompiled and committed in the same PR. See CONTRIBUTING.md.
 version: 2
 updates:
-  - package-ecosystem: "pip"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "06:00"
-      timezone: "UTC"
-    open-pull-requests-limit: 10
-    labels:
-      - "dependencies"
-    groups:
-      python-minor-and-patch:
-        applies-to: version-updates
-        patterns:
-          - "*"
-        update-types:
-          - "minor"
-          - "patch"
-
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "06:00"
-      timezone: "UTC"
-    open-pull-requests-limit: 5
-    labels:
-      - "dependencies"
-
-  - package-ecosystem: "pre-commit"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-      timezone: "Asia/Kolkata"
-    labels:
-      - "dependencies"
-      - "pre-commit"
-    commit-message:
-      prefix: "chore(deps)"
-      include: "scope"
+- package-ecosystem: pip
+  directory: /
+  schedule:
+    interval: weekly
+    day: monday
+    time: 06:00
+    timezone: UTC
+  open-pull-requests-limit: 10
+  labels:
+  - dependencies
+  groups:
+    python-minor-and-patch:
+      applies-to: version-updates
+      patterns:
+      - '*'
+      update-types:
+      - minor
+      - patch
+- package-ecosystem: github-actions
+  directory: /
+  schedule:
+    interval: weekly
+    day: monday
+    time: 06:00
+    timezone: UTC
+  open-pull-requests-limit: 5
+  labels:
+  - dependencies
+- package-ecosystem: pre-commit
+  directory: /
+  schedule:
+    interval: weekly
+    day: monday
+    time: 09:00
+    timezone: Asia/Kolkata
+  labels:
+  - dependencies
+  - pre-commit
+  commit-message:
+    prefix: chore(deps)
+    include: scope
+- package-ecosystem: docker
+  directory: /
+  schedule:
+    interval: weekly
+    day: monday
+    time: 09:00
+    timezone: Asia/Kolkata
+  labels:
+  - dependencies
+  - docker
+  commit-message:
+    prefix: chore(deps)
+    include: scope
