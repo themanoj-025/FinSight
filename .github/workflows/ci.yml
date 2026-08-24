@@ -75,6 +75,20 @@ jobs:
       - run: pip install -e ".[dev]"
       - run: mypy finance_agent model_bench app tests
 
+  bandit:
+    name: Bandit security scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+          cache: pip
+        with:
+          python-version: '3.12'
+      - name: Install bandit
+        run: pip install bandit
+      - name: Run bandit
+        run: bandit -r finance_agent -ll
+
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 30
