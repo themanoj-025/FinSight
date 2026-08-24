@@ -28,6 +28,7 @@ import argparse
 import subprocess
 import sys
 import time
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -71,7 +72,7 @@ def _wait_healthy(base: str, port: int, proc: subprocess.Popen[bytes] | None) ->
             with urllib.request.urlopen(f"{base}/_stcore/health", timeout=2) as r:
                 if r.status == 200:
                     return
-        except Exception:
+        except (OSError, urllib.error.URLError):
             pass
         if proc is not None and proc.poll() is not None:
             raise SystemExit("Streamlit exited before becoming healthy (see stderr log)")
