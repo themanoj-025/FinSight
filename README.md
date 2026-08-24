@@ -20,27 +20,15 @@ in plain English — all behind a polished Streamlit app.*
 
 ---
 
-## 📖 Table of Contents
+## 💡 Why I Built This
 
-- [✨ Features](#-features)
-- [📸 Screenshots](#-screenshots)
-- [🏗️ Architecture](#️-architecture)
-- [🚀 Quickstart](#-quickstart)
-  - [Service mode (optional)](#service-mode-optional)
-  - [🖥️ Usage](#️-usage)
-  - [The app](#the-app)
-  - [The CLI](#the-cli)
-- [📁 Project structure](#-project-structure)
-- [🧪 What's inside](#-whats-inside)
-- [📊 The model benchmark](#-the-model-benchmark-evidence-not-claims)
-  - [Evaluation methodology & limitations](#evaluation-methodology--limitations)
-- [🤔 Design decisions](#-design-decisions-and-the-trade-offs)
-- [✅ Testing & code quality](#-testing--code-quality)
-- [📚 Documentation](#-documentation)
-- [❓ FAQ & troubleshooting](#-faq--troubleshooting)
-- [🛣️ Roadmap](#️-roadmap)
-- [🤝 Contributing](#-contributing)
-- [📄 License](#-license)
+I built FinSight because I was frustrated with fraud detection tutorials that just print a meaningless accuracy score on a static dataset. I wanted to build a true end-to-end ML pipeline with honest time-series cross-validation, while exploring how to safely integrate LLMs into a deterministic rules engine without letting them hallucinate financial data.
+
+## ⚠️ Known Limitations
+
+- **FAISS Latency:** The similar-transaction retrieval uses a local FAISS index which rebuilds in-memory. This scales poorly past 1M rows and should be replaced with pgvector in a real deployment.
+- **Synthetic Data Drift:** While the synthetic ledger generator has 15 fraud patterns, it's ultimately still synthetic. It won't capture the true adversarial drift seen in real-world credit card fraud.
+- **Agent Token Usage:** Using Claude/Gemini to narrate every single flagged transaction can quickly rack up API costs. The offline deterministic fallback helps, but the LLM route isn't cost-effective for batch processing.
 
 ---
 
