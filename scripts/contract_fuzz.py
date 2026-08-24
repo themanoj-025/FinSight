@@ -23,6 +23,7 @@ import shutil
 import subprocess
 import sys
 import time
+import urllib.error
 import urllib.request
 
 EXCLUDE_PATHS = ("/api/v1/reload",)
@@ -50,7 +51,7 @@ def _boot(port: int) -> subprocess.Popen[bytes]:
             with urllib.request.urlopen(f"http://127.0.0.1:{port}/api/v1/health", timeout=2) as r:
                 if r.status == 200:
                     return proc
-        except Exception:
+        except (OSError, urllib.error.URLError):
             pass
         time.sleep(1)
     proc.terminate()
