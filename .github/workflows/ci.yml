@@ -177,6 +177,15 @@ jobs:
         with:
           sarif_file: trivy-results.sarif
 
+  hadolint:
+    name: Container lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+
   install-check:
     # 4.4: `pip install .` (no extras) must succeed without pulling in Anthropic.
     runs-on: ubuntu-latest
