@@ -40,7 +40,7 @@ dependencies = [
 # The LLM agent is optional at runtime — the app degrades to the offline
 # narrator without it, so `pip install .` must not require the Anthropic SDK.
 llm = [
-    "anthropic>=0.25,<1",
+    "anthropic>=0.25,<2",
 ]
 # Similar-transaction retrieval (finance_agent/retrieval.py): faiss-cpu is
 # optional — without it the code uses an exact-L2 numpy fallback that is
