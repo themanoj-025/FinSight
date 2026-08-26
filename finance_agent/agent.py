@@ -532,7 +532,7 @@ class FinanceAgent:
                     max_tokens=int(self.agent_cfg.get("max_tokens", 1024)),
                     temperature=float(self.agent_cfg.get("temperature", 0.2)),
                     system=SYSTEM_PROMPT,
-                    tools=[{k: v for k, v in s.items() if k != "callable"} for s in TOOL_SPECS],  # type: ignore[misc,arg-type]
+                    tools=[{k: v for k, v in s.items() if k != "callable"} for s in TOOL_SPECS],  # type: ignore[misc]
                     messages=messages,  # type: ignore[arg-type]
                 ) as stream:
                     yield from stream.text_stream
