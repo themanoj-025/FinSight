@@ -84,7 +84,8 @@ class SimilarTransactionIndex:
         self._faiss_index: Any = None
         if _FAISS_AVAILABLE:
             try:
-                index = faiss.IndexFlatL2(self.embeddings.shape[1])  # type: ignore[union-attr]
+                assert faiss is not None
+                index = faiss.IndexFlatL2(self.embeddings.shape[1])
                 index.add(self.embeddings)
                 self._faiss_index = index
             except (AttributeError, OSError, ValueError):
@@ -107,7 +108,8 @@ class SimilarTransactionIndex:
         q = np.asarray(query, dtype=np.float32).reshape(1, -1)
         limit = k + (1 if exclude is not None else 0)
         if self._faiss_index is not None:
-            distances, indices = self._faiss_index.search(q, int(limit))  # type: ignore[union-attr]
+            assert self._faiss_index is not None
+            distances, indices = self._faiss_index.search(q, int(limit))
             # Pair each index with its own distance (zip, not enumerate — if
             # faiss ever returns an invalid -1 entry, filtering it must not
             # shift the distances for the entries after it).
