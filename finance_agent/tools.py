@@ -193,7 +193,7 @@ class FinanceFacts:
                     if reason != "signature OK":
                         log.warning("Model bundle %s: %s", bundle_path, reason)
                     self.bundle = joblib.load(bundle_path)
-            except Exception:  # noqa: BLE001 — a stale/corrupt bundle must not kill the app
+            except (OSError, ValueError, KeyError, TypeError):
                 log.warning("Could not load model bundle %s; continuing rule-only.", bundle_path)
         # Optional SQLite persistence layer (config data.store_path). When set,
         # the expensive risk-scoring path runs once per (data, model)
@@ -665,7 +665,7 @@ class FinanceFacts:
             alerts.send_risk_alerts(
                 result["data"], self.cfg, source="risk_scan", focal_user=self.focal_user
             )
-        except Exception:  # noqa: BLE001 — the scan result is the contract, the alert is not
+        except (OSError, ConnectionError, TimeoutError):
             log.warning("Risk-alert webhook path failed; scan continues.", exc_info=True)
         return result
 

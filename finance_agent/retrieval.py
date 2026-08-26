@@ -87,7 +87,7 @@ class SimilarTransactionIndex:
                 index = faiss.IndexFlatL2(self.embeddings.shape[1])  # type: ignore[union-attr]
                 index.add(self.embeddings)
                 self._faiss_index = index
-            except Exception:  # noqa: BLE001 — fall back to numpy search
+            except (AttributeError, OSError, ValueError):
                 log.warning("faiss index build failed; using the numpy fallback.")
                 self._faiss_index = None
         if self._faiss_index is None:

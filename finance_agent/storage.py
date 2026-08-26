@@ -539,5 +539,5 @@ def reset_store_for_config(config_path: str) -> None:
         store_path = (cfg.get("data") or {}).get("store_path")
         if store_path:
             TransactionStore(str(store_path)).reset()
-    except Exception:  # noqa: BLE001 — cache clearing is best-effort
+    except (OSError, ValueError):
         pass

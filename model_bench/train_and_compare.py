@@ -61,7 +61,7 @@ def _git_sha() -> str | None:
             ["git", "rev-parse", "HEAD"], capture_output=True, text=True, timeout=5
         )
         return out.stdout.strip() if out.returncode == 0 else None
-    except Exception:  # noqa: BLE001 — best-effort metadata
+    except (OSError, subprocess.TimeoutExpired):
         return None
 
 

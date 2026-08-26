@@ -127,5 +127,5 @@ def report_exception(exc: BaseException) -> bool:
             _sentry_initialized = True
         sentry_sdk.capture_exception(exc)
         return True
-    except Exception:  # noqa: BLE001 — observability must never break the app
+    except (OSError, ValueError):
         return False

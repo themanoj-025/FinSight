@@ -445,7 +445,7 @@ class FinanceAgent:
         try:
             self._anthropic.Anthropic(api_key=api_key).models.list(limit=1)
             ok = True
-        except Exception:  # noqa: BLE001 — invalid key / network error
+        except (ValueError, OSError, ConnectionError, TimeoutError):
             ok = False
         _KEY_VALIDATION_CACHE[api_key] = ok
         return ok
