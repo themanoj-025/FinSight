@@ -116,7 +116,7 @@ def report_exception(exc: BaseException) -> bool:
         return False
     global _sentry_initialized
     try:
-        import sentry_sdk  # type: ignore[import-not-found]  # optional, DSN-gated
+        import sentry_sdk  # type: ignore[import-not-found]
 
         if not _sentry_initialized:
             sentry_sdk.init(

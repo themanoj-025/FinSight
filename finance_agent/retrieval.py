@@ -26,11 +26,11 @@ import pandas as pd
 log = logging.getLogger("finance_agent.retrieval")
 
 try:  # faiss-cpu is optional — the numpy fallback is numerically identical.
-    import faiss  # type: ignore[import-untyped]
+    import faiss  # type: ignore[import-not-found]
 
     _FAISS_AVAILABLE = True
 except ImportError:  # pragma: no cover — exercised in the no-extra install
-    faiss = None  # type: ignore[assignment]
+    faiss = None
     _FAISS_AVAILABLE = False
 
 
