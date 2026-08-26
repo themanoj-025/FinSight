@@ -20,7 +20,7 @@ import os
 import re
 import time
 from collections.abc import Iterator
-from typing import Any
+from typing import Any, cast
 
 import pandas as pd
 
@@ -532,8 +532,8 @@ class FinanceAgent:
                     max_tokens=int(self.agent_cfg.get("max_tokens", 1024)),
                     temperature=float(self.agent_cfg.get("temperature", 0.2)),
                     system=SYSTEM_PROMPT,
-                    tools=[{k: v for k, v in s.items() if k != "callable"} for s in TOOL_SPECS],  # type: ignore[misc]
-                    messages=messages,  # type: ignore[arg-type]
+                    tools=cast(Any, [{k: v for k, v in s.items() if k != "callable"} for s in TOOL_SPECS]),
+                    messages=cast(Any, messages),
                 ) as stream:
                     yield from stream.text_stream
                     final = stream.get_final_message()
