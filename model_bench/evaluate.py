@@ -11,14 +11,11 @@ import os
 from typing import Any
 
 import matplotlib
-
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt  # noqa: E402
-import numpy as np  # noqa: E402
-import pandas as pd  # noqa: E402
-from sklearn.inspection import permutation_importance  # noqa: E402
+import numpy as np
+import pandas as pd
+from sklearn.inspection import permutation_importance
 from sklearn.metrics import (
-    average_precision_score,  # noqa: E402
+    average_precision_score,
     confusion_matrix,
     f1_score,
     precision_recall_curve,
@@ -27,6 +24,9 @@ from sklearn.metrics import (
     roc_auc_score,
     roc_curve,
 )
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 
 BG = "#0D1526"
 FG = "#E7EEF9"
