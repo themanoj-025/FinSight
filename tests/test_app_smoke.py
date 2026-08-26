@@ -190,7 +190,7 @@ def test_streamlit_app_boots_headless():
                     if resp.read().decode() == "ok":
                         healthy = True
                         break
-            except Exception:  # noqa: BLE001 — server still starting
+            except (OSError, ConnectionError, TimeoutError):
                 time.sleep(2)
         assert healthy, "Streamlit did not become healthy in time"
     finally:

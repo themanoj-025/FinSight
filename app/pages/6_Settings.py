@@ -220,7 +220,7 @@ def render() -> None:
 def model_or_default() -> str:
     try:
         return str(common.get_facts().cfg.get("agent", {}).get("model", DEFAULT_MODEL))
-    except Exception:  # noqa: BLE001
+    except (AttributeError, ValueError, KeyError):
         return DEFAULT_MODEL
 
 

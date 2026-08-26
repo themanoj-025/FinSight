@@ -65,7 +65,7 @@ def _load_config(config_path: str) -> dict[str, Any]:
                 import yaml
 
                 cfg = yaml.safe_load(fh) or {}
-            except Exception:  # noqa: BLE001 — a bad config must never crash the CLI
+            except (yaml.YAMLError, OSError, ValueError):
                 cfg = {}
     return cfg.get("data", {}) or {}
 

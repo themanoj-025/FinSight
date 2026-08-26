@@ -188,7 +188,7 @@ def _similar_transactions_explainer(facts, rows: list[dict]) -> None:
     rec = labels[choice]
     try:
         result = facts.find_similar_transactions(transaction_id=rec["row_index"], k=5)
-    except Exception:  # noqa: BLE001 — older API / disabled flag: degrade visibly
+    except (ValueError, OSError):
         st.info("Similar-transaction retrieval is unavailable on this data source.")
         return
     data = result.get("data", {})

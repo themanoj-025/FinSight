@@ -194,7 +194,7 @@ def clear_all_caches() -> None:
         from finance_agent import tools as _tools
 
         _tools._scored_frame_json.cache_clear()  # noqa: SLF001
-    except Exception:  # noqa: BLE001 — cache clearing is best-effort
+    except (OSError, ValueError):
         pass
     # The SQLite store self-heals via its (data, model) fingerprint, but drop
     # its rows immediately so a regenerated ledger can never serve stale scores
@@ -203,7 +203,7 @@ def clear_all_caches() -> None:
         from finance_agent.storage import reset_store_for_config
 
         reset_store_for_config(str(ROOT / "config.yaml"))
-    except Exception:  # noqa: BLE001 — cache clearing is best-effort
+    except (OSError, ValueError):
         pass
     # In service mode, tell the API to drop its facts snapshot too so the next
     # request rebuilds it from the regenerated artifacts. Best-effort.
