@@ -86,7 +86,7 @@ def main() -> int:
         for path in EXCLUDE_PATHS:
             cmd += ["--exclude-path", path]
         cmd += ["--max-examples", str(args.max_examples), "--seed", str(args.seed), "--no-shrink"]
-        rc = subprocess.call(cmd)
+        rc = subprocess.run(cmd).returncode
         if rc != 0:
             print("::error::schemathesis found contract violations (500s or schema drift)")
         return rc
