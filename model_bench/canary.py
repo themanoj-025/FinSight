@@ -43,8 +43,8 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from finance_agent.features import build_features  # noqa: E402
-from model_bench import evaluate, models  # noqa: E402
+from finance_agent.features import build_features
+from model_bench import evaluate, models
 
 DEFAULT_TOLERANCE = 0.05
 
