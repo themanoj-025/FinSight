@@ -347,6 +347,26 @@ def create_app(config_path: str | None = None) -> FastAPI:
             "spending breakdowns, financial health, and per-transaction risk "
             "scoring with SHAP explanations. Interactive docs at /docs."
         ),
+        docs_url="/docs",
+        redoc_url="/redoc",
+        openapi_tags=[
+            {
+                "name": "health",
+                "description": "Service health check and readiness probes",
+            },
+            {
+                "name": "facts",
+                "description": "Monthly summaries, category breakdowns, budgets, and financial health",
+            },
+            {
+                "name": "risk",
+                "description": "Per-transaction risk scoring, SHAP explanations, and similar transactions",
+            },
+            {
+                "name": "admin",
+                "description": "Service reload, metrics, and metadata",
+            },
+        ],
     )
     # The Streamlit client is server-side (no browser CORS), but the API is
     # also consumable from the browser at /docs — allow that. Origins are
