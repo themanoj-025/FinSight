@@ -572,7 +572,7 @@ def create_app(config_path: str | None = None) -> FastAPI:
         ``limit`` rows (default 500, max 5000) with ``total`` + ``truncated``
         so clients can page instead of pulling the whole ledger at once."""
         facts = _facts_or_503(user)
-        df = facts._focal() if focal_only else facts.df  # noqa: SLF001 — app-facing helper
+        df = facts.focal() if focal_only else facts.df
         total = int(len(df))
         page = df.iloc[offset : offset + limit]
         return {

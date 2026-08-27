@@ -91,12 +91,15 @@ class ApiClient:
     def cfg(self) -> dict[str, Any]:
         return dict(self._meta["config"])
 
-    def _resolve_focal(self) -> tuple[str, list[str]]:
+    def resolve_focal(self) -> tuple[str, list[str]]:
         """(selected focal_user, all focal_users) — resolved from the API meta."""
         all_users = [str(u) for u in self._meta.get("focal_users") or []]
         default = str(self._meta.get("focal_user") or (all_users[0] if all_users else ""))
         selected = self.focal_user or default
         return selected, all_users or [selected]
+
+    # Keep private alias for internal callers that predate the rename.
+    _resolve_focal = resolve_focal
 
     def rule_only(self) -> bool:
         return bool(self._meta["rule_only"])
@@ -149,10 +152,10 @@ class ApiClient:
             d = self.df[self.df["nameOrig"] == selected]
         return [str(t) for t in sorted(d["account_type"].dropna().unique())]
 
-    def _focal(self, account_type: str | None = None) -> pd.DataFrame:
+    def focal(self, account_type: str | None = None) -> pd.DataFrame:
         """The focal frame, optionally narrowed to one account channel.
 
-        Mirrors ``FinanceFacts._focal``: the default (None / "checking") is the
+        Mirrors ``FinanceFacts.focal``: the default (None / "checking") is the
         user's primary checking account; ``"all"`` returns every account of
         the persona, and a specific type narrows to that channel. The API's
         ``focal_only`` frame only carries the primary account, so persona-level
@@ -164,11 +167,14 @@ class ApiClient:
         d = self.df
         if "persona_id" not in d.columns:
             return self._focal_df.copy()
-        selected, _ = self._resolve_focal()
+        selected, _ = self.resolve_focal()
         d = d[d["persona_id"] == selected]
         if account_type == "all" or "account_type" not in d.columns:
             return d
         return d[d["account_type"] == account_type]
+
+    # Keep private alias for internal callers that predate the rename.
+    _focal = focal
 
     @staticmethod
     def _frame(payload: dict[str, Any]) -> pd.DataFrame:

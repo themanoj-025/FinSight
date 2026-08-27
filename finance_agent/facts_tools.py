@@ -205,11 +205,13 @@ class FactTools(_FinanceFactsBase):
         incomes = monthly["income"].to_numpy(dtype=float)
         expenses = monthly["expenses"].to_numpy(dtype=float)
         n = len(months)
-        slope = lambda v: float(np.polyfit(np.arange(n), v, 1)[0]) if n >= 2 else 0.0  # noqa: E731
-        f_income = max(0.0, float(incomes[-1]) + slope(incomes))
-        f_expenses = max(0.0, float(expenses[-1]) + slope(expenses))
+        def _slope(v: np.ndarray) -> float:
+            return float(np.polyfit(np.arange(n), v, 1)[0]) if n >= 2 else 0.0
+
+        f_income = max(0.0, float(incomes[-1]) + _slope(incomes))
+        f_expenses = max(0.0, float(expenses[-1]) + _slope(expenses))
         trend = (
-            "rising" if slope(expenses) > 0 else ("falling" if slope(expenses) < 0 else "stable")
+            "rising" if _slope(expenses) > 0 else ("falling" if _slope(expenses) < 0 else "stable")
         )
         summary = (
             f"Next month projection: income ~{fmt_money(f_income)}, expenses "

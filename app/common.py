@@ -77,6 +77,10 @@ def _run_python(args: list[str]) -> None:
     )
 
 
+# Public alias — used by Settings page (6_Settings.py) via `common.run_python(...)`.
+run_python = _run_python
+
+
 def api_url() -> str:
     """Base URL of the FinSight Agent API, or '' to use local facts (default)."""
     return os.environ.get("FINSIGHT_API_URL", "").strip()
@@ -140,7 +144,7 @@ def focal_user_selector() -> None:
     from app.api_client import ApiClient
 
     if isinstance(facts, ApiClient):
-        current, users = facts._resolve_focal()  # noqa: SLF001 — client helper
+        current, users = facts.resolve_focal()
     else:
         users = list(getattr(facts, "focal_users", []) or [])
         current = _selected_focal_user() or str(
@@ -168,6 +172,16 @@ def get_agent(api_key: str = ""):
     return _agent_for(api_key, _selected_focal_user())
 
 
+def clear_agent_cache() -> None:
+    """Drop the cached agent instance (e.g. after API key change)."""
+    _agent_for.clear()
+
+
+def clear_facts_cache() -> None:
+    """Drop the cached facts instance (e.g. after data regeneration)."""
+    _facts_for.clear()
+
+
 @st.cache_data(show_spinner=False)
 def _monthly_table(focal_user: str, account_type: str = "checking") -> pd.DataFrame:
     # C.2.5: the dashboard table and the facts tools must compute identical
@@ -176,7 +190,7 @@ def _monthly_table(focal_user: str, account_type: str = "checking") -> pd.DataFr
     from finance_agent.tools import monthly_income_expenses
 
     facts = _facts_for(focal_user)
-    d = facts._focal(account_type=account_type or None)  # noqa: SLF001 — app helper
+    d = facts.focal(account_type=account_type or None)
     return monthly_income_expenses(d)
 
 
@@ -193,7 +207,9 @@ def clear_all_caches() -> None:
     try:
         from finance_agent import tools as _tools
 
-        _tools._scored_frame_json.cache_clear()  # noqa: SLF001
+        scored = getattr(_tools, "_scored_frame_json", None)
+        if scored is not None:
+            scored.cache_clear()
     except (OSError, ValueError):
         pass
     # The SQLite store self-heals via its (data, model) fingerprint, but drop
