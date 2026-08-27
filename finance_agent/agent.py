@@ -415,12 +415,12 @@ class FinanceAgent:
                 import anthropic  # optional dependency
 
                 self._anthropic = anthropic
-            except Exception as exc:  # noqa: BLE001 — degrade offline
+            except (RuntimeError, ValueError, OSError) as exc:  # noqa: BLE001  # noqa: BLE001 — degrade offline
                 log.warning("Anthropic unavailable (%s); using offline narrator.", exc)
         if self._anthropic and self.api_key:
             try:
                 self._client = self._anthropic.Anthropic(api_key=self.api_key)
-            except Exception as exc:  # noqa: BLE001 — degrade offline
+            except (RuntimeError, ValueError, OSError) as exc:  # noqa: BLE001  # noqa: BLE001 — degrade offline
                 log.warning("Anthropic client unavailable (%s); using offline narrator.", exc)
                 self._anthropic = None
         self.activity = ActivityLogger(
@@ -560,7 +560,7 @@ class FinanceAgent:
                         out_tok,
                         estimate_cost(self.agent_cfg, model, in_tok, out_tok),
                     )
-            except Exception as exc:  # noqa: BLE001 — graceful degradation
+            except (RuntimeError, ValueError, OSError) as exc:  # noqa: BLE001  # noqa: BLE001 — graceful degradation
                 latency_ms = (time.perf_counter() - t0) * 1000
                 self.usage.record_llm(model, 0, 0, latency_ms, ok=False, error=str(exc))
                 log.error("LLM call failed: %s", exc)
@@ -607,7 +607,7 @@ class FinanceAgent:
             ms = (time.perf_counter() - t0) * 1000
             self.usage.record_tool(name, ms, ok=True)
             return tool_result_payload(result), True, "", ms
-        except Exception as exc:  # noqa: BLE001
+        except (RuntimeError, ValueError, OSError) as exc:  # noqa: BLE001  # noqa: BLE001
             ms = (time.perf_counter() - t0) * 1000
             self.usage.record_tool(name, ms, ok=False)
             # Audit §7: the LLM (and through it the user) gets a generic

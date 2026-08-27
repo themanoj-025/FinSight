@@ -410,7 +410,7 @@ def create_app(config_path: str | None = None) -> FastAPI:
                 response = await call_next(request)
                 response.headers["X-Request-Id"] = cid
                 return response
-            except Exception as exc:  # noqa: BLE001 — boundary: log + report + reply, never leak a stack
+            except (RuntimeError, ValueError, OSError) as exc:  # noqa: BLE001  # noqa: BLE001 — boundary: log + report + reply, never leak a stack
                 # The correlation id must be echoed even on an unhandled 500 —
                 # otherwise a failed request can't be traced by grep (D.1
                 # acceptance: the header is part of the contract, not a
