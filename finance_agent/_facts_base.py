@@ -241,7 +241,7 @@ class _FinanceFactsBase:
             d = self.df[self.df["nameOrig"] == self.focal_user]
         return [str(t) for t in sorted(d["account_type"].dropna().unique())]
 
-    def _focal(self, account_type: str | None = None) -> pd.DataFrame:
+    def focal(self, account_type: str | None = None) -> pd.DataFrame:
         """Rows for the selected focal user, optionally narrowed to an account type.
 
         The default (``None`` / ``"checking"``) returns the user's primary
@@ -261,6 +261,9 @@ class _FinanceFactsBase:
             return by_persona.copy()
         return by_persona[by_persona["account_type"] == account_type].copy()
 
+    # Keep private alias for internal callers that predate the rename.
+    _focal = focal
+
     def _income_savings_expenses(self, d: pd.DataFrame) -> tuple[float, float, float]:
         """(income, savings_out, expenses) — delegates to the shared module
         helper (C.2.5) so the facts layer and the app compute identical numbers."""
@@ -277,7 +280,7 @@ class _FinanceFactsBase:
         return month or (months[-1] if months else "")
 
     def _for_month(self, month: str | None, account_type: str | None = None) -> pd.DataFrame:
-        d = self._focal(account_type=account_type)
+        d = self.focal(account_type=account_type)
         # `_all_months` is indexed by the full-frame row order — the focal
         # frame shares that order (a filtered copy), so align on the index.
         d["_month"] = self._all_months().reindex(d.index).values

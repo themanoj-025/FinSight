@@ -92,7 +92,7 @@ def _digest_window(d: pd.DataFrame) -> tuple[date | None, date | None]:
 
 def build_weekly_digest(facts: FactsSource) -> str:
     """A compact Markdown digest of the trailing 7 days of the ledger."""
-    d = facts._focal().copy()  # noqa: SLF001 — both FinanceFacts and ApiClient expose it
+    d = facts.focal().copy()
     start_dt, end_dt = _digest_window(d)
     if start_dt is None or end_dt is None:
         return "# Weekly Digest\n\nNo transaction data available yet.\n"

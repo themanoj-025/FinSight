@@ -61,7 +61,7 @@ class FakeMessages:
 
 
 class FakeModels:
-    def list(self, limit=1):  # noqa: ARG002 — minimal auth check path
+    def list(self, _limit: int = 1) -> dict[str, list[object]]:
         return {"data": []}
 
 
@@ -283,7 +283,7 @@ def test_validate_api_key_cached_per_key(llm_env):
 
 def test_llm_available_false_for_invalid_key(llm_env):
     class BadModels:
-        def list(self, limit=1):  # noqa: ARG002
+        def list(self, _limit: int = 1) -> dict[str, list[object]]:
             raise RuntimeError("invalid api key")
 
     class BadClient:

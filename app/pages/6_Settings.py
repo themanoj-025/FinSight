@@ -11,7 +11,7 @@ from finance_agent.constants import DEFAULT_MODEL, MODEL_ALLOWLIST
 
 
 def _regenerate(seed: int, days: int, n_bg: int) -> None:
-    common._run_python(  # noqa: SLF001
+    common.run_python(
         [
             "generate_data.py",
             "--seed",
@@ -127,7 +127,7 @@ def _key_tab() -> None:
     )
     if key != common.api_key():
         st.session_state.api_key = key
-        common._agent_for.clear()  # noqa: SLF001 — app-internal cache
+        common.clear_agent_cache()
         st.rerun()
 
     agent = common.get_agent(key)
@@ -233,7 +233,7 @@ def _set_model(model: str) -> None:
     cfg.setdefault("agent", {})["model"] = model
     with open(path, "w", encoding="utf-8") as fh:
         yaml.safe_dump(cfg, fh, sort_keys=False)
-    common._facts_for.clear()  # noqa: SLF001 — app-internal cache
+    common.clear_facts_cache()
 
 
 if __name__ == "__main__":
