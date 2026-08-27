@@ -64,7 +64,7 @@ def run_render(render_fn) -> None:
     ensure_correlation_id()
     try:
         render_fn()
-    except Exception as exc:  # noqa: BLE001 — page boundary: log + report, then re-raise
+    except (RuntimeError, ValueError, OSError) as exc:  # noqa: BLE001  # noqa: BLE001 — page boundary: log + report, then re-raise
         log.error("page render failed: %s", exc, exc_info=True)
         report_exception(exc)
         raise
