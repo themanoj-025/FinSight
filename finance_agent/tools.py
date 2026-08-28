@@ -23,7 +23,7 @@ from finance_agent.risk_tools import RiskTools
 
 # Re-export public helpers so existing imports keep working:
 #   from finance_agent.tools import load_config, blend_description, ...
-from finance_agent._facts_base import (  # noqa: F401
+from finance_agent._facts_base import (
     DEFAULT_BLEND,
     _blend_weights,
     _FinanceFactsBase,
@@ -34,6 +34,12 @@ from finance_agent._facts_base import (  # noqa: F401
     monthly_income_expenses,
     savings_out_mask,
 )
+
+__all__ = [
+    "DEFAULT_BLEND", "_blend_weights", "_FinanceFactsBase",
+    "blend_description", "income_mask", "income_savings_expenses",
+    "load_config", "monthly_income_expenses", "savings_out_mask",
+]
 
 
 class FinanceFacts(FactTools, RiskTools, RetrievalTools):

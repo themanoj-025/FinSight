@@ -206,7 +206,7 @@ def _write_importance_chart(study: Any, outdir: str) -> str | None:
         plt.close(fig)
         log.info("Parameter-importance chart written to %s", path)
         return path
-    except (RuntimeError, ValueError) as exc:  # noqa: BLE001 — too few trials / no variance → no chart
+    except (RuntimeError, ValueError) as exc:
         log.warning("Parameter-importance chart not produced: %s", exc)
         return None
 
