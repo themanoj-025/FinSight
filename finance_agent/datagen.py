@@ -30,7 +30,7 @@ the CLI, tier defaults, and CSV/Parquet output.
 from __future__ import annotations
 
 # Re-export everything from the datagen_pkg package for backward compatibility.
-from finance_agent.datagen_pkg import (  # noqa: F401
+from finance_agent.datagen_pkg import (
     FOCAL_NAMES,
     FINAL_COLUMNS,
     LEGACY_COLUMNS,
@@ -67,3 +67,16 @@ from finance_agent.datagen_pkg import (  # noqa: F401
     persona_manifest,
     tier_stats,
 )
+
+__all__ = [
+    "FOCAL_NAMES", "FINAL_COLUMNS", "LEGACY_COLUMNS", "MERCHANTS_INDEX",
+    "NEW_COLUMNS", "PARTIAL_COLUMNS", "SUB_SUBCATEGORY", "TIER_DEFAULTS",
+    "_CASH_ACCOUNT", "_CLUSTER", "_INFLATION", "_PERIODS",
+    "_balance_one", "_bg_one", "_big_txns", "_bust_persona",
+    "_clamped_cumsum", "_credit_autopay", "_days_since_payday",
+    "_discretionary", "_frame", "_inject_patterns", "_payday_mask",
+    "_persona_ledger", "_pick_merchant", "_raise_multipliers",
+    "_regular_trips", "_resolve_drains", "_salaried_cashin",
+    "_savings_transfer", "_spend_frame", "focal_user_ids",
+    "generate_dataset", "persona_manifest", "tier_stats",
+]
