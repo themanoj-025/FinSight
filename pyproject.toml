@@ -144,3 +144,8 @@ namespace_packages = true
 warn_redundant_casts = true
 warn_return_any = true
 warn_unused_configs = true
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 80
+skip_empty = true
