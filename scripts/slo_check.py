@@ -47,7 +47,7 @@ def main() -> int:
         )
         if not ok:
             failed.append("health endpoint not ok")
-    except (OSError, RuntimeError) as exc:  # noqa: BLE001  # noqa: BLE001 — network/parse failure is a FAIL
+    except (OSError, RuntimeError) as exc:  # noqa: BLE001 — network/parse failure is a FAIL
         print(f"  FAIL  /api/v1/health unreachable: {exc}")
         print("\nStart the API first: make api")
         return 1
@@ -75,7 +75,7 @@ def main() -> int:
         print(f"  {'PASS' if ok else 'FAIL'}  /metrics exposes scrapeable counters")
         if not ok:
             failed.append("/metrics missing expected series")
-    except (OSError, RuntimeError) as exc:  # noqa: BLE001  # noqa: BLE001
+    except (OSError, RuntimeError) as exc:  # noqa: BLE001 — /metrics network/parse failure
         print(f"  FAIL  /metrics unreachable: {exc}")
         failed.append("/metrics unreachable")
 
