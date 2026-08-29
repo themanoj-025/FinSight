@@ -25,12 +25,12 @@ import json
 import logging
 import os
 import smtplib
-import urllib.error
-import urllib.request
 from datetime import date, datetime, timedelta, timezone
 from email.message import EmailMessage
 from pathlib import Path
 from typing import Any
+
+import httpx
 
 import pandas as pd
 
@@ -194,16 +194,13 @@ def build_weekly_digest(facts: FactsSource) -> str:
 
 def send_slack(webhook_url: str, text: str) -> None:
     """POST `text` to a Slack Incoming Webhook. Raises on transport/HTTP errors."""
-    payload = json.dumps({"text": text}).encode("utf-8")
-    req = urllib.request.Request(
-        webhook_url, data=payload, headers={"Content-Type": "application/json"}
-    )
     try:
-        with urllib.request.urlopen(req, timeout=15) as resp:  # noqa: S310 — user-configured webhook
-            if resp.status >= 400:
-                raise RuntimeError(f"Slack webhook returned HTTP {resp.status}")
-    except urllib.error.HTTPError as exc:
-        raise RuntimeError(f"Slack webhook returned HTTP {exc.code}") from exc
+        with httpx.Client(timeout=15) as client:
+            resp = client.post(webhook_url, json={"text": text})
+            if resp.status_code >= 400:
+                raise RuntimeError(f"Slack webhook returned HTTP {resp.status_code}")
+    except httpx.HTTPStatusError as exc:
+        raise RuntimeError(f"Slack webhook returned HTTP {exc.response.status_code}") from exc
 
 
 def send_email(cfg: dict[str, Any], subject: str, body: str) -> None:

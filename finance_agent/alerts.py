@@ -33,12 +33,11 @@ import json
 import logging
 import os
 import threading
-import urllib.error
-import urllib.parse
-import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+import httpx
 
 log = logging.getLogger("finance_agent.alerts")
 
@@ -133,14 +132,13 @@ def post_webhook(url: str, payload: dict[str, Any], *, timeout: float = 15.0) ->
     Never raises: transport errors, non-2xx responses, and bad payloads are
     logged (with the secret-safe URL) and reported as ``False``.
     """
-    body = json.dumps(payload, default=str).encode("utf-8")
-    req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})
     try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310 — user-configured webhook
-            if resp.status >= 400:
-                log.warning("Webhook %s returned HTTP %s", _safe_url(url), resp.status)
+        with httpx.Client(timeout=timeout) as client:
+            resp = client.post(url, json=payload)
+            if resp.status_code >= 400:
+                log.warning("Webhook %s returned HTTP %s", _safe_url(url), resp.status_code)
                 return False
-    except (urllib.error.URLError, urllib.error.HTTPError, OSError, ValueError) as exc:
+    except (httpx.RequestError, ValueError) as exc:
         log.warning("Webhook delivery to %s failed: %s", _safe_url(url), exc)
         return False
     return True
