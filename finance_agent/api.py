@@ -22,310 +22,59 @@ Run locally with ``make api`` (http://localhost:8000/docs).
 
 from __future__ import annotations
 
-import datetime
-import functools
 import hmac
 import logging
-import math
 import os
-import threading
 import time as _time
-import uuid
-from functools import lru_cache
-from typing import Annotated, Any
+from typing import Any
 
-import numpy as np
-import pandas as pd
-import yaml
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import FastAPI, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
-from pydantic import BeforeValidator
 
+from finance_agent.api_helpers import (
+    FocalUser,
+    NullableFloat,
+    NullableStr,
+    _REQUEST_COUNTS,
+    _REQUEST_LATENCY,
+    _RESPONSE_CACHES,
+    _RESPONSE_CACHES as _CACHE_LIST,
+    _SlidingWindowLimiter,
+    _cached_response,
+    _client_ip,
+    _cors_origins,
+    _facts,
+    _facts_or_503,
+    _jsonable,
+    _request_cid,
+)
 from finance_agent.observability import configure_logging, correlation, report_exception
-from finance_agent.tools import FinanceFacts
 
 log = logging.getLogger("finance_agent.api")
 
 _VERSION = "0.1.0"
+_STARTED_AT = _time.time()
 _CONFIG_PATH = "config.yaml"
 
 
-def _null_to_none(value: Any) -> Any:
-    """Map the literal string ``"null"`` to ``None`` for nullable query params.
-
-    OpenAPI 3.1 documents `X | None` params as accepting ``null``, and
-    schemathesis (contract fuzzing, F.3) sends the literal string ``"null"`` —
-    which Pydantic rejects for numeric/int params (``float_parsing`` 422). A
-    spec-compliant client could hit the same wall, so the API accepts it.
-    """
-    return None if value == "null" else value
-
-
-# Nullable param aliases that accept the literal string "null" (F.3 contract
-# fuzz: ``user=null`` / ``threshold=null`` / ``transaction_id=null`` are
-# schema-valid and must not 422 on a spec-compliant client).
-NullableStr = Annotated[str | None, BeforeValidator(_null_to_none)]
-NullableFloat = Annotated[float | None, BeforeValidator(_null_to_none)]
-NullableInt = Annotated[int | None, BeforeValidator(_null_to_none)]
-
-
-def _configured_focal_users() -> list[str]:
-    """The configured focal users, read from config.yaml without loading the ledger.
-
-    Used to document the ``user`` query param as an enum (F.3): the API only
-    serves the configured focal users, so the OpenAPI contract must say so —
-    otherwise contract fuzzing flags every unknown-user 422 as "API rejected
-    schema-compliant request". Falls back to the classic single-user default.
-    """
-    try:
-        with open(_CONFIG_PATH, encoding="utf-8") as fh:
-            cfg = yaml.safe_load(fh)
-        users = [str(u) for u in (cfg or {}).get("data", {}).get("focal_users") or []]
-        if users:
-            return users
-        default = (cfg or {}).get("data", {}).get("focal_user")
-        return [str(default)] if default else ["U_Alex"]
-    except OSError:
-        return ["U_Alex"]
-
-
-USER_ENUM: list[str] = _configured_focal_users()
-
-# The `user` query param: an explicit enum of the configured focal users so the
-# OpenAPI contract says what the API actually serves (F.3 — an any-string `user`
-# would 422 on unknown users and make every such request a "schema-compliant
-# request the API rejected"). Query metadata lives in the *type* (modern
-# FastAPI style) — a `Query(enum=USER_ENUM, ...)` call in an argument default
-# trips ruff B008 and is no longer the recommended form. Defined after
-# `USER_ENUM` (module-level evaluation) and before any endpoint uses it.
-FocalUser = Annotated[
-    str | None,
-    BeforeValidator(_null_to_none),
-    Query(enum=USER_ENUM, description="Focal user"),
-]
-
-
-def _cors_origins() -> list[str]:
-    """CORS allow-list from ``FINSIGHT_CORS_ORIGINS`` (comma-separated); ``*`` when unset.
-
-    The permissive ``*`` is the local-dev default (audit §6) — production
-    should set the real origins (see DEPLOY.md). ``allow_credentials=False``
-    everywhere means ``*`` can never be combined with cookies or auth headers,
-    so the wildcard stays low-risk.
-    """
-    raw = os.environ.get("FINSIGHT_CORS_ORIGINS", "").strip()
-    if not raw:
-        return ["*"]
-    return [origin.strip() for origin in raw.split(",") if origin.strip()]
-
-
-def _request_cid(request: Request) -> str:
-    """The correlation id for a request: caller-supplied ``X-Request-Id`` or a minted one.
-
-    Shared by the correlation middleware and the short-circuiting middlewares
-    (auth gate, rate limiter) that return their own responses *before* the
-    correlation middleware runs — so a 401/429 still echoes ``X-Request-Id``
-    and its log line carries the id (D.1).
-    """
-    return (request.headers.get("X-Request-Id") or uuid.uuid4().hex[:12])[:64]
-
-
-def _client_ip(request: Request) -> str:
-    """Best-effort client IP: first ``X-Forwarded-For`` hop, else the socket peer.
-
-    Behind a reverse proxy the XFF header is set by the proxy; when the API is
-    directly reachable it is client-controlled and spoofable, so the rate
-    limiter is a best-effort control, not a hard boundary (documented in
-    docs/KNOWN_LIMITATIONS.md).
-    """
-    forwarded = request.headers.get("X-Forwarded-For", "")
-    if forwarded:
-        return forwarded.split(",")[0].strip() or "unknown"
-    return request.client.host if request.client else "unknown"
-
-
-class _SlidingWindowLimiter:
-    """In-process sliding-window rate limiter keyed by client IP — no dependencies.
-
-    Tracks request timestamps per key and refuses a key that exceeds
-    ``max_requests`` inside ``window_seconds`` until its oldest hit ages out
-    (audit §5). Per-worker-process state: correct for the default
-    single-worker deployment; a multi-worker or edge setup needs a shared
-    store (see docs/KNOWN_LIMITATIONS.md).
-    """
-
-    _MAX_KEYS = 10_000
-
-    def __init__(self, max_requests: int, window_seconds: int = 60) -> None:
-        self.max_requests = int(max_requests)
-        self.window_seconds = int(window_seconds)
-        self._hits: dict[str, list[float]] = {}
-        self._lock = threading.Lock()
-
-    def allow(self, key: str) -> tuple[bool, int]:
-        """``(allowed, retry_after_seconds)`` for one request from ``key``."""
-        now = _time.time()
-        cutoff = now - self.window_seconds
-        with self._lock:
-            hits = [t for t in self._hits.get(key, []) if t > cutoff]
-            if len(hits) >= self.max_requests:
-                retry_after = max(1, int(self.window_seconds - (now - hits[0])) + 1)
-                return False, retry_after
-            hits.append(now)
-            if len(self._hits) >= self._MAX_KEYS:
-                # Bounded memory: drop keys with no hits inside the window
-                # rather than growing without limit on a flood of IPs.
-                self._hits = {k: v for k, v in self._hits.items() if v and v[-1] > cutoff}
-            self._hits[key] = hits
-            return True, 0
-
-
-# ---- minimal observability (D.1) ----------------------------------------------
-# In-process Prometheus-style counters, exposed at /metrics in the text format
-# (no prometheus-client dependency). Reset on process start — good enough for
-# local scraping / SLO checks (docs/technical/SLOs.md).
-_REQUEST_COUNTS: dict[str, int] = {}
-_REQUEST_LATENCY: dict[str, float] = {}
-_STARTED_AT: float = _time.time()
-
-# Response caches for the read-only facts endpoints (F.5): the API serves a
-# startup snapshot (KNOWN_LIMITATIONS 21), so every facts response is
-# deterministic until POST /api/v1/reload. `_cached_response` memoizes the
-# JSON-safe result per (params) tuple and `reload()` clears them — this is what
-# makes the "cached facts endpoints" SLO (SLOs.md: p95 < 200 ms under load)
-# actually measurable: under load every client is served the same snapshot
-# instead of each request re-running pandas groupbys / TreeSHAP on the full
-# ledger. Never cache /metrics, / or /reload (live or state-mutating).
-_RESPONSE_CACHES: list[dict[tuple[Any, ...], Any]] = []
-
-
-def _cached_response(func: Any) -> Any:
-    """Memoize a read-only endpoint's JSON-safe result by its hashable params.
-
-    Applies to the facts endpoints only (data can't change until reload).
-    ``functools.wraps`` preserves the original signature so FastAPI still
-    extracts query params from the wrapped function. Keyed on (args, kwargs)
-    — every endpoint param is a hashable scalar (str / None / bool / int /
-    float), so distinct requests never collide.
-    """
-    cache: dict[tuple[Any, ...], Any] = {}
-    _RESPONSE_CACHES.append(cache)
-
-    @functools.wraps(func)
-    def wrapper(*args: Any, **kwargs: Any) -> Any:
-        key = (args, tuple(sorted(kwargs.items())))
-        if key not in cache:
-            cache[key] = func(*args, **kwargs)
-        return cache[key]
-
-    return wrapper
-
-
-def _jsonable(obj: Any) -> Any:
-    """Recursively convert numpy/pandas scalars to strict JSON-safe Python."""
-    if isinstance(obj, dict):
-        return {str(k): _jsonable(v) for k, v in obj.items()}
-    if isinstance(obj, (list, tuple)):
-        return [_jsonable(v) for v in obj]
-    if isinstance(obj, np.ndarray):
-        return _jsonable(obj.tolist())
-    if isinstance(obj, np.bool_):
-        return bool(obj)
-    if isinstance(obj, np.integer):
-        return int(obj)
-    if isinstance(obj, np.floating):
-        f = float(obj)
-        return None if math.isnan(f) or math.isinf(f) else f
-    if isinstance(obj, pd.Timestamp):
-        return obj.isoformat()
-    if isinstance(obj, (datetime.date, datetime.datetime)):
-        return obj.isoformat()
-    if isinstance(obj, float):
-        return None if math.isnan(obj) or math.isinf(obj) else obj
-    return obj
-
-
-@lru_cache(maxsize=8)
-def _facts(focal_user: str | None = None) -> FinanceFacts:
-    """A ``FinanceFacts`` per focal user — the API serves a startup snapshot.
-
-    ``POST /api/v1/reload`` (or a restart) picks up changed data/model
-    artifacts; see docs/KNOWN_LIMITATIONS.md section 6. Multi-user: passing a
-    ``focal_user`` serves that user's per-user tools.
-    """
-    return FinanceFacts(_CONFIG_PATH, focal_user=focal_user)
-
-
-def _facts_or_503(focal_user: str | None = None) -> FinanceFacts:
-    """The cached facts for `focal_user`, validating the id against the config.
-
-    An unknown `user` query param yields a clean 422 (naming the known users)
-    instead of an opaque 500 deep inside FinanceFacts. The detail is a
-    ``ValidationError``-shaped array so the body conforms to the documented
-    ``HTTPValidationError`` schema (contract-fuzz guard, F.3).
-    """
-    try:
-        # An empty `user=` query param is a natural client artifact (a templated
-        # `?user={id}` with an empty id) — treat it as "no user" (default focal
-        # user) rather than 422-ing on 'Unknown focal user ""'. Only a
-        # genuinely unknown non-empty id is rejected (contract-fuzz guard, F.3).
-        if focal_user == "":
-            focal_user = None
-        if focal_user is not None:
-            known = _facts().focal_users  # default instance carries the configured list
-            if focal_user not in known:
-                raise HTTPException(
-                    status_code=422,
-                    detail=[
-                        {
-                            "type": "value_error",
-                            "loc": ["query", "user"],
-                            "msg": (
-                                f"Unknown focal user {focal_user!r}; "
-                                f"known users: {', '.join(known)}"
-                            ),
-                            "input": focal_user,
-                        }
-                    ],
-                )
-        return _facts(focal_user)
-    except FileNotFoundError as exc:
-        raise HTTPException(
-            status_code=503,
-            detail=(
-                "Data artifacts missing — run `make data` (and `make train`) "
-                f"before starting the API: {exc}"
-            ),
-        ) from exc
-
-
 def create_app(config_path: str | None = None) -> FastAPI:
-    """Build the FastAPI application (used by uvicorn, compose, and tests).
+    """Build the FastAPI application (used by uvicorn, compose, and tests)."""
+    import yaml
 
-    Note: one app per process is assumed — `config_path` sets a module-level
-    default for the shared facts singleton, so creating two apps with different
-    config paths in one process would interfere (fine for the demo, not a
-    pattern to copy).
-    """
-    global _CONFIG_PATH
+    from finance_agent.api_helpers import _CONFIG_PATH as _mod_cfg
+
     if config_path:
-        _CONFIG_PATH = config_path
+        import finance_agent.api_helpers as _helpers
+        _helpers._CONFIG_PATH = config_path
 
-    configure_logging()  # D.1: structured JSON logging for the whole process
+    configure_logging()
 
-    # Audit §2 (bundle-signing rotation): when FINSIGHT_BUNDLE_KEY is set
-    # (production), a model bundle on disk whose signature doesn't verify
-    # against that key is a deployment misconfiguration — the bundle was
-    # signed with a different key than this process is configured with.
-    # Refuse to boot with a loud, specific error instead of silently serving
-    # rule-only scores that would mask the problem. Demo/dev mode (env key
-    # unset) keeps the documented rule-only degrade; a missing bundle is not
-    # an error either way (the facts layer reports rule-only).
+    # Audit §2 (bundle-signing rotation)
     try:
         from finance_agent.bundle_security import ensure_bundle_verified
 
-        with open(_CONFIG_PATH, encoding="utf-8") as fh:
+        with open(config_path or _CONFIG_PATH, encoding="utf-8") as fh:
             _boot_cfg = yaml.safe_load(fh) or {}
         _boot_bundle = str(
             _boot_cfg.get("model_bench", {}).get(
@@ -335,8 +84,6 @@ def create_app(config_path: str | None = None) -> FastAPI:
         if os.path.exists(_boot_bundle) and os.environ.get("FINSIGHT_BUNDLE_KEY", "").strip():
             ensure_bundle_verified(_boot_bundle)
     except (OSError, yaml.YAMLError):
-        # Config not readable at import time is not our failure mode here —
-        # the facts snapshot surfaces it with a clear message on first use.
         pass
 
     app = FastAPI(
@@ -350,28 +97,13 @@ def create_app(config_path: str | None = None) -> FastAPI:
         docs_url="/docs",
         redoc_url="/redoc",
         openapi_tags=[
-            {
-                "name": "health",
-                "description": "Service health check and readiness probes",
-            },
-            {
-                "name": "facts",
-                "description": "Monthly summaries, category breakdowns, budgets, and financial health",
-            },
-            {
-                "name": "risk",
-                "description": "Per-transaction risk scoring, SHAP explanations, and similar transactions",
-            },
-            {
-                "name": "admin",
-                "description": "Service reload, metrics, and metadata",
-            },
+            {"name": "health", "description": "Service health check and readiness probes"},
+            {"name": "facts", "description": "Monthly summaries, category breakdowns, budgets, and financial health"},
+            {"name": "risk", "description": "Per-transaction risk scoring, SHAP explanations, and similar transactions"},
+            {"name": "admin", "description": "Service reload, metrics, and metadata"},
         ],
     )
-    # The Streamlit client is server-side (no browser CORS), but the API is
-    # also consumable from the browser at /docs — allow that. Origins are
-    # locked down via FINSIGHT_CORS_ORIGINS in production; `*` is the local-dev
-    # default only (audit §6, always with allow_credentials=False).
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=_cors_origins(),
@@ -394,16 +126,7 @@ def create_app(config_path: str | None = None) -> FastAPI:
 
     @app.middleware("http")
     async def _correlate(request: Request, call_next: Any) -> Any:
-        """D.1: thread a correlation id through the whole request lifecycle.
-
-        Accepts a caller-supplied ``X-Request-Id`` or mints one; echoes it back
-        on the response and binds it to the context so every structured log
-        line emitted while handling this request carries it (grep one id to
-        reconstruct the full lifecycle). Unhandled exceptions are logged as
-        structured JSON with the id, reported to Sentry when a DSN is set
-        (inert otherwise), and answered with a JSON 500 that still echoes the
-        id — a failed request must remain traceable by grep.
-        """
+        """D.1: thread a correlation id through the whole request lifecycle."""
         cid = _request_cid(request)
         with correlation(cid):
             try:
@@ -411,11 +134,6 @@ def create_app(config_path: str | None = None) -> FastAPI:
                 response.headers["X-Request-Id"] = cid
                 return response
             except (RuntimeError, ValueError, OSError) as exc:
-                # The correlation id must be echoed even on an unhandled 500 —
-                # otherwise a failed request can't be traced by grep (D.1
-                # acceptance: the header is part of the contract, not a
-                # success-path nicety). Handle it here so the 500 still flows
-                # through the metrics middleware and carries the id.
                 log.error(
                     "unhandled request exception",
                     exc_info=True,
@@ -430,19 +148,11 @@ def create_app(config_path: str | None = None) -> FastAPI:
 
     @app.middleware("http")
     async def _gate(request: Request, call_next: Any) -> Any:
-        # OPTIONS preflights must pass through — a browser client would otherwise
-        # 401 before the actual request when a key is configured. The key is
-        # compared with hmac.compare_digest (constant-time) so a timing side
-        # channel can never leak the shared secret (C.1.1).
         if request.method == "OPTIONS" or not api_key or not request.url.path.startswith("/api/"):
             return await call_next(request)
         provided = request.headers.get("X-API-Key") or ""
         if hmac.compare_digest(provided, api_key):
             return await call_next(request)
-        # Audit §8: auth failures are logged with request context (client IP,
-        # path, correlation id) — never the key itself. The response is built
-        # here (before the correlation middleware runs), so the id is minted
-        # and echoed explicitly (D.1).
         cid = _request_cid(request)
         with correlation(cid):
             log.warning(
@@ -458,21 +168,13 @@ def create_app(config_path: str | None = None) -> FastAPI:
     try:
         rate_per_min = int(os.environ.get("FINSIGHT_RATE_LIMIT_PER_MIN", "0").strip() or 0)
     except ValueError:
-        # A typo'd env value must degrade to "no limiter", never crash the API.
         log.warning("Invalid FINSIGHT_RATE_LIMIT_PER_MIN value — rate limiting disabled")
         rate_per_min = 0
     limiter = _SlidingWindowLimiter(rate_per_min) if rate_per_min > 0 else None
 
     @app.middleware("http")
     async def _rate_limit(request: Request, call_next: Any) -> Any:
-        """Audit §5: optional per-IP rate limiting over the /api/* surface.
-
-        Disabled by default so local dev / CI / load tests are unaffected;
-        set ``FINSIGHT_RATE_LIMIT_PER_MIN`` in production (DEPLOY.md). Applied
-        *outside* the API-key gate, so unauthenticated scanning is limited
-        too; OPTIONS preflights pass through. Over-limit requests get a 429
-        with ``Retry-After`` and are logged.
-        """
+        """Audit §5: optional per-IP rate limiting over the /api/* surface."""
         if (
             limiter is None
             or request.method == "OPTIONS"
@@ -496,12 +198,7 @@ def create_app(config_path: str | None = None) -> FastAPI:
 
     @app.middleware("http")
     async def _security_headers(request: Request, call_next: Any) -> Any:
-        """Audit §6: baseline security headers on *every* response (incl. 401/500).
-
-        CSP is intentionally not set here — a strict policy would break the
-        Swagger UI's inline scripts/styles; set CSP at the reverse proxy (see
-        docs/KNOWN_LIMITATIONS.md).
-        """
+        """Audit §6: baseline security headers on *every* response."""
         response = await call_next(request)
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
         response.headers.setdefault("X-Frame-Options", "DENY")
@@ -533,15 +230,10 @@ def create_app(config_path: str | None = None) -> FastAPI:
 
     @app.get(
         "/metrics",
-        # The documented response is text/plain (Prometheus exposition format),
-        # not application/json — declared so the OpenAPI contract matches what
-        # the endpoint actually returns (contract-fuzz guard, F.3).
         responses={200: {"content": {"text/plain": {"schema": {"type": "string"}}}}},
     )
     def metrics() -> Response:
-        """Prometheus text-format metrics (D.1) — request counts/latency by
-        route, uptime, and version info. Scrape from any Prometheus, or check
-        the SLOs with scripts/slo_check.py (docs/technical/SLOs.md)."""
+        """Prometheus text-format metrics (D.1)."""
         lines = [
             "# HELP finsight_http_requests_total HTTP requests handled by route.",
             "# TYPE finsight_http_requests_total counter",
@@ -588,9 +280,7 @@ def create_app(config_path: str | None = None) -> FastAPI:
         limit: int = Query(500, ge=1, le=5000, description="Max rows per page"),
         offset: int = Query(0, ge=0, description="Row offset for paging"),
     ) -> dict[str, Any]:
-        """Paginated ledger view (C.1.3): a single response is bounded to
-        ``limit`` rows (default 500, max 5000) with ``total`` + ``truncated``
-        so clients can page instead of pulling the whole ledger at once."""
+        """Paginated ledger view (C.1.3)."""
         facts = _facts_or_503(user)
         df = facts.focal() if focal_only else facts.df
         total = len(df)
@@ -655,9 +345,6 @@ def create_app(config_path: str | None = None) -> FastAPI:
     @app.get("/api/v1/risk-scored")
     @_cached_response
     def risk_scored(
-        # Bounded (audit §4/§5): this endpoint can be expensive (per-request
-        # SHAP when include_explanations is on), so the response size is
-        # capped the same way the transactions page is.
         limit: int = Query(15, ge=1, le=5000, description="Max rows to return (1-5000)"),
         threshold: NullableFloat = None,
         focal_only: bool = False,
@@ -687,22 +374,14 @@ def create_app(config_path: str | None = None) -> FastAPI:
         k: int = Query(5, ge=1, le=20, description="Number of neighbours (1-20)"),
         user: FocalUser = None,
     ) -> dict[str, Any]:
-        """Phase B.1 — nearest transactions in feature space with fraud labels.
-
-        ``transaction_id`` is the original ledger row position (omit to explain
-        the highest-risk flagged transaction). Gated by config.yaml
-        ``features.faiss_retrieval``.
-        """
+        """Phase B.1 — nearest transactions in feature space with fraud labels."""
         return _jsonable(
             _facts_or_503(user).find_similar_transactions(transaction_id=transaction_id, k=k)
         )
 
     @app.post("/api/v1/reload")
     def reload() -> dict[str, Any]:
-        """Drop the cached facts snapshot AND the per-endpoint response caches.
-
-        The next request rebuilds the FinanceFacts snapshot and re-computes
-        every facts response from it."""
+        """Drop the cached facts snapshot AND the per-endpoint response caches."""
         _facts.cache_clear()
         for cache in _RESPONSE_CACHES:
             cache.clear()
@@ -711,8 +390,5 @@ def create_app(config_path: str | None = None) -> FastAPI:
     return app
 
 
-# Module-level ASGI app for `uvicorn finance_agent.api:app` (E.1 deployment
-# path used by `make api`, docker-compose.yml, docker-entrypoint.sh, and
-# fly.toml). Deliberately a real instantiation — not a lazy proxy — so uvicorn
-# imports exactly the app the tests exercise via create_app().
+# Module-level ASGI app for `uvicorn finance_agent.api:app`
 app = create_app()
