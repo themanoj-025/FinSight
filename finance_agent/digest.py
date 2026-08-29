@@ -21,7 +21,6 @@ The task: ``python -m finance_agent digest`` or ``make digest``.
 
 from __future__ import annotations
 
-import json
 import logging
 import os
 import smtplib
@@ -31,7 +30,6 @@ from pathlib import Path
 from typing import Any
 
 import httpx
-
 import pandas as pd
 
 from finance_agent.constants import fmt_money

@@ -507,11 +507,11 @@ def main() -> None:
         "git_commit": _git_sha(),
         "feature_list": feature_names,
         "dataset": {
-            "rows": int(len(df)),
+            "rows": len(df),
             "fraud_rate": round(float(y_all.mean()), 4),
             "path": args.data,
-            "train_rows": int(len(train_df)),
-            "test_rows": int(len(test_df)),
+            "train_rows": len(train_df),
+            "test_rows": len(test_df),
             "personas": int(df["persona_id"].nunique()) if "persona_id" in df.columns else None,
             "focal_personas": (
                 int(df.loc[df["is_focal_user"], "persona_id"].nunique())

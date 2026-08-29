@@ -7,12 +7,9 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 
-from finance_agent import fraud_patterns as fp
 from finance_agent.datagen_pkg.config import _CASH_ACCOUNT, _INFLATION, SUB_SUBCATEGORY
 from finance_agent.datagen_pkg.helpers import (
-    _CLUSTER,
     _PERIODS,
-    _days_since_payday,
     _frame,
     _payday_mask,
     _pick_merchant,
@@ -29,7 +26,8 @@ from finance_agent.datagen_pkg.transactions import (
     _spend_frame,
 )
 from finance_agent.merchants import SUBCATEGORIES, SUBSCRIPTION_AMOUNTS, seasonal_multiplier
-from finance_agent.personas import DISCRETIONARY_CATEGORIES, Persona, round2
+from finance_agent.personas import Persona
+
 
 def _persona_ledger(
     rng: np.random.Generator,

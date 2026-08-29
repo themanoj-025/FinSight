@@ -18,8 +18,8 @@ import pandas as pd
 
 from finance_agent import alerts, rules
 from finance_agent._facts_base import (
-    _FinanceFactsBase,
     _blend_weights,
+    _FinanceFactsBase,
     _scored_frame_json,
     fmt_money,
 )
@@ -52,7 +52,7 @@ class RiskTools(_FinanceFactsBase):
         for col in d.columns:
             if not pd.api.types.is_numeric_dtype(d[col]) and d[col].isna().any():
                 d[col] = d[col].fillna("")
-        n_total = int(len(d))
+        n_total = len(d)
         model_score = np.zeros(n_total)
         iso_norm = np.zeros(n_total)
         if self.bundle:
@@ -222,7 +222,7 @@ class RiskTools(_FinanceFactsBase):
             self.config_path, data_mtime, data_size, bundle_mtime, bundle_size
         )
         scored = pd.DataFrame.from_records(json.loads(blob))
-        n_total = int(len(scored))
+        n_total = len(scored)
 
         flagged_all = scored[scored["risk_score"] >= thr]
         if focal_only:
@@ -235,14 +235,14 @@ class RiskTools(_FinanceFactsBase):
         rows = flagged_all.sort_values("risk_score", ascending=False, kind="stable").head(limit)
         rule_only = self.bundle is None
         row_dicts, explanations = self._explain_rows(rows, include_explanations, rule_only)
-        summary = self._risk_summary(int(len(flagged_all)), n_total, thr, len(rows))
+        summary = self._risk_summary(len(flagged_all), n_total, thr, len(rows))
         return {
             "summary": summary,
             "data": {
                 "threshold": thr,
                 "rows": row_dicts,
                 "total_scored": n_total,
-                "flagged_count": int(len(flagged_all)),
+                "flagged_count": len(flagged_all),
                 "scoring_mode": "rule_only" if rule_only else "blended",
                 "explanations_available": bool(explanations),
             },
@@ -280,7 +280,7 @@ class RiskTools(_FinanceFactsBase):
             focal_user=self.focal_user,
             account_type=account_type,
         )
-        n_total = store.total_rows() or int(len(self.df))
+        n_total = store.total_rows() or len(self.df)
         flagged_count = store.flagged_count(
             threshold=thr,
             focal_only=focal_only,

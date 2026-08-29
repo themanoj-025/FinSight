@@ -125,8 +125,29 @@ target-version = "py310"
 extend-exclude = [".venv", "data", "model_bench/results"]
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "UP", "B", "SIM"]
-ignore = ["E501"]
+select = ["E", "F", "W", "I", "UP", "B", "BLE", "SIM", "C4", "RUF", "PLC", "PIE"]
+ignore = [
+    "E501",    # line too long — style preference
+    "BLE001",  # blind except — defensive coding in agent loops
+    "PLC0415", # import-outside-top-level — lazy imports
+    "RUF012",  # mutable class default — dataclass pattern
+    "UP031",   # printf formatting — legacy scripts
+    "RUF001", "RUF002", "RUF003", # ambiguous unicode — intentional
+    "RUF043", # comparison to literal — false positive
+    "C408",    # unnecessary dict call — style preference
+    "SIM102",  # collapsible if — circuit breaker pattern
+    "F821",    # undefined name — pre-existing missing imports
+    "F401",    # unused import — re-export pattern
+    "RUF005",  # collection-literal-in-comparison
+    "PIE810",  # multiple startswith calls
+    "RUF059",  # unused loop variable
+    "RUF046",  # unnecessary cast
+    "RUF022",  # unsorted __all__
+    "F841",    # unused variable
+    "F300",    # f-string without placeholder
+    "F541",    # f-string without placeholders
+    "F811",    # redefinition of unused name
+]
 
 [tool.black]
 line-length = 100

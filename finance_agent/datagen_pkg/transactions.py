@@ -8,10 +8,9 @@ import numpy as np
 import pandas as pd
 
 from finance_agent import fraud_patterns as fp
-from finance_agent.datagen_pkg.config import _CASH_ACCOUNT, MERCHANTS_INDEX, SUB_SUBCATEGORY
-from finance_agent.datagen_pkg.helpers import _CLUSTER, _days_since_payday, _frame, _pick_merchant
+from finance_agent.datagen_pkg.config import _CASH_ACCOUNT
+from finance_agent.datagen_pkg.helpers import _CLUSTER, _days_since_payday, _frame
 from finance_agent.merchants import (
-    SUBSCRIPTION_AMOUNTS,
     sample_merchants,
     seasonal_multiplier,
 )
@@ -22,6 +21,7 @@ from finance_agent.personas import (
     avg_amount_by_category,
     round2,
 )
+
 
 def _savings_transfer(p: Persona, steps: np.ndarray, amts: np.ndarray) -> pd.DataFrame:
     if steps.size == 0:

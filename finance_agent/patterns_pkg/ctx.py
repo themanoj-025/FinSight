@@ -22,21 +22,15 @@ later) is applied by :func:`apply_discovery_lag`.
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
 import numpy as np
 
-from finance_agent import merchants
 from finance_agent.merchants import (
     REGION_IDS,
-    is_holiday_window,
-    sample_merchants,
-    seasonal_multiplier,
 )
 from finance_agent.personas import (
-    DISCRETIONARY_CATEGORIES,
     Persona,
     amount_sigma_by_category,
     avg_amount_by_category,
