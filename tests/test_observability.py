@@ -28,7 +28,7 @@ from finance_agent.observability import (
     set_correlation_id,
 )
 
-configure_logging()  # noqa: PLE1507 — install the JSON formatter once for this suite
+configure_logging()
 
 
 def _record(levelno: int = logging.INFO, msg: str = "hello") -> logging.LogRecord:

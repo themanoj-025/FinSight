@@ -197,7 +197,7 @@ def test_dead_llm_client_falls_back_to_narrator(tmp_path, df):
         messages = BoomMessages()
 
     class BoomAnthropic:
-        def Anthropic(self, api_key=""):  # noqa: N802
+        def Anthropic(self, api_key=""):
             return BoomClient()
 
     cfg_path = _write_config(tmp_path, df)

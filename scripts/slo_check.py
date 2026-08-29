@@ -29,7 +29,7 @@ SLO_P95_NAME = "API p95 latency (cached facts endpoints)"
 
 
 def _get(path: str):
-    with urllib.request.urlopen(BASE + path, timeout=5) as resp:  # noqa: S310 — local service
+    with urllib.request.urlopen(BASE + path, timeout=5) as resp:
         return json.loads(resp.read().decode("utf-8"))
 
 
@@ -69,7 +69,7 @@ def main() -> int:
 
     # /metrics must be scrapeable
     try:
-        with urllib.request.urlopen(BASE + "/metrics", timeout=5) as resp:  # noqa: S310
+        with urllib.request.urlopen(BASE + "/metrics", timeout=5) as resp:
             body = resp.read().decode("utf-8")
         ok = "finsight_http_requests_total" in body and "finsight_uptime_seconds" in body
         print(f"  {'PASS' if ok else 'FAIL'}  /metrics exposes scrapeable counters")
