@@ -13,11 +13,10 @@ See docs/technical/API.md for the HTTP contract.
 from __future__ import annotations
 
 import json
-import urllib.error
-import urllib.parse
-import urllib.request
 from functools import cached_property
 from typing import Any
+
+import httpx
 
 import pandas as pd
 
@@ -44,20 +43,22 @@ class ApiClient:
     def _request(self, path: str, method: str = "GET", params: dict[str, Any] | None = None) -> Any:
         url = f"{self.base_url}{path}"
         if params:
-            query = urllib.parse.urlencode(self._clean(params))
-            if query:
-                url += "?" + query
-        req = urllib.request.Request(url, method=method)
+            query = httpx.QueryParams(self._clean(params))
+            if str(query):
+                url += "?" + str(query)
+        headers: dict[str, str] = {}
         if self.api_key:
-            req.add_header("X-API-Key", self.api_key)
+            headers["X-API-Key"] = self.api_key
         try:
             # The API is a trusted local service (own container / localhost).
-            with urllib.request.urlopen(req, timeout=self.timeout) as resp:  # noqa: S310
-                return json.loads(resp.read().decode("utf-8"))
-        except urllib.error.HTTPError as exc:
-            body = exc.read().decode("utf-8", errors="replace")[:500]
-            raise ApiClientError(f"{exc.code} from {method} {path}: {body}") from exc
-        except (urllib.error.URLError, TimeoutError) as exc:
+            with httpx.Client(timeout=self.timeout) as client:
+                resp = client.request(method, url, headers=headers)
+                resp.raise_for_status()
+                return resp.json()
+        except httpx.HTTPStatusError as exc:
+            body = exc.response.text[:500]
+            raise ApiClientError(f"{exc.response.status_code} from {method} {path}: {body}") from exc
+        except (httpx.RequestError, TimeoutError) as exc:
             raise ApiClientError(f"API unreachable at {self.base_url} ({exc})") from exc
 
     @staticmethod
