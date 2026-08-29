@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from patterns_pkg.ctx import PatternCtx
-from patterns_pkg import generators
 
 
 def pattern_names() -> list[str]:

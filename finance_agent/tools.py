@@ -17,10 +17,6 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from finance_agent.facts_tools import FactTools
-from finance_agent.retrieval_tools import RetrievalTools
-from finance_agent.risk_tools import RiskTools
-
 # Re-export public helpers so existing imports keep working:
 #   from finance_agent.tools import load_config, blend_description, ...
 from finance_agent._facts_base import (
@@ -34,11 +30,20 @@ from finance_agent._facts_base import (
     monthly_income_expenses,
     savings_out_mask,
 )
+from finance_agent.facts_tools import FactTools
+from finance_agent.retrieval_tools import RetrievalTools
+from finance_agent.risk_tools import RiskTools
 
 __all__ = [
-    "DEFAULT_BLEND", "_blend_weights", "_FinanceFactsBase",
-    "blend_description", "income_mask", "income_savings_expenses",
-    "load_config", "monthly_income_expenses", "savings_out_mask",
+    "DEFAULT_BLEND",
+    "_FinanceFactsBase",
+    "_blend_weights",
+    "blend_description",
+    "income_mask",
+    "income_savings_expenses",
+    "load_config",
+    "monthly_income_expenses",
+    "savings_out_mask",
 ]
 
 
@@ -51,7 +56,6 @@ class FinanceFacts(FactTools, RiskTools, RetrievalTools):
     three tool categories share the same config, ledger, bundle, and store.
     """
 
-    pass
 
 
 def tool_result_payload(result: dict[str, Any]) -> str:

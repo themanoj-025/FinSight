@@ -55,7 +55,7 @@ class FactTools(_FinanceFactsBase):
                 "net": round(net, 2),
                 "savings_rate": round(savings_rate, 4),
                 "top_category": top_cat,
-                "transaction_count": int(len(d)),
+                "transaction_count": len(d),
             },
         }
 

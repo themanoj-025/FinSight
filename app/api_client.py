@@ -12,12 +12,10 @@ See docs/technical/API.md for the HTTP contract.
 
 from __future__ import annotations
 
-import json
 from functools import cached_property
 from typing import Any
 
 import httpx
-
 import pandas as pd
 
 

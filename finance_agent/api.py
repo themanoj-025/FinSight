@@ -525,7 +525,7 @@ def create_app(config_path: str | None = None) -> FastAPI:
         return {
             "status": "ok",
             "version": _VERSION,
-            "rows": int(len(facts.df)),
+            "rows": len(facts.df),
             "rule_only": facts.rule_only(),
             "focal_user": facts.focal_user,
             "focal_users": facts.focal_users,
@@ -593,7 +593,7 @@ def create_app(config_path: str | None = None) -> FastAPI:
         so clients can page instead of pulling the whole ledger at once."""
         facts = _facts_or_503(user)
         df = facts.focal() if focal_only else facts.df
-        total = int(len(df))
+        total = len(df)
         page = df.iloc[offset : offset + limit]
         return {
             "columns": list(df.columns),

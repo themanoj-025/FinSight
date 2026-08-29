@@ -13,10 +13,10 @@ from finance_agent.merchants import sample_merchants, seasonal_multiplier
 from finance_agent.personas import (
     DISCRETIONARY_CATEGORIES,
     BackgroundProfile,
-    Persona,
     avg_amount_by_category,
     round2,
 )
+
 
 def _background_ledger(
     rng: np.random.Generator,

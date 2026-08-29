@@ -13,15 +13,13 @@ from functools import lru_cache
 from typing import Any
 
 import joblib
-import numpy as np
 import pandas as pd
 import yaml
 
-from finance_agent import alerts, rules
+from finance_agent import rules
 from finance_agent.bundle_security import verify_bundle
 from finance_agent.config_schema import validate_config
-from finance_agent.constants import CREDIT_TYPES, fmt_money
-from finance_agent.features import build_features
+from finance_agent.constants import CREDIT_TYPES
 from finance_agent.storage import TransactionStore
 
 log = logging.getLogger("finance_agent.tools")

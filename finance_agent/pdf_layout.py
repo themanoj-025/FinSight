@@ -8,12 +8,14 @@ tables, headings, and page chrome (header band + footer).
 from __future__ import annotations
 
 from finance_agent.pdf_text import (
+    ACCENT,
     BOTTOM_Y,
     CONTENT_W,
     F_BOLD,
     F_OBL,
     F_REG,
     FOOTER_Y,
+    GRAY,
     GRID,
     INK,
     LIGHT_BAND,
@@ -25,8 +27,6 @@ from finance_agent.pdf_text import (
     PAGE_W,
     TOP_Y,
     WHITE,
-    GRAY,
-    ACCENT,
     _esc,
     _runs,
     _text_w,

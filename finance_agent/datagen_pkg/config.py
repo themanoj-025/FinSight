@@ -22,31 +22,8 @@ the CLI, tier defaults, and CSV/Parquet output.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
-from typing import Any
-
-import numpy as np
-import pandas as pd
-
-from finance_agent import fraud_patterns as fp
-from finance_agent.constants import CREDIT_TYPES
 from finance_agent.merchants import (
-    CATEGORY_GROUP,
     MERCHANTS,
-    SUBCATEGORIES,
-    SUBSCRIPTION_AMOUNTS,
-    sample_merchants,
-    seasonal_multiplier,
-)
-from finance_agent.personas import (
-    DISCRETIONARY_CATEGORIES,
-    BackgroundProfile,
-    Persona,
-    amount_sigma_by_category,
-    avg_amount_by_category,
-    round2,
-    sample_background,
-    sample_personas,
 )
 
 # Catalog index (module-level: merchants is import-only, no cycle).

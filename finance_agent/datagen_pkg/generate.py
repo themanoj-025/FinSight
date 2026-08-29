@@ -12,13 +12,18 @@ from finance_agent.datagen_pkg.background import _background_ledger
 from finance_agent.datagen_pkg.balance import _resolve_drains
 from finance_agent.datagen_pkg.config import (
     FINAL_COLUMNS,
-    TIER_DEFAULTS,
     MERCHANTS_INDEX,
+    TIER_DEFAULTS,
 )
 from finance_agent.datagen_pkg.helpers import focal_user_ids
 from finance_agent.datagen_pkg.persona_ledger import _persona_ledger
 from finance_agent.merchants import CATEGORY_GROUP
-from finance_agent.personas import avg_amount_by_category, round2, sample_background, sample_personas
+from finance_agent.personas import (
+    round2,
+    sample_background,
+    sample_personas,
+)
+
 
 def generate_dataset(
     *,
@@ -157,7 +162,7 @@ def persona_manifest(df: pd.DataFrame) -> list[dict[str, Any]]:
             {
                 "id": str(pid),
                 "archetype": str(g["persona_archetype"].iloc[0]),
-                "transactions": int(len(g)),
+                "transactions": len(g),
                 "fraud_count": int((g["isFraud"] == 1).sum()),
                 "home_region": str(g["home_region"].iloc[0]),
             }
@@ -175,7 +180,7 @@ def tier_stats(df: pd.DataFrame, tier: str) -> dict[str, Any]:
     )
     return {
         "tier": tier,
-        "rows": int(len(df)),
+        "rows": len(df),
         "fraud": int(fraud.sum()),
         "fraud_rate": round(float(fraud.mean()), 6),
         "anomalies": int(df["is_anomaly"].sum()),

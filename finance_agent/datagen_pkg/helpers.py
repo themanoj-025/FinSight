@@ -13,6 +13,7 @@ from finance_agent.datagen_pkg.config import (
     PARTIAL_COLUMNS,
 )
 
+
 def focal_user_ids(n: int, existing: list[str] | None = None) -> list[str]:
     """Persona ids: `existing` first (legacy names preserved), then the name pool."""
     ids = [str(u) for u in (existing or [])]

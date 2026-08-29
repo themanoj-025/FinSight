@@ -6,7 +6,8 @@ import numpy as np
 import pandas as pd
 
 from finance_agent.constants import CREDIT_TYPES
-from finance_agent.personas import Persona, BackgroundProfile, round2
+from finance_agent.personas import BackgroundProfile, Persona, round2
+
 
 def _bust_persona(b: BackgroundProfile) -> Persona:
     """A minimal persona facade so bust-out rows carry the bg account's id."""

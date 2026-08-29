@@ -22,15 +22,9 @@ from typing import Any
 
 from finance_agent.pdf_layout import _Layout
 from finance_agent.pdf_text import (
-    BOTTOM_Y,
-    CONTENT_W,
-    F_REG,
-    MARGIN_X,
     PAGE_H,
     PAGE_W,
-    TOP_Y,
-    _parse_blocks,
-    sanitize_winansi,  # re-exported for backward compatibility
+    _parse_blocks,  # re-exported for backward compatibility
 )
 
 # ---------------------------------------------------------------------------

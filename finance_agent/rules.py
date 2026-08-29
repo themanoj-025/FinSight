@@ -162,7 +162,7 @@ def detect_recurring_payments(
                     "category": str(g["category"].mode().iloc[0]),
                     "amount": round(mean_amt, 2),
                     "interval_days": round(float(gaps.mean()), 1),
-                    "occurrences": int(len(g)),
+                    "occurrences": len(g),
                     "last_paid": str(g["date"].max()),
                 }
             )

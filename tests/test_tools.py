@@ -383,7 +383,7 @@ def _bundle_env(tmp_env):
     from sklearn.ensemble import IsolationForest
     from sklearn.preprocessing import StandardScaler
 
-    from finance_agent.features import build_features  # noqa: PLC0415
+    from finance_agent.features import build_features
 
     df = tmp_env["df"]
     X = build_features(df)

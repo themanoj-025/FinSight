@@ -26,7 +26,6 @@ import pandas as pd
 
 from finance_agent.constants import SPENDING_CATEGORIES, fmt, fmt_money
 from finance_agent.session import (
-    DEFAULT_PRICING,
     SessionBudget,
     SessionUsage,
     estimate_cost,
