@@ -242,7 +242,7 @@ class GoldenAnthropic:
         self._tool_name = tool_name
         self._tool_input = tool_input
 
-    def Anthropic(self, api_key=""):  # noqa: N802 — mirrors the SDK name
+    def Anthropic(self, api_key=""):
         return SimpleNamespace(
             messages=GoldenMessages(self.captured, self._tool_name, self._tool_input)
         )

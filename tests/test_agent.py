@@ -83,7 +83,7 @@ class FakeAnthropic:
         self.captured: list[dict] = []
         self.replies = [FakeFinalMessage()]
 
-    def Anthropic(self, api_key=""):  # noqa: N802 — mirrors the SDK name
+    def Anthropic(self, api_key=""):
         return FakeClient(self.captured, self.replies)
 
 
@@ -290,7 +290,7 @@ def test_llm_available_false_for_invalid_key(llm_env):
         models = BadModels()
 
     class BadAnthropic:
-        def Anthropic(self, api_key=""):  # noqa: N802
+        def Anthropic(self, api_key=""):
             return BadClient()
 
     agent = FinanceAgent(llm_env["cfg_path"], api_key="sk-bad", _anthropic=BadAnthropic())
@@ -335,7 +335,7 @@ def test_llm_failure_records_failed_call_and_falls_back(llm_env):
         messages = BoomMessages()
 
     class BoomAnthropic:
-        def Anthropic(self, api_key=""):  # noqa: N802
+        def Anthropic(self, api_key=""):
             return BoomClient()
 
     agent = FinanceAgent(llm_env["cfg_path"], api_key="sk-x", _anthropic=BoomAnthropic())

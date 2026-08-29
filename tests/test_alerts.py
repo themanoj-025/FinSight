@@ -21,7 +21,7 @@ class _CaptureHandler(BaseHTTPRequestHandler):
 
     received: list[tuple[str, dict]] = []
 
-    def do_POST(self) -> None:  # noqa: N802 — stdlib handler API
+    def do_POST(self) -> None:
         length = int(self.headers.get("Content-Length", 0))
         body = json.loads(self.rfile.read(length) or b"{}")
         type(self).received.append((self.path, body))
