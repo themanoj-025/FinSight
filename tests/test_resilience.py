@@ -50,7 +50,7 @@ def df():
 
 
 # ------------------------------------------------------------ missing bundle
-def test_missing_bundle_degrades_to_rule_only(tmp_path, df):
+def test_missing_bundle_degrades_to_rule_only(tmp_path, df) -> None:
     from finance_agent.tools import FinanceFacts
 
     cfg_path = _write_config(tmp_path, df, bundle="does_not_exist.joblib")
@@ -62,7 +62,7 @@ def test_missing_bundle_degrades_to_rule_only(tmp_path, df):
 
 
 # -------------------------------------------------- corrupt / tampered bundle
-def test_tampered_signed_bundle_is_refused(tmp_path, df, monkeypatch):
+def test_tampered_signed_bundle_is_refused(tmp_path, df, monkeypatch) -> None:
     """A bundle whose signature no longer matches must NOT be deserialized —
     the pickle-RCE mitigation (C.2.4) fails closed to rule-only."""
     from finance_agent.bundle_security import write_signature
@@ -93,7 +93,7 @@ def test_tampered_signed_bundle_is_refused(tmp_path, df, monkeypatch):
     assert facts2.rule_only() is True, "tampered bundle must be refused (fail closed)"
 
 
-def test_unsigned_bundle_refused_when_env_key_set(tmp_path, df, monkeypatch):
+def test_unsigned_bundle_refused_when_env_key_set(tmp_path, df, monkeypatch) -> None:
     """With FINSIGHT_BUNDLE_KEY set, a bundle with no .sig must be refused —
     the guarantee can't be silently downgraded."""
     from finance_agent.tools import FinanceFacts
@@ -107,7 +107,7 @@ def test_unsigned_bundle_refused_when_env_key_set(tmp_path, df, monkeypatch):
     assert facts.rule_only() is True
 
 
-def test_demo_key_signed_bundle_rejected_under_real_key(tmp_path, df, monkeypatch):
+def test_demo_key_signed_bundle_rejected_under_real_key(tmp_path, df, monkeypatch) -> None:
     """Audit §2: a bundle signed with the public demo default key must be
     REFUSED loudly when FINSIGHT_BUNDLE_KEY is set to a different, real value.
 
@@ -148,7 +148,7 @@ def test_demo_key_signed_bundle_rejected_under_real_key(tmp_path, df, monkeypatc
     assert "FINSIGHT_BUNDLE_KEY" in message
 
 
-def test_corrupt_unsigned_bundle_falls_back_to_rule_only(tmp_path, df, caplog):
+def test_corrupt_unsigned_bundle_falls_back_to_rule_only(tmp_path, df, caplog) -> None:
     """Garbage bytes without a signature: joblib.load fails, caught, rule-only."""
     from finance_agent.tools import FinanceFacts
 
@@ -163,7 +163,7 @@ def test_corrupt_unsigned_bundle_falls_back_to_rule_only(tmp_path, df, caplog):
 
 
 # --------------------------------------------------------------- missing key
-def test_no_api_key_degrades_to_offline_narrator(tmp_path, df):
+def test_no_api_key_degrades_to_offline_narrator(tmp_path, df) -> None:
     from finance_agent.agent import FinanceAgent
 
     cfg_path = _write_config(tmp_path, df)
@@ -174,7 +174,7 @@ def test_no_api_key_degrades_to_offline_narrator(tmp_path, df):
     assert agent.usage_summary()["narrator_calls"] >= 1
 
 
-def test_dead_llm_client_falls_back_to_narrator(tmp_path, df):
+def test_dead_llm_client_falls_back_to_narrator(tmp_path, df) -> bool:
     """An LLM call that raises mid-stream must degrade to the narrator, and
     the failure must be visible in the usage ledger (not silent)."""
     from finance_agent.agent import FinanceAgent
@@ -183,11 +183,11 @@ def test_dead_llm_client_falls_back_to_narrator(tmp_path, df):
         def __enter__(self):
             return self
 
-        def __exit__(self, *args):
+        def __exit__(self, *args) -> bool:
             return False
 
         @property
-        def text_stream(self):
+        def text_stream(self) -> None:
             raise RuntimeError("api down")
 
     class BoomMessages:
@@ -211,7 +211,7 @@ def test_dead_llm_client_falls_back_to_narrator(tmp_path, df):
 
 
 # ----------------------------------------------------------- malformed config
-def test_malformed_config_raises_config_error(tmp_path, df):
+def test_malformed_config_raises_config_error(tmp_path, df) -> None:
     """A typo'd config must fail loudly at load with the offending key named."""
     from finance_agent.tools import FinanceFacts
 
@@ -225,7 +225,7 @@ def test_malformed_config_raises_config_error(tmp_path, df):
 
 
 # --------------------------------------------------------------- missing data
-def test_missing_data_raises_clear_file_not_found_error(tmp_path, df):
+def test_missing_data_raises_clear_file_not_found_error(tmp_path, df) -> None:
     """Missing data must surface as a clear FileNotFoundError, not an opaque
     crash (the app wraps this with an explicit 'run make data' message)."""
     from finance_agent.tools import FinanceFacts
@@ -247,7 +247,7 @@ def test_missing_data_raises_clear_file_not_found_error(tmp_path, df):
 
 
 # ------------------------------------------------------- retrieval resilience
-def test_retrieval_disabled_flag_returns_clean_payload(tmp_path, df):
+def test_retrieval_disabled_flag_returns_clean_payload(tmp_path, df) -> None:
     """The similar-transactions tool must return a clean 'disabled' payload
     when the feature flag is off — never raise."""
     from finance_agent.tools import FinanceFacts

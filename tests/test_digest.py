@@ -14,7 +14,7 @@ from finance_agent.digest import build_weekly_digest, run_digest, send_email, se
 
 
 @pytest.fixture()
-def digest_env(tmp_path):
+def digest_env(tmp_path) -> dict[str, object]:
     """Hermetic env: small multi-user ledger + config with digest settings."""
     import yaml
 
@@ -64,7 +64,7 @@ def _facts(digest_env):
     return FinanceFacts(digest_env["cfg_path"])
 
 
-def test_build_weekly_digest_has_expected_sections(digest_env):
+def test_build_weekly_digest_has_expected_sections(digest_env) -> None:
     md = build_weekly_digest(_facts(digest_env))
     assert md.startswith("# 💸 FinSight Weekly Digest")
     for section in ("The week at a glance", "Health score", "window"):
@@ -72,7 +72,7 @@ def test_build_weekly_digest_has_expected_sections(digest_env):
     assert "No transaction data" not in md
 
 
-def test_build_weekly_digest_scoped_to_focal_user(digest_env):
+def test_build_weekly_digest_scoped_to_focal_user(digest_env) -> None:
     """Digest figures reflect only the selected focal user's ledger."""
     from finance_agent.tools import FinanceFacts
 
@@ -86,7 +86,7 @@ def test_build_weekly_digest_scoped_to_focal_user(digest_env):
     assert alex != maria
 
 
-def test_build_weekly_digest_empty_data(tmp_path):
+def test_build_weekly_digest_empty_data(tmp_path) -> None:
     """A facts source with no rows must not crash the digest."""
     import pandas as pd
     import yaml
@@ -133,7 +133,7 @@ def test_build_weekly_digest_empty_data(tmp_path):
     assert "No transaction data" in md
 
 
-def test_send_slack_posts_json_payload():
+def test_send_slack_posts_json_payload() -> None:
     """send_slack POSTs {"text": ...} to the webhook and surfaces HTTP errors."""
     with mock.patch("urllib.request.urlopen") as mock_open:
         mock_resp = mock.MagicMock()
@@ -151,7 +151,7 @@ def test_send_slack_posts_json_payload():
         send_slack("https://hooks.slack.com/services/X", "x")
 
 
-def test_send_email_uses_tls_and_login():
+def test_send_email_uses_tls_and_login() -> None:
     """send_email goes through SMTP with starttls + optional login."""
     cfg = {
         "smtp_host": "smtp.test.local",
@@ -173,7 +173,7 @@ def test_send_email_uses_tls_and_login():
         assert msg["To"] == "a@test.local, b@test.local"
 
 
-def test_run_digest_writes_file_and_delivers(digest_env, caplog):
+def test_run_digest_writes_file_and_delivers(digest_env, caplog) -> None:
     """run_digest persists the digest and calls both configured channels."""
     caplog.set_level(logging.INFO, logger="finance_agent.digest")
     with (
@@ -190,7 +190,7 @@ def test_run_digest_writes_file_and_delivers(digest_env, caplog):
     assert "Emailed digest to" in caplog.text
 
 
-def test_run_digest_no_channels_writes_file_only(digest_env, caplog):
+def test_run_digest_no_channels_writes_file_only(digest_env, caplog) -> None:
     """With no channel configured the digest is written with a visible note."""
     import logging
 
@@ -214,13 +214,13 @@ def test_run_digest_no_channels_writes_file_only(digest_env, caplog):
     assert "wrote file only" in caplog.text
 
 
-def test_run_digest_rejects_path_traversal(digest_env):
+def test_run_digest_rejects_path_traversal(digest_env) -> None:
     """An explicit out_path may not traverse outside the project."""
     with pytest.raises(ValueError, match="must not traverse"):
         run_digest(digest_env["cfg_path"], out_path="../evil.md")
 
 
-def test_cli_digest_subcommand(digest_env, capsys, monkeypatch):
+def test_cli_digest_subcommand(digest_env, capsys, monkeypatch) -> None:
     """`python -m finance_agent digest` routes to run_digest, writes the file,
     and prints a confirmation (the CLI must not be silent)."""
     import sys

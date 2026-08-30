@@ -33,13 +33,13 @@ class _CaptureHandler(BaseHTTPRequestHandler):
 
 
 @pytest.fixture(autouse=True)
-def _no_webhook_env(monkeypatch):
+def _no_webhook_env(monkeypatch) -> None:
     """Tests must be hermetic: a developer's FINSIGHT_WEBHOOK_URL must not leak in."""
     monkeypatch.delenv("FINSIGHT_WEBHOOK_URL", raising=False)
 
 
 @pytest.fixture()
-def webhook_server():
+def webhook_server() -> None:
     server = HTTPServer(("127.0.0.1", 0), _CaptureHandler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()

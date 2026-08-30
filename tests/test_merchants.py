@@ -8,7 +8,7 @@ import pytest
 from finance_agent import merchants
 
 
-def test_region_table_size_and_keys():
+def test_region_table_size_and_keys() -> None:
     assert len(merchants.REGION_IDS) == 36
     for rid in merchants.REGION_IDS:
         rec = merchants.REGIONS[rid]
@@ -17,7 +17,7 @@ def test_region_table_size_and_keys():
         assert -180.0 <= float(rec["lon"]) <= 180.0
 
 
-def test_haversine_sane_and_symmetric():
+def test_haversine_sane_and_symmetric() -> None:
     assert merchants.haversine_miles("R00_portland", "R00_portland") == 0.0
     d1 = merchants.haversine_miles("R00_portland", "R02_denver")
     d2 = merchants.haversine_miles("R02_denver", "R00_portland")
@@ -25,7 +25,7 @@ def test_haversine_sane_and_symmetric():
     assert 500.0 < d1 < 2000.0  # Portland <-> Denver ~1000mi
 
 
-def test_catalog_size_and_uniqueness():
+def test_catalog_size_and_uniqueness() -> None:
     assert 200 <= len(merchants.MERCHANTS) <= 400  # ~300 named merchants
     names = [m["name"] for m in merchants.MERCHANTS]
     assert len(names) == len(set(names)), "merchant names must be unique"
@@ -34,7 +34,7 @@ def test_catalog_size_and_uniqueness():
         assert subs
 
 
-def test_category_hierarchy_consistency():
+def test_category_hierarchy_consistency() -> None:
     for m in merchants.MERCHANTS:
         assert m["subcategory"] in merchants.SUBCATEGORIES[m["category"]]
         assert m["category"] in merchants.CATEGORY_GROUP
@@ -46,7 +46,7 @@ def test_category_hierarchy_consistency():
     assert merchants.CATEGORY_GROUP["savings"] == "savings"
 
 
-def test_type_for_mapping():
+def test_type_for_mapping() -> None:
     assert merchants.type_for("income", "payroll") == "SALARY"
     assert merchants.type_for("income", "freelance") == "CASH_IN"
     assert merchants.type_for("housing", "rent") == "TRANSFER"
@@ -56,7 +56,7 @@ def test_type_for_mapping():
     assert merchants.type_for("utilities", "electricity") == "PAYMENT"
 
 
-def test_merchant_weights_are_zipfian():
+def test_merchant_weights_are_zipfian() -> None:
     w = merchants.MERCHANT_WEIGHTS
     assert w.shape == (len(merchants.MERCHANTS),)
     assert np.isclose(w.sum(), 1.0)
@@ -67,7 +67,7 @@ def test_merchant_weights_are_zipfian():
     assert 0.15 < top10_share < 0.6, f"top-10 share {top10_share:.3f} out of band"
 
 
-def test_sample_merchants_returns_requested_category():
+def test_sample_merchants_returns_requested_category() -> None:
     rng = np.random.default_rng(0)
     for cat in ("groceries", "dining", "shopping"):
         out = merchants.sample_merchants(rng, cat, 50)
@@ -76,7 +76,7 @@ def test_sample_merchants_returns_requested_category():
     assert merchants.sample_merchants(rng, "dining", 0) == []
 
 
-def test_sample_merchants_force_new_excludes_used():
+def test_sample_merchants_force_new_excludes_used() -> None:
     rng = np.random.default_rng(1)
     used = {m["name"] for m in merchants.sample_merchants(rng, "dining", 20)}
     rng = np.random.default_rng(2)
@@ -84,14 +84,14 @@ def test_sample_merchants_force_new_excludes_used():
     assert all(m["name"] not in used for m in out)
 
 
-def test_merchant_by_name_roundtrip():
+def test_merchant_by_name_roundtrip() -> None:
     m = merchants.MERCHANTS[0]
     assert merchants.merchant_by_name(m["name"]) == m
     with pytest.raises(KeyError):
         merchants.merchant_by_name("definitely-not-a-merchant")
 
 
-def test_seasonal_multipliers_shape_and_sanity():
+def test_seasonal_multipliers_shape_and_sanity() -> None:
     for _, mults in merchants.SEASONAL_MULTIPLIER.items():
         assert len(mults) == 12
         assert all(v > 0.0 for v in mults)
@@ -104,7 +104,7 @@ def test_seasonal_multipliers_shape_and_sanity():
     assert merchants.seasonal_multiplier("income", 3) == 1.0
 
 
-def test_holiday_window():
+def test_holiday_window() -> None:
     assert not merchants.is_holiday_window(11, 14)
     assert merchants.is_holiday_window(11, 15)
     assert merchants.is_holiday_window(12, 25)
@@ -112,7 +112,7 @@ def test_holiday_window():
     assert not merchants.is_holiday_window(1, 1)
 
 
-def test_subscription_amounts_are_realistic_and_deterministic():
+def test_subscription_amounts_are_realistic_and_deterministic() -> None:
     amounts = merchants.SUBSCRIPTION_AMOUNTS
     assert len(amounts) >= 8
     assert all(v > 0 for v in amounts.values())

@@ -64,7 +64,7 @@ def txn(
 
 
 # ------------------------------------------------------------------ balance drain
-def test_balance_drain_detected_when_balance_hits_exactly_zero():
+def test_balance_drain_detected_when_balance_hits_exactly_zero() -> None:
     df = make_df(
         [
             txn(100, "TRANSFER", 2000.0, "WireOut", "transfer", old=2000.0, new=0.0),
@@ -76,7 +76,7 @@ def test_balance_drain_detected_when_balance_hits_exactly_zero():
     assert (flagged["reason"] == "balance_drain").all()
 
 
-def test_balance_drain_not_flagged_for_healthy_transfer():
+def test_balance_drain_not_flagged_for_healthy_transfer() -> None:
     df = make_df(
         [
             txn(100, "TRANSFER", 500.0, "Peer Transfer", "transfer", old=2500.0, new=2000.0),
@@ -86,7 +86,7 @@ def test_balance_drain_not_flagged_for_healthy_transfer():
     assert len(rules.detect_balance_drain(df)) == 0
 
 
-def test_balance_drain_requires_cashout_within_window():
+def test_balance_drain_requires_cashout_within_window() -> None:
     df = make_df(
         [
             txn(100, "TRANSFER", 2000.0, "WireOut", "transfer", old=2000.0, new=0.0),
@@ -99,7 +99,7 @@ def test_balance_drain_requires_cashout_within_window():
 
 
 # ------------------------------------------------------------------ duplicates
-def test_duplicate_charge_flagged_within_window():
+def test_duplicate_charge_flagged_within_window() -> None:
     df = make_df(
         [
             txn(10, "SHOP", 59.99, "SteamGames", "entertainment"),
@@ -111,7 +111,7 @@ def test_duplicate_charge_flagged_within_window():
     assert dup["merchant"].iloc[0] == "SteamGames"
 
 
-def test_duplicate_charge_outside_window_not_flagged():
+def test_duplicate_charge_outside_window_not_flagged() -> None:
     df = make_df(
         [
             txn(10, "SHOP", 59.99, "SteamGames", "entertainment"),
@@ -121,7 +121,7 @@ def test_duplicate_charge_outside_window_not_flagged():
     assert len(rules.detect_duplicate_charges(df)) == 0
 
 
-def test_duplicate_charge_ignores_transfers_and_other_users():
+def test_duplicate_charge_ignores_transfers_and_other_users() -> None:
     df = make_df(
         [
             txn(10, "SHOP", 59.99, "SteamGames", "entertainment", focal=False),
@@ -134,7 +134,7 @@ def test_duplicate_charge_ignores_transfers_and_other_users():
 
 
 # ------------------------------------------------------------------ spend spikes
-def test_spend_spike_flagged_over_baseline():
+def test_spend_spike_flagged_over_baseline() -> None:
     rows = [txn(h * 24 + 12, "SHOP", 30.0, "Bistro", "dining") for h in range(20)]
     rows += [txn(20 * 24 + 12 + i, "SHOP", 300.0, "Bistro", "dining") for i in range(1)]
     df = make_df(rows)
@@ -143,13 +143,13 @@ def test_spend_spike_flagged_over_baseline():
     assert (spikes["category"] == "dining").all()
 
 
-def test_normal_spending_has_no_spike():
+def test_normal_spending_has_no_spike() -> None:
     rows = [txn(h * 24 + 12, "SHOP", float(25 + (h % 7)), "Bistro", "dining") for h in range(30)]
     assert len(rules.detect_spend_spikes(make_df(rows), z_threshold=3.0)) == 0
 
 
 # ------------------------------------------------------------------ recurring
-def test_recurring_payment_detected_with_noisy_intervals():
+def test_recurring_payment_detected_with_noisy_intervals() -> None:
     rows = [
         txn(24 * 30, "SUBSCRIPTION", 15.49, "Netflix", "subscriptions"),
         txn(24 * 59, "SUBSCRIPTION", 15.49, "Netflix", "subscriptions"),  # 29 days
@@ -162,7 +162,7 @@ def test_recurring_payment_detected_with_noisy_intervals():
     assert 28 <= rec["interval_days"].iloc[0] <= 32
 
 
-def test_unstable_amounts_not_recurring():
+def test_unstable_amounts_not_recurring() -> None:
     rows = [
         txn(24 * 30, "SHOP", 10.0, "WeirdStore", "shopping"),
         txn(24 * 60, "SHOP", 60.0, "WeirdStore", "shopping"),
@@ -172,7 +172,7 @@ def test_unstable_amounts_not_recurring():
 
 
 # ------------------------------------------------------------------ health & flags
-def test_financial_health_shape_and_bounds():
+def test_financial_health_shape_and_bounds() -> None:
     rows = []
     for month in (0, 1, 2):
         rows.append(txn(month * 24 * 30 + 8, "SALARY", 5400.0, "Acme Corp Payroll", "income"))
@@ -190,7 +190,7 @@ def test_financial_health_shape_and_bounds():
     assert health["monthly_income"] == pytest.approx(5400.0)
 
 
-def test_rule_risk_flags_scores_and_reasons():
+def test_rule_risk_flags_scores_and_reasons() -> None:
     df = make_df(
         [
             txn(100, "TRANSFER", 2000.0, "WireOut", "transfer", old=2000.0, new=0.0),
@@ -210,7 +210,7 @@ def test_rule_risk_flags_scores_and_reasons():
 
 
 @pytest.mark.slow
-def test_rule_risk_flags_100k_rows_under_budget():
+def test_rule_risk_flags_100k_rows_under_budget() -> None:
     """2.7: vectorized detectors must stay fast at scale (excluded from CI fast job)."""
     import time
 

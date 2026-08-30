@@ -7,7 +7,7 @@ from sklearn.linear_model import LogisticRegression
 from model_bench import evaluate
 
 
-def test_compute_metrics_sane_on_small_labeled_set():
+def test_compute_metrics_sane_on_small_labeled_set() -> None:
     y = np.array([0, 0, 0, 0, 1, 1, 1, 1])
     s = np.array([0.05, 0.1, 0.2, 0.3, 0.55, 0.7, 0.85, 0.95])
     m = evaluate.compute_metrics(y, s)
@@ -20,7 +20,7 @@ def test_compute_metrics_sane_on_small_labeled_set():
     assert m["pr_auc"] > m2["pr_auc"]
 
 
-def test_compute_metrics_handles_all_negative():
+def test_compute_metrics_handles_all_negative() -> None:
     y = np.zeros(6, dtype=int)
     s = np.linspace(0, 1, 6)
     m = evaluate.compute_metrics(y, s)  # must not raise (zero_division handled)
@@ -28,7 +28,7 @@ def test_compute_metrics_handles_all_negative():
     assert m["precision"] == 0.0
 
 
-def test_permutation_importance_path_for_non_tree_winner(tmp_path):
+def test_permutation_importance_path_for_non_tree_winner(tmp_path) -> None:
     rng = np.random.default_rng(0)
     X = rng.normal(size=(300, 5))
     y = (X[:, 0] > 0.5).astype(int)
@@ -40,7 +40,7 @@ def test_permutation_importance_path_for_non_tree_winner(tmp_path):
     assert os.path.exists(path)
 
 
-def test_plot_bar_comparison_with_cv_columns(tmp_path):
+def test_plot_bar_comparison_with_cv_columns(tmp_path) -> None:
     table = pd.DataFrame(
         {
             "model": ["A", "B"],

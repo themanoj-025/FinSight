@@ -32,7 +32,7 @@ def _json_norm(obj: Any) -> Any:
 
 
 @pytest.fixture(scope="module", autouse=True)
-def _ensure_data():
+def _ensure_data() -> None:
     if not (ROOT / "data" / "transactions.csv").exists():
         import subprocess
         import sys
@@ -48,12 +48,12 @@ def _direct() -> FinanceFacts:
     return FinanceFacts(CONFIG)
 
 
-def test_client_monthly_summary_matches_direct(api_server):
+def test_client_monthly_summary_matches_direct(api_server) -> None:
     client = ApiClient(api_server)
     assert client.monthly_summary() == _json_norm(_direct().monthly_summary())
 
 
-def test_client_health_tools_match_direct(api_server):
+def test_client_health_tools_match_direct(api_server) -> None:
     client = ApiClient(api_server)
     direct = _direct()
     assert client.financial_health() == _json_norm(direct.financial_health())
@@ -63,7 +63,7 @@ def test_client_health_tools_match_direct(api_server):
     assert client.top_tips() == _json_norm(direct.top_tips())
 
 
-def test_client_risk_scored_matches_direct_with_explanations(api_server):
+def test_client_risk_scored_matches_direct_with_explanations(api_server) -> None:
     client = ApiClient(api_server)
     direct = _direct()
     kwargs = {"limit": 5, "threshold": 0.5, "focal_only": True, "include_explanations": True}
@@ -71,11 +71,11 @@ def test_client_risk_scored_matches_direct_with_explanations(api_server):
     assert client.risk_scored_transactions(**kwargs) == expected
 
 
-def test_client_rule_only_matches_direct(api_server):
+def test_client_rule_only_matches_direct(api_server) -> None:
     assert ApiClient(api_server).rule_only() == _direct().rule_only()
 
 
-def test_client_df_dtypes_and_values_roundtrip(api_server):
+def test_client_df_dtypes_and_values_roundtrip(api_server) -> None:
     client = ApiClient(api_server)
     df, ref = client.df, _direct().df
     assert list(df.columns) == list(ref.columns)
@@ -88,29 +88,29 @@ def test_client_df_dtypes_and_values_roundtrip(api_server):
         assert (df[col] == ref[col]).all(), f"column {col} diverged over the wire"
 
 
-def test_client_focal_frame(api_server):
+def test_client_focal_frame(api_server) -> None:
     client = ApiClient(api_server)
     focal = client._focal()
     assert bool(focal["is_focal_user"].all())
     assert len(focal) <= len(client.df)
 
 
-def test_client_cfg_mirrors_config(api_server):
+def test_client_cfg_mirrors_config(api_server) -> None:
     cfg = ApiClient(api_server).cfg
     assert cfg == _direct().cfg
 
 
-def test_client_error_on_unknown_route(api_server):
+def test_client_error_on_unknown_route(api_server) -> None:
     with pytest.raises(ApiClientError):
         ApiClient(api_server)._request("/api/v1/does-not-exist")
 
 
-def test_client_unreachable_server_raises_clear_error():
+def test_client_unreachable_server_raises_clear_error() -> None:
     with pytest.raises(ApiClientError, match="unreachable"):
         ApiClient("http://127.0.0.1:1", timeout=2).ping()
 
 
-def test_app_renders_against_api_when_configured(api_server):
+def test_app_renders_against_api_when_configured(api_server) -> None:
     """The Streamlit app becomes a client of the API when FINSIGHT_API_URL is set.
 
     Renders the Settings page (which reads facts.df + facts.cfg) headlessly with

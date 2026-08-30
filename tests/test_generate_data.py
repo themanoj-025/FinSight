@@ -11,14 +11,14 @@ from generate_data import generate
 SMALL = dict(days=20, seed=11, user="U_Alex", n_background_accounts=10, n_fraud_pairs=2)
 
 
-def test_same_seed_is_deterministic():
+def test_same_seed_is_deterministic() -> None:
     a = generate(**SMALL)
     b = generate(**SMALL)
     pd.testing.assert_frame_equal(a, b)
     assert len(a) == len(b) > 0
 
 
-def test_seed_zero_is_respected():
+def test_seed_zero_is_respected() -> None:
     """--seed 0 is a valid value and must not be overridden by defaults."""
     a = generate(**{**SMALL, "seed": 0})
     b = generate(**{**SMALL, "seed": 0})
@@ -27,7 +27,7 @@ def test_seed_zero_is_respected():
     assert not a.equals(c)
 
 
-def test_ledger_balance_continuity():
+def test_ledger_balance_continuity() -> None:
     df = generate(days=30, seed=7, n_background_accounts=15, n_fraud_pairs=3)
     focal = df[df["is_focal_user"]].sort_values("step").reset_index(drop=True)
     assert len(focal) > 0
@@ -55,7 +55,7 @@ def test_ledger_balance_continuity():
         assert row["newbalanceOrig"] <= 0.5 * row["oldbalanceOrg"]
 
 
-def test_multiple_focal_users_each_get_full_balanced_ledgers():
+def test_multiple_focal_users_each_get_full_balanced_ledgers() -> None:
     """Multi-user mode: every focal user gets a balanced, anomaly-injected ledger."""
     users = ["U_Alex", "U_Maria", "U_Noah"]
     df = generate(
@@ -95,7 +95,7 @@ def test_multiple_focal_users_each_get_full_balanced_ledgers():
     pd.testing.assert_frame_equal(df, again)
 
 
-def test_tiny_window_does_not_crash():
+def test_tiny_window_does_not_crash() -> None:
     """generate() must not crash for windows too small for background fraud pairs.
 
     `_inject_background_fraud_pairs` used `rng.integers(5, days)`, which raises
@@ -110,14 +110,14 @@ def test_tiny_window_does_not_crash():
     assert list(df.columns) == list(generate(days=30, seed=3, n_background_accounts=4).columns)
 
 
-def test_generator_emits_focal_cash_in():
+def test_generator_emits_focal_cash_in() -> None:
     """The generator can emit CASH_IN for the focal user (2.10 unmask)."""
     df = generate(days=90, seed=5, n_background_accounts=10, n_fraud_pairs=2)
     focal_cash_in = df[(df["is_focal_user"]) & (df["type"] == "CASH_IN")]
     assert len(focal_cash_in) > 0
 
 
-def test_subscription_total_tracks_source_list(monkeypatch):
+def test_subscription_total_tracks_source_list(monkeypatch) -> None:
     base = generate_data.subscription_total()
     assert base == pytest.approx(sum(generate_data.SUBSCRIPTION_AMOUNTS.values()))
     assert base > 100.0  # sanity: several subscriptions

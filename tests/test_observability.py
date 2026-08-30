@@ -120,7 +120,7 @@ class TestSentryInertness:
 
 
 @pytest.fixture(scope="module")
-def _api_server():
+def _api_server() -> None:
     """A real uvicorn server with a deliberately-crashing test route.
 
     Uses the project's established boot_api_server pattern (plain HTTP over

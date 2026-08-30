@@ -21,7 +21,7 @@ from finance_agent.retrieval import (
 
 
 @pytest.fixture()
-def env(tmp_path):
+def env(tmp_path) -> dict[str, object]:
     """Hermetic generated ledger + config (mirrors tests/test_tools.py)."""
     from generate_data import generate
 
@@ -53,7 +53,7 @@ def env(tmp_path):
     return {"cfg_path": str(cfg_path), "tmp": tmp_path, "df": df}
 
 
-def _index(df: pd.DataFrame):
+def _index(df: pd.DataFrame) -> tuple[object, ...]:
     from finance_agent.features import build_features
 
     features = build_features(df)
@@ -65,7 +65,7 @@ def _index(df: pd.DataFrame):
 
 
 # ------------------------------------------------------------------- unit
-def test_build_embeddings_l2_normalizes_rows():
+def test_build_embeddings_l2_normalizes_rows() -> None:
     feats = pd.DataFrame({"a": [1.0, 0.0, 3.0], "b": [1.0, 0.0, 4.0], "c": [1.0, 2.0, 0.0]})
     emb = build_embeddings(feats)
     norms = np.linalg.norm(emb, axis=1)
@@ -73,12 +73,12 @@ def test_build_embeddings_l2_normalizes_rows():
     assert emb.shape == feats.shape
 
 
-def test_index_backend_is_faiss_or_numpy(env):
+def test_index_backend_is_faiss_or_numpy(env) -> None:
     index, _ = _index(env["df"])
     assert index.backend() in {"faiss", "numpy"}
 
 
-def test_find_similar_excludes_the_query_itself(env):
+def test_find_similar_excludes_the_query_itself(env) -> None:
     index, positions = _index(env["df"])
     pos = 5
     tid = int(positions[pos])
@@ -88,7 +88,7 @@ def test_find_similar_excludes_the_query_itself(env):
     assert len(ids) == 5
 
 
-def test_nearest_neighbors_out_of_range_raises(env):
+def test_nearest_neighbors_out_of_range_raises(env) -> None:
     df = env["df"]
     from finance_agent.features import build_features
 
@@ -100,7 +100,7 @@ def test_nearest_neighbors_out_of_range_raises(env):
         nearest_neighbors(features, meta, transaction_id=len(df) + 50, k=3)
 
 
-def test_neighbor_rows_trims_and_labels():
+def test_neighbor_rows_trims_and_labels() -> None:
     rows = [
         {
             "transaction_id": 7,
@@ -136,7 +136,7 @@ def test_neighbor_rows_trims_and_labels():
     }
 
 
-def test_neighbor_rows_nan_archetype_becomes_legitimate():
+def test_neighbor_rows_nan_archetype_becomes_legitimate() -> None:
     """Regression: NaN archetypes must map to 'legitimate'.
 
     float('nan') is *truthy*, so a plain falsy check lets it through — the
@@ -169,7 +169,7 @@ def test_neighbor_rows_nan_archetype_becomes_legitimate():
 
 
 # ----------------------------------------------------------- tool integration
-def test_find_similar_transactions_tool_payload(env):
+def test_find_similar_transactions_tool_payload(env) -> None:
     from finance_agent.tools import FinanceFacts
 
     facts = FinanceFacts(env["cfg_path"])
@@ -187,7 +187,7 @@ def test_find_similar_transactions_tool_payload(env):
     assert result["summary"]
 
 
-def test_find_similar_defaults_to_top_risk_transaction(env):
+def test_find_similar_defaults_to_top_risk_transaction(env) -> None:
     from finance_agent.tools import FinanceFacts
 
     facts = FinanceFacts(env["cfg_path"])
@@ -196,7 +196,7 @@ def test_find_similar_defaults_to_top_risk_transaction(env):
     assert len(result["data"]["neighbors"]) == 3
 
 
-def test_find_similar_unknown_id_returns_clean_error(env):
+def test_find_similar_unknown_id_returns_clean_error(env) -> None:
     from finance_agent.tools import FinanceFacts
 
     facts = FinanceFacts(env["cfg_path"])
@@ -205,7 +205,7 @@ def test_find_similar_unknown_id_returns_clean_error(env):
     assert "no transaction" in result["summary"].lower()
 
 
-def test_feature_flag_disables_retrieval(env):
+def test_feature_flag_disables_retrieval(env) -> None:
     from finance_agent.tools import FinanceFacts
 
     cfg_path = env["tmp"] / "disabled.yaml"
@@ -225,7 +225,7 @@ def test_feature_flag_disables_retrieval(env):
 
 # ------------------------------------------------------ the quality claim (B.1)
 @pytest.mark.parametrize("k", [5, 10])
-def test_archetype_purity_fraud_neighbors_cluster(env, k):
+def test_archetype_purity_fraud_neighbors_cluster(env, k) -> None:
     """Phase B.1 acceptance: a fraud archetype's transactions retrieve
     neighbors predominantly from the same archetype.
 

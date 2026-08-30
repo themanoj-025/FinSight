@@ -27,7 +27,7 @@ def persona_start():
     return datetime(2025, 1, 1)
 
 
-def test_pattern_catalog_has_15_archetypes():
+def test_pattern_catalog_has_15_archetypes() -> None:
     names = fp.pattern_names()
     assert len(names) == 15
     assert "bust_out" in names
@@ -42,7 +42,7 @@ def test_pattern_catalog_has_15_archetypes():
         assert fp._MIN_DAYS[name] >= 1
 
 
-def test_easy_patterns_are_labeled_correctly():
+def test_easy_patterns_are_labeled_correctly() -> None:
     ctx = _ctx(days=90)
     rows = fp.gen_balance_drain(ctx)
     assert rows
@@ -65,7 +65,7 @@ def test_easy_patterns_are_labeled_correctly():
     assert all(r["is_anomaly"] == 1 and r["isFraud"] == 0 for r in spike)
 
 
-def test_hard_negatives_are_legitimate_unusual_rows():
+def test_hard_negatives_are_legitimate_unusual_rows() -> None:
     ctx = _ctx(days=90)
     for gen in (fp.gen_life_event, fp.gen_travel, fp.gen_rapid_burst):
         rows = gen(ctx)
@@ -85,7 +85,7 @@ def test_patterns_are_deterministic_given_same_rng():
     assert gen_once(11) != gen_once(12)
 
 
-def test_account_takeover_labels_only_the_final_drain():
+def test_account_takeover_labels_only_the_final_drain() -> None:
     ctx = _ctx(days=120)
     rows = fp.gen_account_takeover(ctx)
     assert rows
@@ -98,7 +98,7 @@ def test_account_takeover_labels_only_the_final_drain():
     assert all(r["is_anomaly"] == 0 for r in normal)
 
 
-def test_refund_abuse_loop_structure():
+def test_refund_abuse_loop_structure() -> None:
     ctx = _ctx(days=120)
     rows = fp.gen_refund_abuse(ctx)
     assert rows
@@ -108,13 +108,13 @@ def test_refund_abuse_loop_structure():
     assert all(r["isFraud"] == 1 for r in rows)
 
 
-def test_inject_focal_patterns_tiny_window_returns_nothing():
+def test_inject_focal_patterns_tiny_window_returns_nothing() -> None:
     """A 2-day window has no room for any pattern to play out."""
     ctx = _ctx(days=2)
     assert fp.inject_focal_patterns(ctx) == []
 
 
-def test_inject_focal_patterns_full_window_includes_easy_tier():
+def test_inject_focal_patterns_full_window_includes_easy_tier() -> None:
     ctx = _ctx(days=90)
     rows = fp.inject_focal_patterns(ctx)
     archetypes = {r["fraud_archetype"] for r in rows}
@@ -124,13 +124,13 @@ def test_inject_focal_patterns_full_window_includes_easy_tier():
     assert "spend_spike" in archetypes
 
 
-def test_inject_focal_patterns_scale_raises_frequency():
+def test_inject_focal_patterns_scale_raises_frequency() -> None:
     low = fp.inject_focal_patterns(_ctx(days=120, seed=5, scale=0.0))
     high = fp.inject_focal_patterns(_ctx(days=120, seed=5, scale=1.0))
     assert len(low) < len(high)  # scale 0 keeps only the forced easy tier
 
 
-def test_inject_background_patterns_bust_out():
+def test_inject_background_patterns_bust_out() -> None:
     ctx = _ctx(days=180)
     rows = fp.inject_background_patterns(ctx, bust=True)
     assert rows
@@ -138,7 +138,7 @@ def test_inject_background_patterns_bust_out():
     assert fp.inject_background_patterns(_ctx(days=10), bust=True) == []
 
 
-def test_discovery_lag_marks_fraud_as_reported_later():
+def test_discovery_lag_marks_fraud_as_reported_later() -> None:
     ctx = _ctx(days=90)
     rows = fp.gen_balance_drain(ctx)
     rng = np.random.default_rng(3)
@@ -151,7 +151,7 @@ def test_discovery_lag_marks_fraud_as_reported_later():
     assert all(int(r["label_reported_at_step"]) == int(r["step"]) for r in out0)
 
 
-def test_pattern_rows_carry_full_v2_metadata():
+def test_pattern_rows_carry_full_v2_metadata() -> None:
     ctx = _ctx(days=90)
     for name in ("card_testing", "subscription_creep", "mimicry", "rapid_burst"):
         rows = fp.gen_pattern(name, ctx)

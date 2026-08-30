@@ -8,7 +8,7 @@ from generate_data import generate
 
 
 @pytest.fixture()
-def tmp_env(tmp_path):
+def tmp_env(tmp_path) -> dict[str, object]:
     """A hermetic environment: fresh synthetic data + config in a temp dir."""
     import yaml
 
@@ -42,7 +42,7 @@ def tmp_env(tmp_path):
     return {"cfg_path": str(cfg_path), "tmp": tmp_path, "df": df}
 
 
-def test_monthly_summary_shape(tmp_env):
+def test_monthly_summary_shape(tmp_env) -> None:
     from finance_agent.tools import FinanceFacts
 
     facts = FinanceFacts(tmp_env["cfg_path"])
@@ -55,7 +55,7 @@ def test_monthly_summary_shape(tmp_env):
     assert isinstance(result["summary"], str) and result["summary"]
 
 
-def test_category_breakdown_sorted_desc(tmp_env):
+def test_category_breakdown_sorted_desc(tmp_env) -> None:
     from finance_agent.tools import FinanceFacts
 
     facts = FinanceFacts(tmp_env["cfg_path"])
@@ -66,7 +66,7 @@ def test_category_breakdown_sorted_desc(tmp_env):
     assert abs(sum(amounts) - facts.category_breakdown()["data"]["total"]) < 1e-6
 
 
-def test_risk_scored_transactions_shape_and_bounds(tmp_env):
+def test_risk_scored_transactions_shape_and_bounds(tmp_env) -> None:
     from finance_agent.tools import FinanceFacts
 
     facts = FinanceFacts(tmp_env["cfg_path"])  # no bundle -> rule-only scoring
@@ -90,7 +90,7 @@ def test_risk_scored_transactions_shape_and_bounds(tmp_env):
     assert result["data"]["total_scored"] == len(tmp_env["df"])
 
 
-def test_risk_scan_clean_message_at_impossible_threshold(tmp_env):
+def test_risk_scan_clean_message_at_impossible_threshold(tmp_env) -> None:
     from finance_agent.tools import FinanceFacts
 
     facts = FinanceFacts(tmp_env["cfg_path"])
@@ -99,7 +99,7 @@ def test_risk_scan_clean_message_at_impossible_threshold(tmp_env):
     assert "clean" in result["summary"]
 
 
-def test_budget_status_reports_goals_and_over_flag(tmp_env):
+def test_budget_status_reports_goals_and_over_flag(tmp_env) -> None:
     """budget_status returns per-category spend vs. goal with an over flag."""
     from finance_agent.tools import FinanceFacts
 
@@ -118,7 +118,7 @@ def test_budget_status_reports_goals_and_over_flag(tmp_env):
     assert isinstance(result["summary"], str) and "budget" in result["summary"]
 
 
-def test_budget_status_tracks_an_over_goal_category(tmp_env):
+def test_budget_status_tracks_an_over_goal_category(tmp_env) -> None:
     """Force a category over its tiny goal and confirm the over flag + summary."""
     import yaml
 
@@ -140,7 +140,7 @@ def test_budget_status_tracks_an_over_goal_category(tmp_env):
     assert "over" in facts.budget_status()["summary"].lower()
 
 
-def test_budget_status_unconfigured_is_graceful(tmp_env):
+def test_budget_status_unconfigured_is_graceful(tmp_env) -> None:
     """No budgets.monthly -> configured: False and a helpful summary, no crash."""
     import yaml
 
@@ -159,7 +159,7 @@ def test_budget_status_unconfigured_is_graceful(tmp_env):
     assert data["rows"] == []
 
 
-def test_focal_user_selection_switches_monthly_summary(tmp_path):
+def test_focal_user_selection_switches_monthly_summary(tmp_path) -> None:
     """Multi-user: FinanceFacts(focal_user=...) reports on the selected user."""
     import yaml
 
@@ -210,7 +210,7 @@ def test_focal_user_selection_switches_monthly_summary(tmp_path):
     assert all(r["nameOrig"] == "U_Maria" for r in maria_rows["data"]["rows"])
 
 
-def test_forecast_keys(tmp_env):
+def test_forecast_keys(tmp_env) -> None:
     from finance_agent.tools import FinanceFacts
 
     facts = FinanceFacts(tmp_env["cfg_path"])
@@ -219,7 +219,7 @@ def test_forecast_keys(tmp_env):
         assert key in data
 
 
-def test_agent_offline_fallback_and_activity_log(tmp_env):
+def test_agent_offline_fallback_and_activity_log(tmp_env) -> None:
     from finance_agent.agent import FinanceAgent
 
     agent = FinanceAgent(tmp_env["cfg_path"], api_key="")
@@ -237,7 +237,7 @@ def test_agent_offline_fallback_and_activity_log(tmp_env):
         assert json.loads(fh.readlines()[0])["tool"]
 
 
-def test_agent_streams_text_chunks(tmp_env):
+def test_agent_streams_text_chunks(tmp_env) -> None:
     from finance_agent.agent import FinanceAgent
 
     agent = FinanceAgent(tmp_env["cfg_path"], api_key="")
@@ -246,7 +246,7 @@ def test_agent_streams_text_chunks(tmp_env):
     assert "".join(chunks) == agent.answer("How can I save more?")
 
 
-def test_report_builds_markdown(tmp_env):
+def test_report_builds_markdown(tmp_env) -> None:
     from finance_agent.report import build_report
     from finance_agent.tools import FinanceFacts
 
@@ -256,7 +256,7 @@ def test_report_builds_markdown(tmp_env):
     assert "## Model card" in md
 
 
-def test_rule_only_mode_can_still_flag_high_confidence_fraud(tmp_env):
+def test_rule_only_mode_can_still_flag_high_confidence_fraud(tmp_env) -> None:
     """0.2: with no model bundle the blend renormalizes to rule_score (weight 1.0),
     so a transaction tripping detect_balance_drain (rule_score=1.0) still clears
     the configured threshold of 0.7."""
@@ -318,7 +318,7 @@ def test_rule_only_mode_can_still_flag_high_confidence_fraud(tmp_env):
     assert flagged[0]["risk_score"] == 1.0
 
 
-def test_monthly_summary_excludes_cash_in_from_expenses(tmp_env):
+def test_monthly_summary_excludes_cash_in_from_expenses(tmp_env) -> None:
     """2.10: a CASH_IN credit must never appear in the expense total."""
     import pandas as pd
 
@@ -409,7 +409,7 @@ def _bundle_env(tmp_env):
     return tmp_env
 
 
-def test_shap_explanations_attached_when_bundle_present(tmp_env):
+def test_shap_explanations_attached_when_bundle_present(tmp_env) -> None:
     """Phase 6: with a model bundle, include_explanations returns per-transaction
     TreeSHAP contributions that sum (with the bias) to the model's log-odds."""
     import math
@@ -443,7 +443,7 @@ def test_shap_explanations_attached_when_bundle_present(tmp_env):
         assert abs_vals == sorted(abs_vals, key=abs, reverse=True)
 
 
-def test_shap_explanations_off_by_default(tmp_env):
+def test_shap_explanations_off_by_default(tmp_env) -> None:
     """The default path (agent/narrator) must not carry explanation payloads."""
     from finance_agent.tools import FinanceFacts
 
@@ -457,7 +457,7 @@ def test_shap_explanations_off_by_default(tmp_env):
     assert result["data"]["explanations_available"] is False
 
 
-def test_shap_explanations_empty_in_rule_only_mode(tmp_env):
+def test_shap_explanations_empty_in_rule_only_mode(tmp_env) -> None:
     """Without a bundle there is nothing to explain — no crash, clean payload."""
     from finance_agent.tools import FinanceFacts
 
@@ -470,7 +470,7 @@ def test_shap_explanations_empty_in_rule_only_mode(tmp_env):
     assert all(r.get("explanation") is None for r in result["data"]["rows"])
 
 
-def test_risk_scoring_recomputed_once_across_thresholds(tmp_env):
+def test_risk_scoring_recomputed_once_across_thresholds(tmp_env) -> None:
     """2.8: changing the threshold must not recompute rules+features+model."""
     from finance_agent import tools
 
