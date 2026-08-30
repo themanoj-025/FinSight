@@ -8,6 +8,8 @@ any network access.
 import pytest
 
 from finance_agent.agent import (
+
+pytestmark = pytest.mark.slow
     SYSTEM_PROMPT,
     FinanceAgent,
     SessionBudget,
@@ -272,6 +274,7 @@ def test_narrator_ignores_injected_instructions(llm_env):
 # ------------------------------------------------------------------ api key
 def test_validate_api_key_cached_per_key(llm_env):
     from finance_agent.agent import _KEY_VALIDATION_CACHE
+
 
     agent, fake = _fake_agent(llm_env)
     assert agent.validate_api_key("sk-test") is True
