@@ -63,7 +63,7 @@ def multi_year() -> pd.DataFrame:
     return datagen.generate_dataset(**_MULTI_YEAR)
 
 
-def test_balance_invariants_hold_for_focal_accounts(ledger):
+def test_balance_invariants_hold_for_focal_accounts(ledger) -> None:
     focal = ledger[ledger["is_focal_user"]].sort_values("step").reset_index(drop=True)
     assert len(focal) > 0
     for _, row in focal.iterrows():
@@ -86,13 +86,13 @@ def test_balance_invariants_hold_for_focal_accounts(ledger):
     assert bool(chained.all()), "per-account balances must chain old -> new"
 
 
-def test_fraud_rate_lands_in_a_defensible_band(ledger):
+def test_fraud_rate_lands_in_a_defensible_band(ledger) -> None:
     rate = float(ledger["isFraud"].mean())
     assert 0.0005 <= rate <= 0.05, f"fraud rate {rate:.5f} out of band"
     assert int(ledger["isFraud"].sum()) > 0
 
 
-def test_all_fraud_archetypes_appear(ledger):
+def test_all_fraud_archetypes_appear(ledger) -> None:
     from finance_agent.constants import FRAUD_ARCHETYPES, HARD_NEGATIVE_ARCHETYPES
 
     # Labeled rows = fraud (isFraud=1) OR anomaly (is_anomaly=1): duplicate
@@ -111,7 +111,7 @@ def test_all_fraud_archetypes_appear(ledger):
     assert (hard["is_anomaly"] == 0).all()
 
 
-def test_seasonality_holiday_shopping_bump(ledger):
+def test_seasonality_holiday_shopping_bump(ledger) -> None:
     """Focal shopping transaction *frequency* rises in the holiday window.
 
     The seasonal multiplier drives the Poisson per-day transaction rate, so
@@ -140,7 +140,7 @@ def test_seasonality_holiday_shopping_bump(ledger):
     assert SEASONAL_MULTIPLIER["shopping"][11] > SEASONAL_MULTIPLIER["shopping"][5]
 
 
-def test_multi_account_structure(ledger):
+def test_multi_account_structure(ledger) -> None:
     assert {"checking", "savings", "credit", "background"} <= set(ledger["account_type"])
     focal = ledger[ledger["is_focal_user"]]
     assert {"checking"} <= set(focal["account_type"])
@@ -153,12 +153,12 @@ def test_multi_account_structure(ledger):
     assert not sav.empty
 
 
-def test_category_group_matches_catalog(ledger):
+def test_category_group_matches_catalog(ledger) -> None:
     mapped = ledger["category"].map(MG)
     assert (ledger["category_group"] == mapped.fillna("other")).all()
 
 
-def test_region_signal_present(ledger):
+def test_region_signal_present(ledger) -> None:
     # out-of-home transactions exist (travel patterns + trips) and distances
     # are plausible great-circle miles
     away = ledger[ledger["transaction_region"] != ledger["home_region"]]
@@ -167,14 +167,14 @@ def test_region_signal_present(ledger):
     assert ledger["home_region"].notna().all()
 
 
-def test_discovery_lag_label_realism(ledger):
+def test_discovery_lag_label_realism(ledger) -> None:
     fraud = ledger[ledger["isFraud"] == 1]
     lagged = fraud[fraud["label_reported_at_step"] > fraud["step"]]
     assert not lagged.empty, "some fraud labels must be reported with a lag"
     assert (fraud["label_reported_at_step"] >= fraud["step"]).all()
 
 
-def test_persona_ledgers_are_complete_and_consistent(ledger):
+def test_persona_ledgers_are_complete_and_consistent(ledger) -> None:
     manifest = datagen.persona_manifest(ledger)
     assert manifest
     for rec in manifest:
@@ -192,7 +192,7 @@ def test_persona_ledgers_are_complete_and_consistent(ledger):
     assert ids == set(ledger.loc[ledger["is_focal_user"], "persona_id"])
 
 
-def test_tier_stats_shape(ledger):
+def test_tier_stats_shape(ledger) -> None:
     stats = datagen.tier_stats(ledger, "demo")
     for key in (
         "tier",
@@ -211,7 +211,7 @@ def test_tier_stats_shape(ledger):
     assert "fraud_archetype" in stats["columns"]
 
 
-def test_income_drifts_upward_over_years(multi_year):
+def test_income_drifts_upward_over_years(multi_year) -> None:
     """A salaried persona's per-paycheck income grows ~4-10% by year 3.
 
     Annual raises are 2-5% (finance_agent/personas.py), compounded per year, so
@@ -237,7 +237,7 @@ def test_income_drifts_upward_over_years(multi_year):
     assert ratios.between(1.03, 1.12).all(), f"income-drift ratios out of bounds: {ratios}"
 
 
-def test_life_events_do_not_trip_fraud_labels(multi_year):
+def test_life_events_do_not_trip_fraud_labels(multi_year) -> None:
     """Legitimate life events (Data-Gen §3/§5 hard negative 13) are NOT fraud.
 
     A large one-off purchase / medical bill / tuition must stay isFraud=0 and
@@ -258,7 +258,7 @@ def test_life_events_do_not_trip_fraud_labels(multi_year):
     assert life["fraud_archetype"].nunique() == 1
 
 
-def test_savings_balance_grows_monotonically(multi_year):
+def test_savings_balance_grows_monotonically(multi_year) -> None:
     """Savings accounts grow (net of any withdrawals) with the auto-transfer rule."""
     sav = multi_year[multi_year["nameOrig"].str.endswith("_Sav")].sort_values(["nameOrig", "step"])
     assert not sav.empty

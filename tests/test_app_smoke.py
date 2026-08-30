@@ -45,7 +45,7 @@ PAGE_FILES = [
 
 
 @pytest.fixture(scope="module", autouse=True)
-def _ensure_fixture_data():
+def _ensure_fixture_data() -> None:
     """The AppTest render tests need real data + a model bundle on disk.
 
     On a fresh checkout the data file may not exist; generate it once here. The
@@ -76,13 +76,13 @@ def _ensure_fixture_data():
 
 
 @pytest.mark.parametrize("module_name", PAGES)
-def test_pages_import_cleanly(module_name):
+def test_pages_import_cleanly(module_name) -> None:
     module = importlib.import_module(module_name)
     assert hasattr(module, "render")
 
 
 @pytest.mark.parametrize("page_file", PAGE_FILES)
-def test_page_renders_headless_no_exception(page_file):
+def test_page_renders_headless_no_exception(page_file) -> None:
     """3.4: each page must actually render under AppTest without exceptions."""
     from streamlit.testing.v1 import AppTest
 
@@ -91,7 +91,7 @@ def test_page_renders_headless_no_exception(page_file):
     assert not at.exception, f"{page_file} raised: {at.exception}"
 
 
-def test_transactions_page_date_input_renders():
+def test_transactions_page_date_input_renders() -> None:
     """2.13: the date range must render with real date objects (no exception)."""
     from streamlit.testing.v1 import AppTest
 
@@ -101,7 +101,7 @@ def test_transactions_page_date_input_renders():
     assert at.dataframe
 
 
-def test_fraud_page_renders_risk_scan_widgets():
+def test_fraud_page_renders_risk_scan_widgets() -> None:
     from streamlit.testing.v1 import AppTest
 
     at = AppTest.from_file(str(ROOT / "app/pages/3_Fraud_Detection.py"), default_timeout=120)
@@ -111,7 +111,7 @@ def test_fraud_page_renders_risk_scan_widgets():
     assert at.toggle
 
 
-def test_agent_page_bootstraps_chat_state():
+def test_agent_page_bootstraps_chat_state() -> None:
     from streamlit.testing.v1 import AppTest
 
     at = AppTest.from_file(str(ROOT / "app/pages/4_Ask_The_Agent.py"), default_timeout=120)
@@ -120,7 +120,7 @@ def test_agent_page_bootstraps_chat_state():
     assert at.chat_input
 
 
-def test_agent_bootstraps_without_api_key():
+def test_agent_bootstraps_without_api_key() -> None:
     from finance_agent.agent import FinanceAgent
 
     agent = FinanceAgent(str(ROOT / "config.yaml"), api_key="")
@@ -128,7 +128,7 @@ def test_agent_bootstraps_without_api_key():
     assert agent.answer("hello").strip()
 
 
-def test_settings_page_renders_key_and_data_tabs():
+def test_settings_page_renders_key_and_data_tabs() -> None:
     from streamlit.testing.v1 import AppTest
 
     at = AppTest.from_file(str(ROOT / "app/pages/6_Settings.py"), default_timeout=120)
@@ -137,7 +137,7 @@ def test_settings_page_renders_key_and_data_tabs():
     assert at.text_input  # the API key field
 
 
-def test_home_page_renders_with_auth_banner_when_no_password():
+def test_home_page_renders_with_auth_banner_when_no_password() -> None:
     """1.1: with APP_PASSWORD unset the app renders a DEMO MODE banner, not a lock."""
     from streamlit.testing.v1 import AppTest
 
@@ -154,7 +154,7 @@ def _free_port() -> int:
 
 
 @pytest.mark.slow
-def test_streamlit_app_boots_headless():
+def test_streamlit_app_boots_headless() -> None:
     """Start `streamlit run app/Home.py` and poll the health endpoint."""
     port = _free_port()
     proc = subprocess.Popen(

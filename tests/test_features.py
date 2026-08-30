@@ -42,7 +42,7 @@ def df() -> pd.DataFrame:
     )
 
 
-def test_build_features_shape_and_columns(df):
+def test_build_features_shape_and_columns(df) -> None:
     f = features.build_features(df)
     assert len(f) == len(df)
     assert f.shape[1] == EXPECTED_FEATURE_COUNT
@@ -55,7 +55,7 @@ def test_build_features_shape_and_columns(df):
     assert f.index.name is None or f.index.name == "index"
 
 
-def test_causal_v2_features_are_sensible(df):
+def test_causal_v2_features_are_sensible(df) -> None:
     f = features.build_features(df)
     # out-of-home rows exist (travel patterns) and their distance is > 0
     assert f["is_out_of_home_region"].between(0, 1).all()
@@ -71,7 +71,7 @@ def test_causal_v2_features_are_sensible(df):
     assert (f[acct_cols].sum(axis=1) == 1.0).all()
 
 
-def test_out_of_home_region_flag(df):
+def test_out_of_home_region_flag(df) -> None:
     """Data-Gen §4: the region signal is a per-row, causal flag.
 
     ``is_out_of_home_region`` is 1 only when the transaction region differs
@@ -89,7 +89,7 @@ def test_out_of_home_region_flag(df):
     assert (f.loc[away, "region_distance_miles"] > 0.0).all()
 
 
-def test_legacy_frame_without_v2_columns_still_builds(df):
+def test_legacy_frame_without_v2_columns_still_builds(df) -> None:
     """A frame missing the v2 columns must build with neutral features."""
     legacy = df.drop(
         columns=[
@@ -112,7 +112,7 @@ def test_legacy_frame_without_v2_columns_still_builds(df):
     assert (f["account_checking"] == 1.0).all()
 
 
-def test_account_type_dummies_stable_across_subset(df):
+def test_account_type_dummies_stable_across_subset(df) -> None:
     """A frame missing a rare account type still emits the same column set."""
     full = features.build_features(df)
     if "account_type" in df.columns:
@@ -121,12 +121,12 @@ def test_account_type_dummies_stable_across_subset(df):
         assert list(full.columns) == list(subset.columns)
 
 
-def test_no_nans_in_numeric_features(df):
+def test_no_nans_in_numeric_features(df) -> None:
     f = features.build_features(df)
     assert not f.isna().any().any(), f"NaNs in features:\n{f.isna().sum()[f.isna().sum() > 0]}"
 
 
-def test_no_nans_with_negative_credit_balances():
+def test_no_nans_with_negative_credit_balances() -> None:
     """Regression: credit accounts carry negative (debt) balances.
 
     An autopay TRANSFER briefly debits the card, so ``oldbalanceDest`` can be
@@ -147,7 +147,7 @@ def test_no_nans_with_negative_credit_balances():
     assert f["log_oldbalance_orig"].iloc[0] == 0.0
 
 
-def test_no_temporal_leakage(df):
+def test_no_temporal_leakage(df) -> None:
     """A row's features must not change when future rows are removed."""
     full = features.build_features(df)
     probes = [0, len(df) // 3, len(df) // 2, len(df) - 1]
@@ -163,7 +163,7 @@ def test_no_temporal_leakage(df):
         )
 
 
-def test_category_dummies_stable_across_subset(df):
+def test_category_dummies_stable_across_subset(df) -> None:
     """A frame missing a rare type still emits the exact same column set."""
     full = features.build_features(df)
     subset = features.build_features(df[df["type"] != "SALARY"])
@@ -171,7 +171,7 @@ def test_category_dummies_stable_across_subset(df):
     pd.testing.assert_frame_equal(full, features.build_features(df))
 
 
-def test_velocity_features_are_backward_looking(df):
+def test_velocity_features_are_backward_looking(df) -> None:
     f = features.build_features(df)
     # count_prior_orig counts earlier rows of the same account only — for the
     # first transaction of an account it must be 0.
@@ -179,6 +179,6 @@ def test_velocity_features_are_backward_looking(df):
     assert (f.loc[first_per_account, "count_prior_orig"] == 0.0).all()
 
 
-def test_features_are_float64(df):
+def test_features_are_float64(df) -> None:
     f = features.build_features(df)
     assert (f.dtypes == np.float64).all()

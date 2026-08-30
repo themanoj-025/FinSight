@@ -42,7 +42,7 @@ def _floats_in_payload(payload: str) -> set[float]:
     except (json.JSONDecodeError, TypeError):
         return out
 
-    def walk(node):
+    def walk(node) -> None:
         if isinstance(node, dict):
             for v in node.values():
                 walk(v)
@@ -101,7 +101,7 @@ def assert_figures_grounded(answer: str, payloads: list[str]) -> None:
 
 
 @pytest.fixture()
-def env(tmp_path):
+def env(tmp_path) -> dict[str, object]:
     """Fixed dataset snapshot + config (mirrors tests/test_agent.py)."""
     import yaml
 
@@ -160,26 +160,26 @@ def _tool_payloads(agent: FinanceAgent) -> list[str]:
 
 
 # ------------------------------------------------------------ narrator golden
-def test_narrator_category_answer_figures_match_tool_output(env):
+def test_narrator_category_answer_figures_match_tool_output(env) -> None:
     agent = _offline(env)
     answer = str(agent.answer("How much did I spend on dining?"))
     assert "dining" in answer.lower()
     assert_figures_grounded(answer, _tool_payloads(agent))
 
 
-def test_narrator_monthly_summary_figures_match_tool_output(env):
+def test_narrator_monthly_summary_figures_match_tool_output(env) -> None:
     agent = _offline(env)
     answer = str(agent.answer("What's my monthly summary?"))
     assert_figures_grounded(answer, _tool_payloads(agent))
 
 
-def test_narrator_risk_figures_match_tool_output(env):
+def test_narrator_risk_figures_match_tool_output(env) -> None:
     agent = _offline(env)
     answer = str(agent.answer("Any suspicious activity?"))
     assert_figures_grounded(answer, _tool_payloads(agent))
 
 
-def test_narrator_budget_figures_match_tool_output(env):
+def test_narrator_budget_figures_match_tool_output(env) -> None:
     agent = _offline(env)
     answer = str(agent.answer("Am I over budget on dining?"))
     assert_figures_grounded(answer, _tool_payloads(agent))
@@ -229,7 +229,7 @@ class _GoldenStream:
     def __enter__(self):
         return self
 
-    def __exit__(self, *args):
+    def __exit__(self, *args) -> bool:
         return False
 
     def get_final_message(self):
@@ -256,7 +256,7 @@ class GoldenAnthropic:
         ("What's my monthly summary?", "monthly_summary", {}),
     ],
 )
-def test_llm_loop_passes_tool_outputs_verbatim(env, question, tool_name, tool_input):
+def test_llm_loop_passes_tool_outputs_verbatim(env, question, tool_name, tool_input) -> None:
     """The tool-use loop must hand the LLM the exact tool_result payload, so
     the only numbers an LLM answer can contain are tool outputs."""
     captured: list[dict] = []
@@ -287,7 +287,7 @@ def test_llm_loop_passes_tool_outputs_verbatim(env, question, tool_name, tool_in
     assert json.loads(payload) == json.loads(real_payload)
 
 
-def test_system_prompt_forbids_inventing_numbers(env):
+def test_system_prompt_forbids_inventing_numbers(env) -> None:
     """The guardrail sentence is present in every API call (F.1 companion)."""
     captured: list[dict] = []
     agent = FinanceAgent(

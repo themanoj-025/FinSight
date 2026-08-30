@@ -28,13 +28,13 @@ Income $5,400.00, expenses $3,100.00, net $2,300.00 — savings rate 19.6%.
 
 
 # ---------------------------------------------------------------- structure
-def test_pdf_starts_and_ends_correctly():
+def test_pdf_starts_and_ends_correctly() -> None:
     pdf = build_report_pdf(SAMPLE_MD)
     assert pdf.startswith(b"%PDF-1.4")
     assert pdf.rstrip().endswith(b"%%EOF")
 
 
-def test_pdf_xref_offsets_are_byte_correct():
+def test_pdf_xref_offsets_are_byte_correct() -> None:
     """Every xref entry must point exactly at its 'N 0 obj' header."""
     pdf = build_report_pdf(SAMPLE_MD)
     startxref = int(re.search(rb"startxref\n(\d+)", pdf).group(1))
@@ -52,33 +52,33 @@ def test_pdf_xref_offsets_are_byte_correct():
         assert pdf[offset : offset + len(num) + 8] == f"{num.decode()} 0 obj".encode()
 
 
-def test_pdf_contains_page_and_font_objects():
+def test_pdf_contains_page_and_font_objects() -> None:
     pdf = build_report_pdf(SAMPLE_MD)
     assert b"/Type /Page" in pdf
     assert b"/Helvetica" in pdf
     assert b"/MediaBox [0 0 595 842]" in pdf  # A4
 
 
-def test_pdf_text_is_embeddable():
+def test_pdf_text_is_embeddable() -> None:
     """Body text (WinAnsi-safe) must appear in a content stream."""
     pdf = build_report_pdf(SAMPLE_MD)
     assert b"Executive summary" in pdf
     assert b"Spending by category" in pdf
 
 
-def test_long_report_flows_across_pages():
+def test_long_report_flows_across_pages() -> None:
     md = SAMPLE_MD + "\n## Extra\n\n- point one\n- point two\n" * 200
     pdf = build_report_pdf(md)
     assert pdf.count(b"/Type /Page ") >= 2
 
 
 # --------------------------------------------------------------- sanitization
-def test_sanitize_winansi_maps_emoji_to_text_markers():
+def test_sanitize_winansi_maps_emoji_to_text_markers() -> None:
     assert "over" in sanitize_winansi("⚠️ over")
     assert sanitize_winansi("📈 up") == "[up] up"
 
 
-def test_pdf_replaces_emoji_but_keeps_winansi_glyphs():
+def test_pdf_replaces_emoji_but_keeps_winansi_glyphs() -> None:
     md = "## Budget tracker\n\n| Category | Used |\n|---|---|\n| dining | 102% ⚠️ over |\n"
     pdf = build_report_pdf(md)
     # the emoji becomes a marker; ± · — are WinAnsi-safe and stay
@@ -86,27 +86,27 @@ def test_pdf_replaces_emoji_but_keeps_winansi_glyphs():
     assert b"102%" in pdf
 
 
-def test_pdf_escapes_parentheses_and_backslashes():
+def test_pdf_escapes_parentheses_and_backslashes() -> None:
     md = "# Title\n\n(weird) (parens) and \\ backslash\n"
     pdf = build_report_pdf(md)  # must not raise, and text survives
     assert b"parens" in pdf
 
 
-def test_empty_markdown_still_produces_valid_pdf():
+def test_empty_markdown_still_produces_valid_pdf() -> None:
     pdf = build_report_pdf("")
     assert pdf.startswith(b"%PDF-1.4")
     assert b"%%EOF" in pdf
 
 
 # --------------------------------------------------------------------- files
-def test_write_report_pdf_writes_file(tmp_path):
+def test_write_report_pdf_writes_file(tmp_path) -> None:
     path = write_report_pdf(str(tmp_path / "report.pdf"))
     assert path == str(tmp_path / "report.pdf")
     data = tmp_path.joinpath("report.pdf").read_bytes()
     assert data.startswith(b"%PDF-1.4")
 
 
-def test_write_report_pdf_accepts_explicit_facts(tmp_path):
+def test_write_report_pdf_accepts_explicit_facts(tmp_path) -> None:
     from finance_agent.report import build_report
 
     from finance_agent.tools import FinanceFacts  # isort:skip
@@ -119,7 +119,7 @@ def test_write_report_pdf_accepts_explicit_facts(tmp_path):
 
 
 # ----------------------------------------------------------------------- CLI
-def test_cli_report_pdf_flag(tmp_path, monkeypatch, capsys):
+def test_cli_report_pdf_flag(tmp_path, monkeypatch, capsys) -> None:
     """`finsight report --pdf` writes the Markdown and a branded PDF."""
     import sys
 
@@ -136,6 +136,6 @@ def test_cli_report_pdf_flag(tmp_path, monkeypatch, capsys):
     assert pdf_path.read_bytes().startswith(b"%PDF-1.4")
 
 
-def test_pdf_is_deterministic():
+def test_pdf_is_deterministic() -> None:
     """Same markdown in -> identical bytes out (writer has no timestamps)."""
     assert build_report_pdf(SAMPLE_MD) == build_report_pdf(SAMPLE_MD)

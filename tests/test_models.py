@@ -18,7 +18,7 @@ def xy() -> tuple[np.ndarray, np.ndarray]:
     return X, y
 
 
-def test_predict_scores_probability_classifier(xy):
+def test_predict_scores_probability_classifier(xy) -> None:
     X, y = xy
     clf = LogisticRegression(max_iter=1000, random_state=0).fit(X, y)
     scores = models.predict_scores(clf, X)
@@ -27,7 +27,7 @@ def test_predict_scores_probability_classifier(xy):
     assert scores.min() >= 0.0 and scores.max() <= 1.0
 
 
-def test_predict_scores_isolation_forest(xy):
+def test_predict_scores_isolation_forest(xy) -> None:
     X, _ = xy
     iso = IsolationForest(random_state=0, contamination="auto").fit(X)
     scores = models.predict_scores(iso, X)
@@ -36,7 +36,7 @@ def test_predict_scores_isolation_forest(xy):
     # higher score = more anomalous (negative of the raw sample score)
 
 
-def test_predict_scores_autoencoder_reconstruction_error(xy):
+def test_predict_scores_autoencoder_reconstruction_error(xy) -> None:
     X, _ = xy
     mlp = MLPRegressor(
         hidden_layer_sizes=(8, 4), max_iter=300, random_state=0, early_stopping=True
@@ -47,7 +47,7 @@ def test_predict_scores_autoencoder_reconstruction_error(xy):
     assert np.isfinite(scores).all()
 
 
-def test_predict_scores_decision_function_fallback(xy):
+def test_predict_scores_decision_function_fallback(xy) -> None:
     """SGDClassifier has decision_function and no predict_proba on some losses."""
     X, y = xy
     from sklearn.linear_model import SGDClassifier
@@ -58,7 +58,7 @@ def test_predict_scores_decision_function_fallback(xy):
     assert np.isfinite(scores).all()
 
 
-def test_predict_scores_with_scaling_required_path(xy):
+def test_predict_scores_with_scaling_required_path(xy) -> None:
     """Linear/neural models are trained on scaled features; inference must too."""
     X, y = xy
     scaler = StandardScaler().fit(X)
@@ -68,7 +68,7 @@ def test_predict_scores_with_scaling_required_path(xy):
     assert scores.shape == (200,)
 
 
-def test_predict_scores_handles_feature_names_from_lightgbm_style_fit(xy):
+def test_predict_scores_handles_feature_names_from_lightgbm_style_fit(xy) -> None:
     """Estimators that record feature_names_in_ must still accept plain arrays."""
     X, y = xy
     try:
@@ -84,7 +84,7 @@ def test_predict_scores_handles_feature_names_from_lightgbm_style_fit(xy):
     assert scores.shape == (200,)
 
 
-def test_registry_has_six_models():
+def test_registry_has_six_models() -> None:
     reg = models.build_models(42)
     assert len(reg) == 6
     assert "Isolation Forest" in reg

@@ -43,7 +43,7 @@ class FakeStream:
     def __enter__(self):
         return self
 
-    def __exit__(self, *args):
+    def __exit__(self, *args) -> bool:
         return False
 
     def get_final_message(self):
@@ -90,7 +90,7 @@ class FakeAnthropic:
 
 
 @pytest.fixture()
-def llm_env(tmp_path):
+def llm_env(tmp_path) -> dict[str, object]:
     """A config pointing at generated data with a real agent (offline)."""
     import yaml
 
@@ -135,7 +135,7 @@ def _fake_agent(llm_env) -> tuple[FinanceAgent, FakeAnthropic]:
 
 
 # ------------------------------------------------------------- system prompt
-def test_system_prompt_present_in_every_api_call(llm_env):
+def test_system_prompt_present_in_every_api_call(llm_env) -> None:
     agent, fake = _fake_agent(llm_env)
     list(agent._llm_answer("How much did I spend on dining?"))
     assert fake.captured, "expected at least one API call"
@@ -146,7 +146,7 @@ def test_system_prompt_present_in_every_api_call(llm_env):
 
 
 # ------------------------------------------------------------------- history
-def test_history_included_in_llm_messages(llm_env):
+def test_history_included_in_llm_messages(llm_env) -> None:
     agent, fake = _fake_agent(llm_env)
     history = [
         {"role": "user", "content": "How much did I spend on dining last month?"},
@@ -160,7 +160,7 @@ def test_history_included_in_llm_messages(llm_env):
     assert sent[-1] == {"role": "user", "content": "What about groceries?"}
 
 
-def test_history_is_capped_to_max_history_turns(llm_env):
+def test_history_is_capped_to_max_history_turns(llm_env) -> None:
     agent, fake = _fake_agent(llm_env)
     cap = int(agent.agent_cfg.get("max_history_turns", 10))
     long_history = [
@@ -175,7 +175,7 @@ def test_history_is_capped_to_max_history_turns(llm_env):
 
 
 # --------------------------------------------------------------- tool budget
-def test_session_budget_counts_and_blocks():
+def test_session_budget_counts_and_blocks() -> None:
     b = SessionBudget(max_turns=2, max_tokens=100)
     assert b.allow()
     b.record(estimate_tokens("hello world"))
@@ -186,7 +186,7 @@ def test_session_budget_counts_and_blocks():
     assert b.remaining_turns() == 0
 
 
-def test_token_budget_blocks_before_turn_budget():
+def test_token_budget_blocks_before_turn_budget() -> None:
     b = SessionBudget(max_turns=100, max_tokens=10)
     assert b.allow(8)
     b.record(8)
@@ -194,7 +194,7 @@ def test_token_budget_blocks_before_turn_budget():
     assert b.exhausted_reason() == "token budget"
 
 
-def test_budget_exhausted_falls_back_to_narrator(llm_env):
+def test_budget_exhausted_falls_back_to_narrator(llm_env) -> None:
     agent, fake = _fake_agent(llm_env)
     budget = SessionBudget(max_turns=1, max_tokens=20000)
     str(agent.answer("How can I save more?", budget=budget))
@@ -206,7 +206,7 @@ def test_budget_exhausted_falls_back_to_narrator(llm_env):
 
 
 # ------------------------------------------------------------- tool execution
-def test_execute_tool_filters_unknown_args(llm_env):
+def test_execute_tool_filters_unknown_args(llm_env) -> None:
     agent, _ = _fake_agent(llm_env)
     result, ok, err, ms = agent._execute_tool("monthly_summary", {"month": "2025-01", "evil": 1})
     assert ok
@@ -214,7 +214,7 @@ def test_execute_tool_filters_unknown_args(llm_env):
     assert "2025-01" in result
 
 
-def test_execute_tool_unknown_tool_handled_gracefully(llm_env):
+def test_execute_tool_unknown_tool_handled_gracefully(llm_env) -> None:
     agent, _ = _fake_agent(llm_env)
     result, ok, err, _ = agent._execute_tool("no_such_tool", {})
     assert not ok
@@ -241,7 +241,7 @@ def test_execute_tool_unknown_tool_handled_gracefully(llm_env):
         ("Show me the category breakdown for last month", "category"),
     ],
 )
-def test_narrator_routing(llm_env, question, expected_branch):
+def test_narrator_routing(llm_env, question, expected_branch) -> None:
     agent, _ = _fake_agent(llm_env)
     assert agent._route_narrator(question) == expected_branch
 
@@ -250,7 +250,7 @@ def _offline_agent(llm_env) -> FinanceAgent:
     return FinanceAgent(llm_env["cfg_path"])  # no api key -> narrator mode
 
 
-def test_narrator_answer_uses_context_across_turns(llm_env):
+def test_narrator_answer_uses_context_across_turns(llm_env) -> None:
     """'What about groceries?' after a dining question reuses the month context."""
     agent = _offline_agent(llm_env)
     first = str(agent.answer("How much did I spend on dining last month?"))
@@ -261,7 +261,7 @@ def test_narrator_answer_uses_context_across_turns(llm_env):
     assert "Here's the state of your finances" not in second
 
 
-def test_narrator_ignores_injected_instructions(llm_env):
+def test_narrator_ignores_injected_instructions(llm_env) -> None:
     """Merchant/transaction content is untrusted — injected instructions must not
     be followed or echoed by the narrator."""
     agent = _offline_agent(llm_env)
@@ -272,7 +272,7 @@ def test_narrator_ignores_injected_instructions(llm_env):
 
 
 # ------------------------------------------------------------------ api key
-def test_validate_api_key_cached_per_key(llm_env):
+def test_validate_api_key_cached_per_key(llm_env) -> None:
     from finance_agent.agent import _KEY_VALIDATION_CACHE
 
 
@@ -301,7 +301,7 @@ def test_llm_available_false_for_invalid_key(llm_env):
 
 
 # ------------------------------------------------------------- usage tracking
-def test_llm_call_records_real_usage(llm_env):
+def test_llm_call_records_real_usage(llm_env) -> None:
     """The usage ledger must capture the API's real token counts + latency."""
     agent, fake = _fake_agent(llm_env)
     fake.replies[:] = [FakeFinalMessage(usage=FakeUsage(inp=120, out=45, cache_read=300))]
@@ -317,16 +317,16 @@ def test_llm_call_records_real_usage(llm_env):
     assert totals["est_cost"] == pytest.approx(round(120 / 1e6 * 3.0 + 45 / 1e6 * 15.0, 4))
 
 
-def test_llm_failure_records_failed_call_and_falls_back(llm_env):
+def test_llm_failure_records_failed_call_and_falls_back(llm_env) -> bool:
     class BoomStream:
         def __enter__(self):
             return self
 
-        def __exit__(self, *args):
+        def __exit__(self, *args) -> bool:
             return False
 
         @property
-        def text_stream(self):
+        def text_stream(self) -> None:
             raise RuntimeError("api down")
 
     class BoomMessages:
@@ -351,7 +351,7 @@ def test_llm_failure_records_failed_call_and_falls_back(llm_env):
     assert totals["narrator_calls"] == 1
 
 
-def test_narrator_turns_recorded_at_zero_cost(llm_env):
+def test_narrator_turns_recorded_at_zero_cost(llm_env) -> None:
     agent = _offline_agent(llm_env)
     str(agent.answer("How can I save more?"))
     totals = agent.usage_summary()
@@ -361,7 +361,7 @@ def test_narrator_turns_recorded_at_zero_cost(llm_env):
     assert totals["tool_calls"] >= 3  # monthly_summary + financial_health + top_tips
 
 
-def test_usage_reset_clears_ledger(llm_env):
+def test_usage_reset_clears_ledger(llm_env) -> None:
     agent, fake = _fake_agent(llm_env)
     fake.replies[:] = [FakeFinalMessage(usage=FakeUsage(inp=10, out=5))]
     list(agent._llm_answer("one"))
@@ -373,7 +373,7 @@ def test_usage_reset_clears_ledger(llm_env):
     assert totals["est_cost"] == 0.0
 
 
-def test_estimate_cost_uses_config_pricing_with_fallback():
+def test_estimate_cost_uses_config_pricing_with_fallback() -> None:
     cfg = {"pricing": {"claude-sonnet-4-5": {"input_per_1m": 3.0, "output_per_1m": 15.0}}}
     cost = estimate_cost(cfg, "claude-sonnet-4-5", 1_000_000, 1_000_000)
     assert cost == pytest.approx(3.0 + 15.0)

@@ -16,7 +16,7 @@ from finance_agent.storage import SCHEMA_VERSION, TransactionStore
 from generate_data import generate
 
 
-def _env(tmp_path):
+def _env(tmp_path) -> dict[str, object]:
     """Hermetic env with two configs: one with a store, one without (same CSV)."""
     import yaml
 
@@ -90,7 +90,7 @@ def _attach_bundle(env: dict, tmp_path) -> None:
 
 
 # ---------------------------------------------------------------- migrations
-def test_migrations_apply_from_scratch(tmp_path):
+def test_migrations_apply_from_scratch(tmp_path) -> None:
     store = TransactionStore(str(tmp_path / "t.db"))
     assert store.schema_version() == SCHEMA_VERSION
     assert store.total_rows() == 0
@@ -108,7 +108,7 @@ def test_migrations_apply_from_scratch(tmp_path):
 
 
 # -------------------------------------------------------------------- sync
-def test_sync_from_frame_loads_all_rows(tmp_path):
+def test_sync_from_frame_loads_all_rows(tmp_path) -> None:
     env = _env(tmp_path)
     store = TransactionStore(str(env["db"]))
     loaded = store.sync_from_frame(env["df"], "fp1")
@@ -119,7 +119,7 @@ def test_sync_from_frame_loads_all_rows(tmp_path):
     assert int(df["step"].sum()) == int(env["df"]["step"].sum())
 
 
-def test_sync_is_idempotent_with_same_fingerprint(tmp_path):
+def test_sync_is_idempotent_with_same_fingerprint(tmp_path) -> None:
     env = _env(tmp_path)
     store = TransactionStore(str(env["db"]))
     # first sync reads the CSV file itself (exercises sync_from_csv)
@@ -146,7 +146,7 @@ def _scored_like(df: pd.DataFrame) -> pd.DataFrame:
     return scored
 
 
-def test_materialize_and_query_semantics(tmp_path):
+def test_materialize_and_query_semantics(tmp_path) -> None:
     env = _env(tmp_path)
     store = TransactionStore(str(env["db"]))
     store.sync_from_frame(env["df"], "csv_fp")
@@ -171,7 +171,7 @@ def test_materialize_and_query_semantics(tmp_path):
     assert list(rows["_row_index"]) == expected_ids
 
 
-def test_materialized_scores_persist_across_instances(tmp_path):
+def test_materialized_scores_persist_across_instances(tmp_path) -> None:
     env = _env(tmp_path)
     store = TransactionStore(str(env["db"]))
     store.sync_from_frame(env["df"], "csv_fp")
@@ -192,7 +192,7 @@ def test_materialized_scores_persist_across_instances(tmp_path):
         {"limit": 5, "threshold": 1.5, "focal_only": True},
     ],
 )
-def test_store_path_matches_pandas_path_rule_only(tmp_path, kwargs):
+def test_store_path_matches_pandas_path_rule_only(tmp_path, kwargs) -> None:
     from finance_agent.tools import FinanceFacts
 
     env = _env(tmp_path)
@@ -206,7 +206,7 @@ def test_store_path_matches_pandas_path_rule_only(tmp_path, kwargs):
     assert a == b, f"store path diverged from pandas path for {kwargs}"
 
 
-def test_store_path_matches_pandas_path_with_bundle_and_shap(tmp_path):
+def test_store_path_matches_pandas_path_with_bundle_and_shap(tmp_path) -> None:
     from finance_agent.tools import FinanceFacts
 
     env = _env(tmp_path)
@@ -226,7 +226,7 @@ def test_store_path_matches_pandas_path_with_bundle_and_shap(tmp_path):
     assert all(r.get("explanation") for r in a["data"]["rows"])
 
 
-def test_store_recomputes_when_data_fingerprint_changes(tmp_path):
+def test_store_recomputes_when_data_fingerprint_changes(tmp_path) -> dict[str, object]:
     from finance_agent.tools import FinanceFacts
 
     env = _env(tmp_path)
@@ -276,7 +276,7 @@ def test_store_recomputes_when_data_fingerprint_changes(tmp_path):
     assert new_rows and new_rows[0]["risk_score"] == 1.0
 
 
-def test_store_reset_clears_everything(tmp_path):
+def test_store_reset_clears_everything(tmp_path) -> None:
     env = _env(tmp_path)
     store = TransactionStore(str(env["db"]))
     store.sync_from_frame(env["df"], "fp")

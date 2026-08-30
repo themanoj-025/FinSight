@@ -76,7 +76,7 @@ def _write_config(path: Path) -> None:
 
 
 @pytest.fixture()
-def env(ledger_df, tmp_path):
+def env(ledger_df, tmp_path) -> dict[str, object]:
     data_path = tmp_path / "transactions.csv"
     ledger_df.to_csv(data_path, index=False)
     cfg_path = tmp_path / "config.yaml"
@@ -98,7 +98,7 @@ def _holdout_fraud(ledger_df: pd.DataFrame) -> int:
 
 
 # ------------------------------------------------------------ diff table unit
-def test_diff_table_within_tolerance_is_clean():
+def test_diff_table_within_tolerance_is_clean() -> None:
     old = _table([{OLD: "easy_structural", RECALL: 1.0, PRECISION: 1.0, SUPPORT: 5}])
     new = _table([{OLD: "easy_structural", RECALL: 0.96, PRECISION: 1.0, SUPPORT: 5}])
     rows, regressed = canary.diff_table(old, new, tolerance=0.05)
@@ -107,7 +107,7 @@ def test_diff_table_within_tolerance_is_clean():
     assert rows[0]["old"] == pytest.approx(1.0)
 
 
-def test_diff_table_drop_exactly_at_tolerance_is_clean():
+def test_diff_table_drop_exactly_at_tolerance_is_clean() -> None:
     """The spec is 'drops by more than tolerance' — an exact -5 pp drop (with
     a 0.05 tolerance) must stay clean, not flip to a regression."""
     old = _table([{OLD: "easy_structural", RECALL: 1.0, PRECISION: 1.0, SUPPORT: 5}])
@@ -117,7 +117,7 @@ def test_diff_table_drop_exactly_at_tolerance_is_clean():
     assert rows[0]["delta_pp"] == pytest.approx(-5.0)
 
 
-def test_diff_table_regression_beyond_tolerance():
+def test_diff_table_regression_beyond_tolerance() -> None:
     old = _table([{OLD: "easy_structural", RECALL: 1.0, PRECISION: 1.0, SUPPORT: 5}])
     new = _table([{OLD: "easy_structural", RECALL: 0.9, PRECISION: 1.0, SUPPORT: 5}])
     rows, regressed = canary.diff_table(old, new, tolerance=0.05)
@@ -125,7 +125,7 @@ def test_diff_table_regression_beyond_tolerance():
     assert rows[0]["delta_pp"] == pytest.approx(-10.0)
 
 
-def test_diff_table_new_archetype_is_not_a_regression():
+def test_diff_table_new_archetype_is_not_a_regression() -> None:
     old = _table([{OLD: "balance_drain", RECALL: 1.0, PRECISION: 1.0, SUPPORT: 3}])
     new = _table(
         [
@@ -141,7 +141,7 @@ def test_diff_table_new_archetype_is_not_a_regression():
 
 
 # ------------------------------------------------------------ render body
-def test_render_body_regression_mentions_label_and_archetype():
+def test_render_body_regression_mentions_label_and_archetype() -> None:
     rows, regressed = canary.diff_table(
         _table([{OLD: "account_takeover", RECALL: 1.0, PRECISION: 1.0, SUPPORT: 2}]),
         _table([{OLD: "account_takeover", RECALL: 0.0, PRECISION: 1.0, SUPPORT: 2}]),
@@ -155,12 +155,12 @@ def test_render_body_regression_mentions_label_and_archetype():
     assert "| Incumbent recall @0.5 |" in body
 
 
-def test_render_body_clean_note():
+def test_render_body_clean_note() -> None:
     body = canary.render_body([], [], tolerance=0.05, has_baseline=True)
     assert "No fraud-archetype rows" in body
 
 
-def test_render_body_no_baseline_note():
+def test_render_body_no_baseline_note() -> None:
     rows = [{OLD: "x", "old": 1.0, "new": 1.0, "delta_pp": 0.0, "support": 1}]
     body = canary.render_body(rows, [], tolerance=0.05, has_baseline=False)
     assert "No incumbent bundle found in git" in body
@@ -168,7 +168,7 @@ def test_render_body_no_baseline_note():
 
 
 # ------------------------------------------------------------ full pipeline
-def test_run_no_baseline_is_clean(env):
+def test_run_no_baseline_is_clean(env) -> None:
     _write_bundle(env["new"], 1)  # candidate present; incumbent deliberately missing
     verdict, body = canary.run(
         old_path=str(env["tmp"] / "missing.joblib"),
@@ -182,7 +182,7 @@ def test_run_no_baseline_is_clean(env):
 
 
 @pytest.mark.parametrize("old_const,new_const,expected", [(1, 0, "REGRESSION"), (1, 1, "CLEAN")])
-def test_run_verdict_matches_candidate_quality(env, old_const, new_const, expected):
+def test_run_verdict_matches_candidate_quality(env, old_const, new_const, expected) -> None:
     """Acceptance (A.3): a deliberately-regressed mock candidate triggers the
     warning verdict; a candidate identical to the incumbent stays clean."""
     if _holdout_fraud(pd.read_csv(env["data"])) == 0:
@@ -200,17 +200,17 @@ def test_run_verdict_matches_candidate_quality(env, old_const, new_const, expect
         assert "No archetype regressed" in body
 
 
-def test_run_missing_candidate_raises(env):
+def test_run_missing_candidate_raises(env) -> None:
     _write_bundle(env["old"], 1)  # candidate deliberately absent
     with pytest.raises(RuntimeError):
         canary.run(env["old"], env["new"], env["data"], env["config"])
 
 
-def test_score_bundle_missing_returns_none(env):
+def test_score_bundle_missing_returns_none(env) -> None:
     assert canary.score_bundle(str(env["tmp"] / "nope.joblib"), np.zeros((3, 32))) is None
 
 
-def test_run_feature_schema_mismatch_fails_loudly(env):
+def test_run_feature_schema_mismatch_fails_loudly(env) -> None:
     """A bundle trained on a different feature schema must fail the canary
     loudly — never silently score misaligned columns (the canary is the gate
     that decides human sign-off)."""
@@ -224,7 +224,7 @@ def test_run_feature_schema_mismatch_fails_loudly(env):
         canary.run(env["old"], env["new"], env["data"], env["config"])
 
 
-def test_score_bundle_all_one_vs_all_zero(env):
+def test_score_bundle_all_one_vs_all_zero(env) -> None:
     X = np.zeros((3, 4))
     _write_bundle(env["old"], 1)
     _write_bundle(env["new"], 0)
@@ -233,7 +233,7 @@ def test_score_bundle_all_one_vs_all_zero(env):
 
 
 # ------------------------------------------------------------ CLI (workflow path)
-def test_cli_prints_verdict_only_and_writes_body(env):
+def test_cli_prints_verdict_only_and_writes_body(env) -> None:
     """The exact shape retrain.yml relies on: stdout == verdict token only,
     markdown body in --out, exit 0."""
     if _holdout_fraud(pd.read_csv(env["data"])) == 0:
@@ -266,7 +266,7 @@ def test_cli_prints_verdict_only_and_writes_body(env):
     assert "Regression warning" in body_path.read_text(encoding="utf-8")
 
 
-def test_cli_missing_candidate_exits_2(env):
+def test_cli_missing_candidate_exits_2(env) -> None:
     _write_bundle(env["old"], 1)
     proc = subprocess.run(
         [

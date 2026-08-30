@@ -24,7 +24,7 @@ requires_bundle = pytest.mark.skipif(
 
 
 @pytest.fixture(scope="module", autouse=True)
-def _ensure_data():
+def _ensure_data() -> None:
     """The API serves data/transactions.csv — generate it once if missing."""
     if not (ROOT / "data" / "transactions.csv").exists():
         subprocess.run(
@@ -45,14 +45,14 @@ def _get(url: str, headers: dict[str, str] | None = None) -> tuple[int, dict]:
         return exc.code, json.loads(exc.read().decode("utf-8"))
 
 
-def test_root_info(api_server):
+def test_root_info(api_server) -> None:
     status, body = _get(f"{api_server}/")
     assert status == 200
     assert body["name"] == "FinSight Agent API"
     assert body["health"] == "/api/v1/health"
 
 
-def test_health(api_server):
+def test_health(api_server) -> None:
     status, body = _get(f"{api_server}/api/v1/health")
     assert status == 200
     assert body["status"] == "ok"
@@ -60,7 +60,7 @@ def test_health(api_server):
     assert isinstance(body["rule_only"], bool)
 
 
-def test_meta_exposes_config_and_scoring_mode(api_server):
+def test_meta_exposes_config_and_scoring_mode(api_server) -> None:
     status, body = _get(f"{api_server}/api/v1/meta")
     assert status == 200
     assert "risk" in body["config"]
@@ -69,7 +69,7 @@ def test_meta_exposes_config_and_scoring_mode(api_server):
     assert isinstance(body["rule_only"], bool)
 
 
-def test_monthly_summary_shape(api_server):
+def test_monthly_summary_shape(api_server) -> None:
     status, body = _get(f"{api_server}/api/v1/monthly-summary")
     assert status == 200
     assert body["summary"]
@@ -79,7 +79,7 @@ def test_monthly_summary_shape(api_server):
     assert isinstance(data["transaction_count"], int)
 
 
-def test_category_breakdown_shape(api_server):
+def test_category_breakdown_shape(api_server) -> None:
     status, body = _get(f"{api_server}/api/v1/category-breakdown")
     assert status == 200
     assert isinstance(body["data"]["rows"], list)
@@ -88,7 +88,7 @@ def test_category_breakdown_shape(api_server):
         assert 0.0 <= row["share"] <= 1.0
 
 
-def test_budget_status_shape(api_server):
+def test_budget_status_shape(api_server) -> None:
     status, body = _get(f"{api_server}/api/v1/budget-status")
     assert status == 200
     assert body["summary"]
@@ -101,13 +101,13 @@ def test_budget_status_shape(api_server):
         assert data["rows"] == []
 
 
-def test_financial_health_shape(api_server):
+def test_financial_health_shape(api_server) -> None:
     status, body = _get(f"{api_server}/api/v1/financial-health")
     assert status == 200
     assert 0 <= body["data"]["score"] <= 100
 
 
-def test_risk_scored_shape(api_server):
+def test_risk_scored_shape(api_server) -> None:
     status, body = _get(f"{api_server}/api/v1/risk-scored?focal_only=true&limit=10")
     assert status == 200
     data = body["data"]
@@ -118,7 +118,7 @@ def test_risk_scored_shape(api_server):
 
 
 @requires_bundle
-def test_risk_scored_can_include_explanations(api_server):
+def test_risk_scored_can_include_explanations(api_server) -> None:
     status, body = _get(
         f"{api_server}/api/v1/risk-scored?include_explanations=true&limit=5&threshold=0.5"
     )
@@ -134,21 +134,21 @@ def test_risk_scored_can_include_explanations(api_server):
     assert {"feature", "contribution"} <= set(expl["top_features"][0])
 
 
-def test_meta_exposes_focal_users(api_server):
+def test_meta_exposes_focal_users(api_server) -> None:
     status, body = _get(f"{api_server}/api/v1/meta")
     assert status == 200
     assert isinstance(body["focal_users"], list) and body["focal_users"]
     assert body["focal_user"] in body["focal_users"]
 
 
-def test_user_param_switches_focal_user(api_server):
+def test_user_param_switches_focal_user(api_server) -> None:
     """Multi-user: ?user=U_Maria serves Maria's per-user monthly summary."""
     status, body = _get(f"{api_server}/api/v1/monthly-summary?user=U_Maria")
     assert status == 200
     assert body["data"]["income"] > 0
 
 
-def test_empty_user_param_defaults_to_focal_user(api_server):
+def test_empty_user_param_defaults_to_focal_user(api_server) -> None:
     """`?user=` (empty) is a natural client artifact — serves the default user.
 
     Contract-fuzz guard (F.3): the API must not 422 on an empty `user` value.
@@ -158,7 +158,7 @@ def test_empty_user_param_defaults_to_focal_user(api_server):
     assert body["data"]["month"]
 
 
-def test_unknown_user_param_is_422(api_server):
+def test_unknown_user_param_is_422(api_server) -> None:
     """An unknown ?user= id is rejected with a clear error, not a 500.
 
     The detail body follows the documented ``HTTPValidationError`` shape (an
@@ -171,7 +171,7 @@ def test_unknown_user_param_is_422(api_server):
     assert "U_NotARealUser" in json.dumps(body["detail"])
 
 
-def test_transactions_payload_carries_dtypes_and_focal_filter(api_server):
+def test_transactions_payload_carries_dtypes_and_focal_filter(api_server) -> None:
     status, body = _get(f"{api_server}/api/v1/transactions?focal_only=true")
     assert status == 200
     assert body["columns"]
@@ -181,12 +181,12 @@ def test_transactions_payload_carries_dtypes_and_focal_filter(api_server):
     assert all(row["is_focal_user"] for row in body["data"])
 
 
-def test_unknown_route_is_404(api_server):
+def test_unknown_route_is_404(api_server) -> None:
     status, _ = _get(f"{api_server}/api/v1/does-not-exist")
     assert status == 404
 
 
-def test_security_headers_on_every_response(api_server):
+def test_security_headers_on_every_response(api_server) -> None:
     """Audit §6: baseline security headers are set on API responses."""
     req = urllib.request.Request(f"{api_server}/api/v1/health")
     with urllib.request.urlopen(req, timeout=10) as resp:
@@ -195,7 +195,7 @@ def test_security_headers_on_every_response(api_server):
         assert resp.headers.get("Referrer-Policy") == "no-referrer"
 
 
-def test_risk_scored_limit_is_bounded(api_server):
+def test_risk_scored_limit_is_bounded(api_server) -> None:
     """Audit §4/§5: the expensive risk-scored endpoint rejects out-of-range limits."""
     for bad in ("0", "-5", "999999"):
         status, _ = _get(f"{api_server}/api/v1/risk-scored?limit={bad}")
@@ -204,7 +204,7 @@ def test_risk_scored_limit_is_bounded(api_server):
     assert status == 200
 
 
-def test_rate_limiter_429_when_configured(monkeypatch):
+def test_rate_limiter_429_when_configured(monkeypatch) -> None:
     """Audit §5: FINSIGHT_RATE_LIMIT_PER_MIN caps /api/* per IP (429 + Retry-After)."""
     from finance_agent.api import create_app
 
@@ -227,7 +227,7 @@ def test_rate_limiter_429_when_configured(monkeypatch):
         thread.join(timeout=5)
 
 
-def test_rate_limit_env_typo_degrades_gracefully(monkeypatch):
+def test_rate_limit_env_typo_degrades_gracefully(monkeypatch) -> None:
     """A malformed FINSIGHT_RATE_LIMIT_PER_MIN must not crash the API (audit §5)."""
     from finance_agent.api import create_app
 
@@ -241,7 +241,7 @@ def test_rate_limit_env_typo_degrades_gracefully(monkeypatch):
         thread.join(timeout=5)
 
 
-def test_cors_origins_lockable_to_explicit_origins(monkeypatch):
+def test_cors_origins_lockable_to_explicit_origins(monkeypatch) -> None:
     """Audit §6: FINSIGHT_CORS_ORIGINS replaces the wildcard with an allow-list."""
     from finance_agent.api import create_app
 
@@ -263,7 +263,7 @@ def test_cors_origins_lockable_to_explicit_origins(monkeypatch):
         thread.join(timeout=5)
 
 
-def test_api_key_gate_when_configured():
+def test_api_key_gate_when_configured() -> None:
     """With FINSIGHT_API_KEY set, /api/* requires the X-API-Key header."""
     from finance_agent.api import create_app
 
