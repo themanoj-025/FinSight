@@ -17,6 +17,8 @@ import yaml
 from finance_agent.config_schema import ConfigError
 
 
+
+pytestmark = pytest.mark.slow
 def _write_config(tmp_path, df, *, bundle="missing.joblib", extra: dict | None = None) -> str:
 
     data_path = tmp_path / "transactions.csv"
@@ -249,6 +251,7 @@ def test_retrieval_disabled_flag_returns_clean_payload(tmp_path, df):
     """The similar-transactions tool must return a clean 'disabled' payload
     when the feature flag is off — never raise."""
     from finance_agent.tools import FinanceFacts
+
 
     cfg_path = _write_config(tmp_path, df, extra={"features": {"faiss_retrieval": False}})
     facts = FinanceFacts(cfg_path)
