@@ -8,14 +8,14 @@ any network access.
 import pytest
 
 from finance_agent.agent import (
-
-pytestmark = pytest.mark.slow
     SYSTEM_PROMPT,
     FinanceAgent,
     SessionBudget,
     estimate_cost,
     estimate_tokens,
 )
+
+pytestmark = pytest.mark.slow
 
 
 # ------------------------------------------------------------------ fakes
