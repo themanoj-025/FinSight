@@ -94,6 +94,17 @@ def create_app(config_path: str | None = None) -> FastAPI:
             "spending breakdowns, financial health, and per-transaction risk "
             "scoring with SHAP explanations. Interactive docs at /docs."
         ),
+
+# --- OpenTelemetry distributed tracing (OTEL_ENABLED=true) ---
+try:
+    from finance_agent.tracing import setup_tracing
+    _otel_ok = setup_tracing("finsight-api")
+    if _otel_ok:
+        from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+        FastAPIInstrumentor.instrument_app(app)
+except ImportError:
+    pass
+
         docs_url="/docs",
         redoc_url="/redoc",
         openapi_tags=[
