@@ -1,8 +1,10 @@
 """Advanced fraud pattern generators — extract from generators.py."""
 from __future__ import annotations
 
-from finance_agent.personas import DISCRETIONARY_CATEGORIES
 from finance_agent.patterns_pkg.context import PatternCtx
+from finance_agent.personas import DISCRETIONARY_CATEGORIES
+
+
 def gen_mimicry(ctx: PatternCtx, day: int | None = None) -> list[dict]:
     """9. Mimicry: fraud drawn from the persona's own spend distribution."""
     day = day or ctx.day_in(25, max(26, ctx.days - 5))
