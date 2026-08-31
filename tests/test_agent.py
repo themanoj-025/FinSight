@@ -20,7 +20,7 @@ pytestmark = pytest.mark.slow
 
 # ------------------------------------------------------------------ fakes
 class FakeUsage:
-    def __init__(self, inp=0, out=0, cache_read=0, cache_write=0):
+    def __init__(self, inp=0, out=0, cache_read=0, cache_write=0) -> None:
         self.input_tokens = inp
         self.output_tokens = out
         self.cache_read_input_tokens = cache_read
@@ -35,29 +35,29 @@ class FakeFinalMessage:
 
 
 class FakeStream:
-    def __init__(self, replies):
+    def __init__(self, replies) -> None:
         self._replies = replies
         self.text_stream = iter(["mock reply "])
         self._i = 0
 
-    def __enter__(self):
+    def __enter__(self) -> None:
         return self
 
     def __exit__(self, *args) -> bool:
         return False
 
-    def get_final_message(self):
+    def get_final_message(self) -> None:
         msg = self._replies[min(self._i, len(self._replies) - 1)]
         self._i += 1
         return msg
 
 
 class FakeMessages:
-    def __init__(self, captured, replies):
+    def __init__(self, captured, replies) -> None:
         self._captured = captured
         self._replies = replies
 
-    def stream(self, **kwargs):
+    def stream(self, **kwargs) -> None:
         self._captured.append(kwargs)
         return FakeStream(self._replies)
 
@@ -68,24 +68,24 @@ class FakeModels:
 
 
 class FakeClient:
-    def __init__(self, captured, replies):
+    def __init__(self, captured, replies) -> None:
         self._captured = captured
         self._replies = replies
         self.models = FakeModels()
 
     @property
-    def messages(self):
+    def messages(self) -> None:
         return FakeMessages(self._captured, self._replies)
 
 
 class FakeAnthropic:
     """Stand-in for the `anthropic` module: .Anthropic(api_key=...) -> client."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.captured: list[dict] = []
         self.replies = [FakeFinalMessage()]
 
-    def Anthropic(self, api_key=""):
+    def Anthropic(self, api_key="") -> None:
         return FakeClient(self.captured, self.replies)
 
 
@@ -284,7 +284,7 @@ def test_validate_api_key_cached_per_key(llm_env) -> None:
     _KEY_VALIDATION_CACHE.clear()
 
 
-def test_llm_available_false_for_invalid_key(llm_env):
+def test_llm_available_false_for_invalid_key(llm_env) -> None:
     class BadModels:
         def list(self, _limit: int = 1) -> dict[str, list[object]]:
             raise RuntimeError("invalid api key")
@@ -293,7 +293,7 @@ def test_llm_available_false_for_invalid_key(llm_env):
         models = BadModels()
 
     class BadAnthropic:
-        def Anthropic(self, api_key=""):
+        def Anthropic(self, api_key="") -> None:
             return BadClient()
 
     agent = FinanceAgent(llm_env["cfg_path"], api_key="sk-bad", _anthropic=BadAnthropic())
@@ -319,7 +319,7 @@ def test_llm_call_records_real_usage(llm_env) -> None:
 
 def test_llm_failure_records_failed_call_and_falls_back(llm_env) -> bool:
     class BoomStream:
-        def __enter__(self):
+        def __enter__(self) -> None:
             return self
 
         def __exit__(self, *args) -> bool:
@@ -330,7 +330,7 @@ def test_llm_failure_records_failed_call_and_falls_back(llm_env) -> bool:
             raise RuntimeError("api down")
 
     class BoomMessages:
-        def stream(self, **kwargs):
+        def stream(self, **kwargs) -> None:
             return BoomStream()
 
     class BoomClient:
@@ -338,7 +338,7 @@ def test_llm_failure_records_failed_call_and_falls_back(llm_env) -> bool:
         messages = BoomMessages()
 
     class BoomAnthropic:
-        def Anthropic(self, api_key=""):
+        def Anthropic(self, api_key="") -> None:
             return BoomClient()
 
     agent = FinanceAgent(llm_env["cfg_path"], api_key="sk-x", _anthropic=BoomAnthropic())

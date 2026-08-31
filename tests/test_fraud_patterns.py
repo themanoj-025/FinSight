@@ -21,7 +21,7 @@ def _ctx(days: int = 90, seed: int = 7, scale: float = 1.0) -> fp.PatternCtx:
     )
 
 
-def persona_start():
+def persona_start() -> None:
     from datetime import datetime
 
     return datetime(2025, 1, 1)
@@ -76,7 +76,7 @@ def test_hard_negatives_are_legitimate_unusual_rows() -> None:
             assert r["fraud_archetype"].startswith("hard_negative_")
 
 
-def test_patterns_are_deterministic_given_same_rng():
+def test_patterns_are_deterministic_given_same_rng() -> None:
     def gen_once(seed: int) -> list[dict]:
         ctx = _ctx(days=90, seed=seed)
         return fp.gen_new_payee_transfer(ctx)

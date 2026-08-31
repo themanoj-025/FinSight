@@ -190,14 +190,14 @@ class GoldenMessages:
     """Scripted client: tool_use on the first call, then the verbatim
     tool_result payload echoed as the final answer text."""
 
-    def __init__(self, captured, tool_name, tool_input):
+    def __init__(self, captured, tool_name, tool_input) -> None:
         self._captured = captured
         self._tool_name = tool_name
         self._tool_input = tool_input
         self._n = 0
 
     @staticmethod
-    def _usage():
+    def _usage() -> None:
         return SimpleNamespace(
             input_tokens=10,
             output_tokens=5,
@@ -205,7 +205,7 @@ class GoldenMessages:
             cache_creation_input_tokens=0,
         )
 
-    def stream(self, **kwargs):
+    def stream(self, **kwargs) -> None:
         self._captured.append(kwargs)
         if self._n == 0:
             self._n += 1
@@ -222,27 +222,27 @@ class GoldenMessages:
 
 
 class _GoldenStream:
-    def __init__(self, text, final):
+    def __init__(self, text, final) -> None:
         self.text_stream = iter([text])
         self._final = final
 
-    def __enter__(self):
+    def __enter__(self) -> None:
         return self
 
     def __exit__(self, *args) -> bool:
         return False
 
-    def get_final_message(self):
+    def get_final_message(self) -> None:
         return self._final
 
 
 class GoldenAnthropic:
-    def __init__(self, captured, tool_name, tool_input):
+    def __init__(self, captured, tool_name, tool_input) -> None:
         self.captured = captured
         self._tool_name = tool_name
         self._tool_input = tool_input
 
-    def Anthropic(self, api_key=""):
+    def Anthropic(self, api_key="") -> None:
         return SimpleNamespace(
             messages=GoldenMessages(self.captured, self._tool_name, self._tool_input)
         )
