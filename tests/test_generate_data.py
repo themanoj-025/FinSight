@@ -125,7 +125,7 @@ def test_subscription_total_tracks_source_list(monkeypatch) -> None:
     assert generate_data.subscription_total() == pytest.approx(base + 10.0)
 
 
-def test_cli_respects_seed_zero(monkeypatch, tmp_path, capsys):
+def test_cli_respects_seed_zero(monkeypatch, tmp_path, capsys) -> None:
     """End-to-end: `--seed 0` must not fall back to the default seed.
 
     ``main()`` calls ``datagen.generate_dataset`` (not the legacy ``generate``
@@ -157,7 +157,7 @@ def test_cli_respects_seed_zero(monkeypatch, tmp_path, capsys):
 
 
 @pytest.mark.slow
-def test_seed_determinism_at_scale():
+def test_seed_determinism_at_scale() -> None:
     """Data-Gen §9.4: a demo-tier, mid-size population reproduces byte-identically.
 
     Each persona draws from its own ``SeedSequence`` substream, so a reordered

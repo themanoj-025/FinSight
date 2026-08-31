@@ -39,7 +39,7 @@ def _write_config(tmp_path, df, *, bundle="missing.joblib", extra: dict | None =
 
 
 @pytest.fixture()
-def df():
+def df() -> None:
     from generate_data import generate
 
     return generate(
@@ -178,7 +178,7 @@ def test_dead_llm_client_falls_back_to_narrator(tmp_path, df) -> bool:
     from finance_agent.agent import FinanceAgent
 
     class BoomStream:
-        def __enter__(self):
+        def __enter__(self) -> None:
             return self
 
         def __exit__(self, *args) -> bool:
@@ -189,7 +189,7 @@ def test_dead_llm_client_falls_back_to_narrator(tmp_path, df) -> bool:
             raise RuntimeError("api down")
 
     class BoomMessages:
-        def stream(self, **kwargs):
+        def stream(self, **kwargs) -> None:
             return BoomStream()
 
     class BoomClient:
@@ -197,7 +197,7 @@ def test_dead_llm_client_falls_back_to_narrator(tmp_path, df) -> bool:
         messages = BoomMessages()
 
     class BoomAnthropic:
-        def Anthropic(self, api_key=""):
+        def Anthropic(self, api_key="") -> None:
             return BoomClient()
 
     cfg_path = _write_config(tmp_path, df)

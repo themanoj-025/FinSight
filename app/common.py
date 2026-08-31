@@ -122,7 +122,7 @@ def _facts_for(focal_user: str):
     return FinanceFacts(str(ROOT / "config.yaml"), focal_user=focal_user or None)
 
 
-def get_facts():
+def get_facts() -> Any:
     """Per-user cached facts (sidebar switcher changes the cache key)."""
     return _facts_for(_selected_focal_user())
 
@@ -168,7 +168,7 @@ def _agent_for(api_key: str, focal_user: str):
     return FinanceAgent(str(ROOT / "config.yaml"), api_key=api_key, focal_user=focal_user or None)
 
 
-def get_agent(api_key: str = ""):
+def get_agent(api_key: str = "") -> Any:
     return _agent_for(api_key, _selected_focal_user())
 
 
