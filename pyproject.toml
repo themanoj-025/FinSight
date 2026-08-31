@@ -88,6 +88,13 @@ dev = [
     "hypothesis>=6.100,<7",  # property-based generator invariants (tests/test_properties.py, F.2)
     "mutmut>=3.2,<4",  # mutation testing (`make mutate`, D.4) — dev-only, never a runtime dep
 ]
+# OpenTelemetry extras — optional, not a runtime dependency
+otel = [
+    "opentelemetry-api>=1.20.0,<2.0",
+    "opentelemetry-sdk>=1.20.0,<2.0",
+    "opentelemetry-exporter-otlp-proto-grpc>=1.20.0,<2.0",
+    "opentelemetry-instrumentation-fastapi>=0.41b0,<1.0",
+]
 
 [project.scripts]
 finsight = "finance_agent.cli:main"
@@ -144,7 +151,6 @@ ignore = [
     "RUF046",  # unnecessary cast
     "RUF022",  # unsorted __all__
     "F841",    # unused variable
-    "F300",    # f-string without placeholder
     "F541",    # f-string without placeholders
     "F811",    # redefinition of unused name
 ]
@@ -172,10 +178,4 @@ show_missing = true
 fail_under = 80
 skip_empty = true
 
-[project.optional-dependencies]
-otel = [
-    "opentelemetry-api>=1.20.0,<2.0",
-    "opentelemetry-sdk>=1.20.0,<2.0",
-    "opentelemetry-exporter-otlp-proto-grpc>=1.20.0,<2.0",
-    "opentelemetry-instrumentation-fastapi>=0.41b0,<1.0",
-]
+
