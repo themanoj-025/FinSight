@@ -153,6 +153,11 @@ ignore = [
     "F841",    # unused variable
     "F541",    # f-string without placeholders
     "F811",    # redefinition of unused name
+    "E402",    # module-import-not-at-top — Streamlit lazy imports
+    "F403",    # import-star — re-export pattern
+    "F404",    # future-import-at-beginning — Streamlit layout
+    "B007",    # unused loop variable
+    "C416",    # unnecessary dict comprehension
 ]
 
 [tool.black]

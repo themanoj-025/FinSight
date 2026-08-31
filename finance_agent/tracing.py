@@ -4,8 +4,8 @@ Enabled via OTEL_ENABLED=true environment variable.
 When disabled, all tracing calls are no-ops (zero overhead).
 """
 
-import os
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 

@@ -1,4 +1,4 @@
-from model_bench.train_helpers import *  # noqa: F401
+from model_bench.train_helpers import *
 
 """End-to-end model benchmark.
 
