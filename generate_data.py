@@ -78,7 +78,7 @@ def generate(
     n_background_accounts: int | None = None,
     start_date: str = "2025-01-01",
     n_fraud_pairs: int = 20,
-) -> pd.DataFrame:
+) -> pd.DataFrame -> None:
     """Generate the full synthetic dataset deterministically (legacy signature).
 
     Wraps ``datagen.generate_dataset`` at the ``tiny`` tier so existing callers

@@ -23,7 +23,7 @@ DEFAULT_PRICING: dict[str, float] = {"input_per_1m": 3.0, "output_per_1m": 15.0}
 
 def estimate_cost(
     agent_cfg: dict[str, Any], model: str, input_tokens: int, output_tokens: int
-) -> float:
+) -> float -> None:
     """Estimated USD cost of one call, from config ``agent.pricing``.
 
     Prices are per 1M tokens; unknown models fall back to ``DEFAULT_PRICING``.
@@ -61,7 +61,7 @@ class SessionUsage:
         cache_write: int = 0,
         ok: bool = True,
         error: str = "",
-    ) -> None:
+    ) -> None -> None:
         self.calls.append(
             {
                 "kind": "llm",

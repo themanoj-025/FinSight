@@ -42,7 +42,7 @@ def expense_rows(d: pd.DataFrame) -> pd.Series:
 
 def detect_duplicate_charges(
     df: pd.DataFrame, window_days: float = 2.0, amount_tol: float = 0.01
-) -> pd.DataFrame:
+) -> pd.DataFrame -> None:
     """Flag the later occurrence of a same-merchant, near-equal-amount charge.
 
     Only spending transactions of the focal user are considered, so that
@@ -63,7 +63,7 @@ def detect_duplicate_charges(
 
 def detect_balance_drain(
     df: pd.DataFrame, window_hours: float = 6.0, min_amount: float = 500.0, drain_ratio: float = 0.5
-) -> pd.DataFrame:
+) -> pd.DataFrame -> None:
     """Flag TRANSFERs that drain an account below `drain_ratio` of its prior
     balance and are followed by a matching CASH_OUT from the destination.
 
@@ -140,7 +140,7 @@ def detect_recurring_payments(
     min_occurrences: int = 3,
     max_amount_cv: float = 0.25,
     max_interval_cv: float = 0.35,
-) -> pd.DataFrame:
+) -> pd.DataFrame -> None:
     """Find the focal user's recurring payments: stable amounts at stable intervals."""
     d = df[df["is_focal_user"] & df["type"].isin({"SHOP", "PAYMENT", "SUBSCRIPTION", "TRANSFER"})]
     d = d.sort_values("step")

@@ -373,7 +373,7 @@ def sample_background(
     seed: int,
     rng: np.random.Generator,
     bust_fraction: float = 0.01,
-) -> list[BackgroundProfile]:
+) -> list[BackgroundProfile] -> None:
     """Sample `n` background profiles at scale (batched, not object-heavy)."""
     archetypes = assign_archetypes(n, rng)
     ss = np.random.SeedSequence(seed)

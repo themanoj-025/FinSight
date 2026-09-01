@@ -58,7 +58,7 @@ except ImportError:  # pragma: no cover
 
 def build_models(
     random_state: int = 42, lightgbm_params: dict | None = None
-) -> dict[str, BaseEstimator]:
+) -> dict[str, BaseEstimator] -> None:
     """Return `{model_label: untrained_estimator}` for the benchmark.
 
     ``lightgbm_params`` — the adopted best params from an HPO study

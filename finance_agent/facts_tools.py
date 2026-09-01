@@ -26,7 +26,7 @@ class FactTools(_FinanceFactsBase):
 
     def monthly_summary(
         self, month: str | None = None, account_type: str | None = None
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any] -> None:
         d = self._for_month(month, account_type=account_type)
         key = self._month_key(month)
         if d.empty:
@@ -61,7 +61,7 @@ class FactTools(_FinanceFactsBase):
 
     def category_breakdown(
         self, month: str | None = None, account_type: str | None = None
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any] -> None:
         d = self._for_month(month, account_type=account_type)
         key = self._month_key(month)
         spend = d.loc[rules.expense_rows(d)].groupby("category")["amount"].sum()
@@ -85,7 +85,7 @@ class FactTools(_FinanceFactsBase):
 
     def budget_status(
         self, month: str | None = None, account_type: str | None = None
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any] -> None:
         """Per-category monthly spend vs. configured budget goals.
 
         Goals come from `config.yaml budgets.monthly` (category -> amount). A
