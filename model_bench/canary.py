@@ -134,7 +134,7 @@ def diff_table(
     old_table: pd.DataFrame,
     new_table: pd.DataFrame,
     tolerance: float,
-) -> tuple[list[dict[str, object]], list[str]] -> None:
+) -> tuple[list[dict[str, object]], list[str]]:
     """Per-archetype old→new recall diff (rows) plus the regressed archetypes.
 
     A regression is a drop of more than ``tolerance`` in recall units (0.05 =
@@ -174,7 +174,7 @@ def render_body(
     regressed: list[str],
     tolerance: float,
     has_baseline: bool,
-) -> str -> None:
+) -> str:
     """Markdown section for the retrain PR body: diff table + verdict note."""
     tol_pp = tolerance * 100.0
     if not rows:
@@ -231,7 +231,7 @@ def run(
     config_path: str,
     tolerance: float | None = None,
     out_path: str | None = None,
-) -> tuple[str, str] -> None:
+) -> tuple[str, str]:
     """Full canary comparison. Returns ``(verdict, body)`` where verdict is
     ``"REGRESSION"`` or ``"CLEAN"``. Raises if the candidate bundle is missing
     (a genuine workflow error)."""

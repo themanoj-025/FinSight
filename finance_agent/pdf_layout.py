@@ -69,7 +69,7 @@ class _Layout:
         size: float = 9.5,
         font: str = F_REG,
         color: tuple[float, float, float] = INK,
-    ) -> None -> None:
+    ) -> None:
         r, g, b = color
         self._emit(
             (
@@ -87,7 +87,7 @@ class _Layout:
         h: float,
         fill: tuple[float, float, float] | None = None,
         stroke: tuple[float, float, float] | None = None,
-    ) -> None -> None:
+    ) -> None:
         cmds = [f"{x:.2f} {y:.2f} {w:.2f} {h:.2f} re ".encode("ascii")]
         if fill is not None:
             cmds.append(f"{fill[0]:.3f} {fill[1]:.3f} {fill[2]:.3f} f\n".encode("ascii"))
@@ -103,7 +103,7 @@ class _Layout:
         y2: float,
         color: tuple[float, float, float],
         width: float = 0.8,
-    ) -> None -> None:
+    ) -> None:
         """Draw a straight line from (x1, y1) to (x2, y2)."""
         self._cmds.append(
             (
@@ -150,7 +150,7 @@ class _Layout:
         runs: list[tuple[str, str]],
         size: float,
         color: tuple[float, float, float],
-    ) -> None -> None:
+    ) -> None:
         cx = x
         for style, chunk in runs:
             self.text(cx, y, chunk, size=size, font=style, color=color)
@@ -163,7 +163,7 @@ class _Layout:
         color: tuple[float, float, float] = INK,
         indent: float = 0.0,
         font: str = F_REG,
-    ) -> None -> None:
+    ) -> None:
         runs = _runs(text)
         if font == F_OBL:
             runs = [(F_OBL, t) for _, t in runs]

@@ -35,7 +35,7 @@ def generate_dataset(
     start_date: str = "2025-01-01",
     n_fraud_pairs: int = 20,
     verbose: bool = False,
-) -> pd.DataFrame -> None:
+) -> pd.DataFrame:
     """Generate the full synthetic ledger for a tier (see module docstring)."""
     if tier not in TIER_DEFAULTS:
         raise ValueError(f"unknown tier {tier!r} (expected tiny|demo|bench)")

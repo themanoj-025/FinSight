@@ -355,7 +355,7 @@ _CATEGORY_WEIGHTS: dict[str, np.ndarray] = {
 
 def sample_merchants(
     rng: np.random.Generator, category: str, n: int, *, force_new: set[str] | None = None
-) -> list[dict[str, str]] -> None:
+) -> list[dict[str, str]]:
     """Sample `n` merchant records for `category` (Zipfian-weighted).
 
     ``force_new`` excludes previously-used merchant names, so fraud patterns
