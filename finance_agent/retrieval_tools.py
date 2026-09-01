@@ -93,7 +93,7 @@ class RetrievalTools(_FinanceFactsBase):
 
     def find_similar_transactions(
         self, transaction_id: int | None = None, k: int = 5
-    ) -> dict[str, Any] -> None:
+    ) -> dict[str, Any]:
         """The k transactions most similar to `transaction_id` in feature space.
 
         Phase B.1 — "why is this flagged, what does it look like?": the

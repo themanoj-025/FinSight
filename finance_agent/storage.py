@@ -344,7 +344,7 @@ class TransactionStore:
         limit: int,
         focal_user: str | None = None,
         account_type: str | None = None,
-    ) -> pd.DataFrame -> None:
+    ) -> pd.DataFrame:
         """Top-risk rows with the same columns the in-memory path returns.
 
         `_row_index` aliases `transactions.id` (0-based CSV row position), so
@@ -388,7 +388,7 @@ class TransactionStore:
         focal_only: bool,
         focal_user: str | None = None,
         account_type: str | None = None,
-    ) -> int -> None:
+    ) -> int:
         sql = (
             "SELECT COUNT(*) FROM risk_scores r"
             " JOIN transactions t ON t.id = r.transaction_id"
@@ -469,7 +469,7 @@ class SessionBudgetStore:
 
     def record_usage(
         self, session_id: str, input_tokens: int, output_tokens: int, est_cost: float = 0.0
-    ) -> None -> None:
+    ) -> None:
         conn = sqlite3.connect(self.path)
         try:
             conn.execute(

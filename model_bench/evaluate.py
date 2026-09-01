@@ -72,7 +72,7 @@ def _save(fig: Any, outdir: str, name: str) -> str:
 
 def per_archetype_recall(
     y_true: np.ndarray, scores: np.ndarray, archetypes: np.ndarray, threshold: float = 0.5
-) -> pd.DataFrame -> None:
+) -> pd.DataFrame:
     """Recall per fraud archetype on the positive rows of a holdout set.
 
     ``archetypes`` is the per-row ``fraud_archetype`` column (empty for
@@ -108,7 +108,7 @@ def cohort_recall(
     scores: np.ndarray,
     cohorts: np.ndarray,
     threshold: float = 0.5,
-) -> pd.DataFrame -> None:
+) -> pd.DataFrame:
     """Recall per cohort (e.g. persona archetype) — a cohort-fairness view.
 
     Disparity = max recall / min recall across cohorts with support; a ratio
@@ -139,7 +139,7 @@ def cohort_recall(
 
 def temporal_stability(
     y_true: np.ndarray, scores: np.ndarray, steps: np.ndarray, n_buckets: int = 5
-) -> pd.DataFrame -> None:
+) -> pd.DataFrame:
     """Precision / recall per time bucket over the holdout window.
 
     Buckets are equal-count quantiles of the test rows ordered by ``step``, so
@@ -371,7 +371,7 @@ def plot_confusion_grid(y_true: np.ndarray, scores: dict[str, np.ndarray], outdi
 
 def plot_feature_importance(
     model: Any, X_test: np.ndarray, y_test: np.ndarray, feature_names: list[str], outdir: str
-) -> str -> None:
+) -> str:
     """Top feature importances for the winner: native importances or permutation."""
     if hasattr(model, "feature_importances_"):
         importances = np.asarray(model.feature_importances_, dtype=float)

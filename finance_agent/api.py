@@ -289,9 +289,9 @@ def create_app(config_path: str | None = None) -> FastAPI:
     def transactions(
         focal_only: bool = False,
         user: FocalUser = None,
-        limit -> None:
+        limit: int = Query(500, ge=1, le=5000, description="Max rows per page"),
         offset: int = Query(0, ge=0, description="Row offset for paging"),
-    ) -> dict[str, Any] -> None:
+    ) -> dict[str, Any]:
         """Paginated ledger view (C.1.3)."""
         facts = _facts_or_503(user)
         df = facts.focal() if focal_only else facts.df
@@ -313,7 +313,7 @@ def create_app(config_path: str | None = None) -> FastAPI:
         month: NullableStr = None,
         account_type: NullableStr = None,
         user: FocalUser = None,
-    ) -> dict[str, Any] -> None:
+    ) -> dict[str, Any]:
         return _jsonable(_facts_or_503(user).monthly_summary(month, account_type=account_type))
 
     @app.get("/api/v1/category-breakdown")
@@ -322,7 +322,7 @@ def create_app(config_path: str | None = None) -> FastAPI:
         month: NullableStr = None,
         account_type: NullableStr = None,
         user: FocalUser = None,
-    ) -> dict[str, Any] -> None:
+    ) -> dict[str, Any]:
         return _jsonable(_facts_or_503(user).category_breakdown(month, account_type=account_type))
 
     @app.get("/api/v1/budget-status")
@@ -331,7 +331,7 @@ def create_app(config_path: str | None = None) -> FastAPI:
         month: NullableStr = None,
         account_type: NullableStr = None,
         user: FocalUser = None,
-    ) -> dict[str, Any] -> None:
+    ) -> dict[str, Any]:
         return _jsonable(_facts_or_503(user).budget_status(month, account_type=account_type))
 
     @app.get("/api/v1/recurring-payments")
@@ -357,13 +357,13 @@ def create_app(config_path: str | None = None) -> FastAPI:
     @app.get("/api/v1/risk-scored")
     @_cached_response
     def risk_scored(
-        limit -> None:
+        limit: int = Query(15, ge=1, le=5000, description="Max rows to return (1-5000)"),
         threshold: NullableFloat = None,
         focal_only: bool = False,
         include_explanations: bool = False,
         account_type: NullableStr = None,
         user: FocalUser = None,
-    ) -> dict[str, Any] -> None:
+    ) -> dict[str, Any]:
         return _jsonable(
             _facts_or_503(user).risk_scored_transactions(
                 limit=limit,
@@ -383,9 +383,9 @@ def create_app(config_path: str | None = None) -> FastAPI:
     @_cached_response
     def similar_transactions(
         transaction_id: NullableInt = None,
-        k -> None:
+        k: int = Query(5, ge=1, le=20, description="Number of neighbours (1-20)"),
         user: FocalUser = None,
-    ) -> dict[str, Any] -> None:
+    ) -> dict[str, Any]:
         """Phase B.1 — nearest transactions in feature space with fraud labels."""
         return _jsonable(
             _facts_or_503(user).find_similar_transactions(transaction_id=transaction_id, k=k)

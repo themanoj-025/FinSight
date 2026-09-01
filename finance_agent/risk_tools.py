@@ -175,7 +175,7 @@ class RiskTools(_FinanceFactsBase):
         focal_only: bool = False,
         include_explanations: bool = False,
         account_type: str | None = None,
-    ) -> dict[str, Any] -> None:
+    ) -> dict[str, Any]:
         """Transactions ranked by blended risk score.
 
         When a SQLite store is configured (data.store_path) the query runs

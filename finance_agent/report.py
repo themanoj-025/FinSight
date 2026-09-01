@@ -43,7 +43,7 @@ class FactsSource(Protocol):
     def top_tips(self) -> dict[str, Any]: ...
 
 
-def _model_note() -> str -> None:
+def _model_note() -> str:
     meta_path = "model_bench/best_model_metadata.json"
     if not os.path.exists(meta_path):
         return "No trained model on disk — run `make train` to benchmark and select one."

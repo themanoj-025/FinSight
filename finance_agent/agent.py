@@ -171,7 +171,7 @@ class ActivityLogger:
 
     def log(
         self, tool: str, args: dict[str, Any], latency_ms: float, ok: bool = True, error: str = ""
-    ) -> None -> None:
+    ) -> None:
         record = {
             "ts": time.time(),
             "tool": tool,
@@ -274,7 +274,7 @@ class FinanceAgent:
         history: list[dict[str, str]] | None = None,
         stream: bool = False,
         budget: SessionBudget | None = None,
-    ) -> str | Iterator[str] -> None:
+    ) -> str | Iterator[str]:
         """Answer a natural-language question, optionally in conversation context.
 
         Returns a string, or an iterator of text chunks when `stream=True`. When

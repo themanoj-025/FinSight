@@ -99,7 +99,7 @@ class SimilarTransactionIndex:
 
     def find_similar(
         self, query: np.ndarray, k: int, exclude: int | None = None
-    ) -> list[dict[str, Any]] -> None:
+    ) -> list[dict[str, Any]]:
         """k nearest neighbors of `query` as list[dict] with distance + meta.
 
         ``exclude`` is a transaction_id (original ledger position) to skip —
@@ -148,7 +148,7 @@ def nearest_neighbors(
     meta: pd.DataFrame,
     transaction_id: int,
     k: int = 5,
-) -> list[dict[str, Any]] -> None:
+) -> list[dict[str, Any]]:
     """Convenience path: build (or reuse) nothing — one-shot k-NN query.
 
     ``transaction_id`` is the row's original position in the frame that
@@ -176,7 +176,7 @@ def neighbor_rows(
         "isFraud",
         "fraud_archetype",
     ),
-) -> list[dict[str, Any]] -> None:
+) -> list[dict[str, Any]]:
     """Trim raw neighbor records to the JSON-safe display columns.
 
     ``fraud_archetype`` becomes ``"legitimate"`` for non-fraud rows so the
