@@ -138,7 +138,7 @@ def objective(
     random_state: int = 42,
     n_splits: int = 5,
     n_estimators: int = 300,
-) -> float:
+) -> float -> None:
     """Mean PR-AUC over time-series CV for one hyperparameter combination.
 
     Mirrors the benchmark's model-selection loop for the LightGBM family
@@ -163,7 +163,7 @@ def evaluate_params(
     random_state: int = 42,
     n_splits: int = 5,
     n_estimators: int = 300,
-) -> float:
+) -> float -> None:
     """Mean CV PR-AUC for an explicit param dict — deterministic, no Optuna.
 
     Used for the registry-defaults baseline so ``improvement`` is measured
@@ -222,7 +222,7 @@ def run_hpo(
     n_estimators: int = 300,
     min_improvement: float = 0.01,
     promote: bool = False,
-) -> dict[str, Any]:
+) -> dict[str, Any] -> None:
     """Run (or continue) the Optuna study and write the provenance artifacts.
 
     Returns a JSON-serializable provenance dict and writes:

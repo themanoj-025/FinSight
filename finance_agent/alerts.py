@@ -100,7 +100,7 @@ def build_alert_payload(
     source: str = "risk_scan",
     focal_user: str | None = None,
     rows: list[dict[str, Any]] | None = None,
-) -> dict[str, Any]:
+) -> dict[str, Any] -> None:
     """The small JSON payload for one alert event.
 
     ``data`` is the ``risk_scored_transactions`` payload (``threshold``,
@@ -190,7 +190,7 @@ def send_risk_alerts(
     source: str = "risk_scan",
     focal_user: str | None = None,
     state_path: str | None = None,
-) -> int:
+) -> int -> None:
     """Send one deduplicated alert for newly-flagged transactions.
 
     Returns the number of webhook POSTs made (0 when disabled, unconfigured,

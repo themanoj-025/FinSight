@@ -196,7 +196,7 @@ class ApiClient:
 
     def monthly_summary(
         self, month: str | None = None, account_type: str | None = None
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any] -> None:
         return self._request(
             "/api/v1/monthly-summary",
             params=self._user_params(month=month, account_type=account_type),
@@ -204,7 +204,7 @@ class ApiClient:
 
     def category_breakdown(
         self, month: str | None = None, account_type: str | None = None
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any] -> None:
         return self._request(
             "/api/v1/category-breakdown",
             params=self._user_params(month=month, account_type=account_type),
@@ -212,7 +212,7 @@ class ApiClient:
 
     def budget_status(
         self, month: str | None = None, account_type: str | None = None
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any] -> None:
         return self._request(
             "/api/v1/budget-status",
             params=self._user_params(month=month, account_type=account_type),
@@ -237,7 +237,7 @@ class ApiClient:
         focal_only: bool = False,
         include_explanations: bool = False,
         account_type: str | None = None,
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any] -> None:
         return self._request(
             "/api/v1/risk-scored",
             params=self._user_params(

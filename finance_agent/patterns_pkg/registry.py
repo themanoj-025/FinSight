@@ -43,7 +43,7 @@ def inject_background_patterns(ctx: PatternCtx, *, bust: bool = False) -> list[d
 
 def apply_discovery_lag(
     rows: list[dict], rng: np.random.Generator, lag_rate: float = 0.02
-) -> list[dict]:
+) -> list[dict] -> None:
     """Label realism: ~`lag_rate` of fraud rows are only *knowable* later.
 
     ``label_reported_at_step`` > ``step`` mimics chargeback-reporting delay —
