@@ -15,6 +15,9 @@ import pytest
 
 from finance_agent import alerts
 
+pytestmark = pytest.mark.integration
+
+
 
 class _CaptureHandler(BaseHTTPRequestHandler):
     """Captures POST (path, parsed JSON body) pairs; responds 200."""

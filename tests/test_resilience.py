@@ -16,6 +16,9 @@ import yaml
 
 from finance_agent.config_schema import ConfigError
 
+pytestmark = pytest.mark.unit
+
+
 pytestmark = pytest.mark.slow
 def _write_config(tmp_path, df, *, bundle="missing.joblib", extra: dict | None = None) -> str:
 

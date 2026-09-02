@@ -15,12 +15,13 @@ from finance_agent.features import build_features
 from generate_data import generate
 from model_bench import hpo, models
 
+pytestmark = pytest.mark.filterwarnings("ignore::optuna.exceptions.ExperimentalWarning")
+
 optuna = pytest.importorskip("optuna")
 
 # optuna's matplotlib `plot_param_importances` is experimental and emits an
 # ExperimentalWarning on every chart render — the chart is a real artifact,
 # but the warning is noise in CI output.
-pytestmark = pytest.mark.filterwarnings("ignore::optuna.exceptions.ExperimentalWarning")
 
 
 def _tiny_xy() -> tuple[np.ndarray, np.ndarray]:

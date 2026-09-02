@@ -106,6 +106,8 @@ include = ["finance_agent*", "model_bench*"]
 testpaths = ["tests"]
 addopts = "-q -m 'not slow' --cov --cov-fail-under=50"
 markers = [
+    "unit: marks pure unit tests (deselect with '-m \"not unit\"')",
+    "integration: marks tests requiring external services (deselect with '-m \"not integration\"')",
     "slow: long-running tests (full server boot, 100k-row perf) — excluded from the default run; run with `pytest -m slow` or `make test-slow`",
     "data_realism: data-generator realism suite (demo-tier ledger; runs against demo-tier data in the nightly benchmark job, not on every push)",
 ]

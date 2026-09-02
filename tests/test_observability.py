@@ -19,6 +19,9 @@ import pytest
 from conftest import boot_api_server
 
 from finance_agent.observability import (
+
+pytestmark = pytest.mark.integration
+
     CorrelationFilter,
     JsonFormatter,
     configure_logging,

@@ -12,6 +12,9 @@ import pytest
 
 from finance_agent.digest import build_weekly_digest, run_digest, send_email, send_slack
 
+pytestmark = pytest.mark.integration
+
+
 
 @pytest.fixture()
 def digest_env(tmp_path) -> dict[str, object]:
