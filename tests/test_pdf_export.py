@@ -1,3 +1,7 @@
+import pytest
+
+pytestmark = pytest.mark.unit
+
 """Tests for the hand-rolled, stdlib-only PDF writer (roadmap: branded PDF export).
 
 Covers structural validity (a real xref table with byte-correct offsets), the

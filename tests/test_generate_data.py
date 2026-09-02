@@ -8,6 +8,9 @@ import pytest
 import generate_data
 from generate_data import generate
 
+pytestmark = pytest.mark.unit
+
+
 SMALL = dict(days=20, seed=11, user="U_Alex", n_background_accounts=10, n_fraud_pairs=2)
 
 

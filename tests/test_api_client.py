@@ -2,6 +2,10 @@
 
 The key property: the ApiClient must be interchangeable with ``FinanceFacts``
 from the pages' point of view — same dicts, same DataFrame dtypes — so the app
+
+import pytest
+
+pytestmark = pytest.mark.integration
 can switch data sources via ``FINSIGHT_API_URL`` without page changes.
 """
 

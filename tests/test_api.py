@@ -15,6 +15,9 @@ from pathlib import Path
 import pytest
 from conftest import boot_api_server
 
+pytestmark = pytest.mark.integration
+
+
 ROOT = Path(__file__).resolve().parent.parent
 BUNDLE = ROOT / "model_bench" / "risk_model_bundle.joblib"
 

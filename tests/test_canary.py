@@ -19,6 +19,9 @@ import yaml
 
 from model_bench import canary
 
+pytestmark = pytest.mark.integration
+
+
 ROOT = Path(__file__).resolve().parent.parent
 OLD = "archetype"
 RECALL = "recall"
