@@ -18,10 +18,8 @@ import urllib.request
 import pytest
 from conftest import boot_api_server
 
-from finance_agent.observability import (
-
 pytestmark = pytest.mark.integration
-
+from finance_agent.observability import (
     CorrelationFilter,
     JsonFormatter,
     configure_logging,

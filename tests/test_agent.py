@@ -7,10 +7,8 @@ any network access.
 
 import pytest
 
-from finance_agent.agent import (
-
 pytestmark = pytest.mark.unit
-
+from finance_agent.agent import (
     SYSTEM_PROMPT,
     FinanceAgent,
     SessionBudget,
