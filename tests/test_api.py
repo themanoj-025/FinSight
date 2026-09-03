@@ -63,6 +63,36 @@ def test_health(api_server) -> None:
     assert isinstance(body["rule_only"], bool)
 
 
+def test_canonical_readiness_ok_when_facts_load(api_server) -> None:
+    """Canonical /health/ready returns 200 when the facts snapshot loads."""
+    status, body = _get(f"{api_server}/health/ready")
+    assert status == 200
+    assert body["status"] == "ready"
+    assert body["checks"][0]["name"] == "facts"
+    assert body["checks"][0]["status"] == "up"
+
+
+def test_canonical_readiness_503_when_facts_unavailable(monkeypatch) -> None:
+    """Canonical /health/ready returns 503 when the facts probe fails."""
+    from fastapi import HTTPException
+
+    from finance_agent.api import create_app
+
+    def _boom(*args: object, **kwargs: object) -> None:
+        raise HTTPException(status_code=503, detail="facts unavailable")
+
+    monkeypatch.setattr("finance_agent.api._facts_or_503", _boom)
+    base_url, server, thread = boot_api_server(create_app())
+    try:
+        status, body = _get(f"{base_url}/health/ready")
+        assert status == 503
+        assert body["status"] == "not_ready"
+        assert body["checks"][0]["status"] == "down"
+    finally:
+        server.should_exit = True
+        thread.join(timeout=5)
+
+
 def test_meta_exposes_config_and_scoring_mode(api_server) -> None:
     status, body = _get(f"{api_server}/api/v1/meta")
     assert status == 200
