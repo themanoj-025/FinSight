@@ -15,7 +15,8 @@ import numpy as np
 import pandas as pd
 
 from finance_agent import rules
-from finance_agent._facts_base import _FinanceFactsBase, fmt_money
+from finance_agent._facts_base import _FinanceFactsBase
+from finance_agent.constants import fmt_money
 
 
 class FactTools(_FinanceFactsBase):

@@ -11,7 +11,8 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Protocol
 
-from finance_agent.tools import FinanceFacts, fmt_money
+from finance_agent.constants import fmt_money
+from finance_agent.tools import FinanceFacts
 
 
 class FactsSource(Protocol):

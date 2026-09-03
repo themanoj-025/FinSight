@@ -25,6 +25,7 @@ from finance_agent.pdf_text import (
     PAGE_H,
     PAGE_W,
     _parse_blocks,  # re-exported for backward compatibility
+    sanitize_winansi,  # re-exported for backward compatibility
 )
 
 # ---------------------------------------------------------------------------

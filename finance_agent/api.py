@@ -51,6 +51,7 @@ from finance_agent.api_helpers import (
 from finance_agent.api_helpers import (
     _RESPONSE_CACHES as _CACHE_LIST,
 )
+from finance_agent.health import create_health_router
 from finance_agent.observability import configure_logging, correlation, report_exception
 
 log = logging.getLogger("finance_agent.api")
@@ -398,6 +399,14 @@ def create_app(config_path: str | None = None) -> FastAPI:
         for cache in _RESPONSE_CACHES:
             cache.clear()
         return {"status": "ok", "detail": "facts snapshot will be reloaded on the next request"}
+
+    # Canonical readiness probes (finance_agent/health.py is synced from
+    # shared/aegis_common/health.py):
+    #   GET /health        — liveness, always 200
+    #   GET /health/ready  — readiness, 503 until the facts snapshot loads
+    app.include_router(
+        create_health_router(checks={"facts": lambda: _facts_or_503()})
+    )
 
     return app
 
