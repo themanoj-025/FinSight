@@ -15,7 +15,8 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from finance_agent._facts_base import _FinanceFactsBase, fmt_money
+from finance_agent._facts_base import _FinanceFactsBase
+from finance_agent.constants import fmt_money
 from finance_agent.features import build_features
 from finance_agent.retrieval import SimilarTransactionIndex, build_embeddings, neighbor_rows
 

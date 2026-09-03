@@ -21,8 +21,8 @@ from finance_agent._facts_base import (
     _blend_weights,
     _FinanceFactsBase,
     _scored_frame_json,
-    fmt_money,
 )
+from finance_agent.constants import fmt_money
 from finance_agent.features import build_features
 from model_bench import models as bench_models
 
