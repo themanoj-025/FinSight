@@ -132,7 +132,7 @@ def _api_server() -> None:
 
     app = create_app()
 
-    @app.get("/boom")  # type: ignore[no-redef]  # dynamic test route
+    @app.get("/boom")  # dynamic test route
     def _boom() -> None:
         raise RuntimeError("kaboom-test")
 
