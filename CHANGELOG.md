@@ -296,4 +296,4 @@ Definition-of-done gates verified end-to-end (fast suite < 30 s, slow suite, ruf
 - `docs/KNOWN_LIMITATIONS.md` added — every simplification stated plainly, per the project's
   "docs must never claim what doesn't exist" rule.
 
-[0.1.0]: https://github.com/themanoj-025/FinSight-Agent/releases/tag/v0.1.0
+[0.1.0]: https://github.com/themanoj-025/FinSight/releases/tag/v0.1.0
