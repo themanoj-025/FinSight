@@ -4,7 +4,7 @@
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![CI](https://img.shields.io/badge/CI-passing-brightgreen)](https://github.com/themanoj-025/FinSight-Agent/actions/workflows/ci.yml)
+[![CI](https://img.shields.io/badge/CI-passing-brightgreen)](https://github.com/themanoj-025/FinSight/actions/workflows/ci.yml)
 [![PR-AUC](https://img.shields.io/badge/CV%20PR--AUC-0.828%20±%200.055-16A34A.svg)](#model-benchmark)
 
 ---
@@ -399,7 +399,7 @@ All tunable parameters live in `config.yaml`: data generation, model benchmark, 
 ### Quick Start
 
 ```bash
-git clone https://github.com/themanoj-025/FinSight-Agent
+git clone https://github.com/themanoj-025/FinSight
 cd FinSight-Agent
 make setup && make run
 ```
