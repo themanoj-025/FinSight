@@ -105,6 +105,7 @@ include = ["finance_agent*", "model_bench*"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q -m 'not slow' --cov --cov-fail-under=50"
+pythonpath = ["."]
 markers = [
     "unit: marks pure unit tests (deselect with '-m \"not unit\"')",
     "integration: marks tests requiring external services (deselect with '-m \"not integration\"')",

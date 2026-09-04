@@ -32,10 +32,6 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-sys.path.insert(
-    0, str(Path(__file__).resolve().parent.parent)
-)  # allow `python model_bench/train_and_compare.py`
-
 from typing import Any
 
 import joblib
