@@ -65,7 +65,7 @@ def build_report_pdf(markdown: str) -> bytes:
         elif kind == "bullet":
             lay.bullet(str(data))
         elif kind == "table":
-            lay.table(data)  # type: ignore[arg-type]
+            lay.table(data)
         elif kind == "rule":
             lay.hrule()
         elif kind == "italic":
