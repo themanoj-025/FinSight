@@ -27,8 +27,6 @@ import streamlit as st
 from finance_agent.observability import configure_logging, report_exception, set_correlation_id
 
 ROOT = Path(__file__).resolve().parent.parent
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))  # allow `from app import common` regardless of cwd
 
 ACCENT = "#34D399"
 WARNING = "#F59E0B"

@@ -1,4 +1,3 @@
-import sys
 import threading
 import time
 from collections.abc import Generator
@@ -8,8 +7,6 @@ import pytest
 import uvicorn
 
 ROOT = Path(__file__).resolve().parent.parent
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
 
 
 def boot_api_server(app) -> tuple[str, uvicorn.Server, threading.Thread]:
