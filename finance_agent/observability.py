@@ -127,5 +127,5 @@ def report_exception(exc: BaseException) -> bool:
             _sentry_initialized = True
         sentry_sdk.capture_exception(exc)
         return True
-    except (OSError, ValueError):
+    except Exception:  # noqa: BLE001 — reporting must never crash the caller
         return False

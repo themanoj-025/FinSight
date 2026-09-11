@@ -2,8 +2,16 @@
 
 from __future__ import annotations
 
-from patterns_pkg.ctx import PatternCtx
-
+from finance_agent import merchants
+from finance_agent.merchants import sample_merchants
+from finance_agent.patterns_pkg.ctx import (
+    PatternCtx,
+    _ATM,
+    _CASH_ACCOUNT,
+    _fraud,
+    _row,
+    round2,
+)
 
 def gen_balance_drain(ctx: PatternCtx, day: int | None = None) -> list[dict]:
     """1. Balance-draining transfer + rapid cash-out (isFraud=1).

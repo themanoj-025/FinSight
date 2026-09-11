@@ -41,6 +41,10 @@ import numpy as np
 import pandas as pd
 import yaml
 
+sys.path.insert(
+    0, str(Path(__file__).resolve().parent.parent)
+)  # allow `python model_bench/canary.py`
+
 from finance_agent.features import build_features
 from model_bench import evaluate, models
 

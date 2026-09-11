@@ -263,3 +263,7 @@ class ApiClient:
             "/api/v1/similar-transactions",
             params={"transaction_id": transaction_id, "k": k},
         )
+
+    # Alias: the Fraud page duck-types facts via
+    # ``facts.find_similar_transactions(...)`` regardless of local/API mode.
+    find_similar_transactions = similar_transactions

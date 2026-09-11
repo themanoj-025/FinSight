@@ -183,22 +183,51 @@ _WINANSI_MAP: dict[int, str] = {
 # Sentinel for chars that are mapped via _WINANSI_MAP.
 _MAPPED = frozenset(_WINANSI_MAP.keys())
 
+# Emoji → ASCII text markers (report headers/tips use them liberally; built-in
+# PDF fonts cannot encode them). Longest-first replacement order matters for
+# emoji with variation selectors.
+_EMOJI_MAP: dict[str, str] = {
+    "⚠️": "[over]",
+    "⚠": "[over]",
+    "💸": "[$]",
+    "✅": "[ok]",
+    "❌": "[x]",
+    "🔴": "[!]",
+    "🟢": "[ok]",
+    "📈": "[up]",
+    "📉": "[down]",
+    "🚨": "[!]",
+    "🛡️": "[!]",
+    "🛡": "[!]",
+    "🎯": "[goal]",
+    "👥": "[users]",
+    "📅": "[weekly]",
+    "📄": "[report]",
+    "⬇️": "[download]",
+    "⬇": "[download]",
+    "⚡": "[fast]",
+}
+
 
 def sanitize_winansi(text: str) -> str:
-    """Replace non-WinAnsi characters with safe ASCII approximations.
+    """Map emoji to text markers and drop anything WinAnsi can't encode.
 
-    Characters in ``_WINANSI_MAP`` get their text marker; anything else
-    outside the WinAnsi range becomes ``?`` so the PDF stays valid.
+    Built-in PDF fonts are WinAnsi (≈ cp1252); emoji and astral chars cannot
+    be represented. Everything the report actually emits (± · —) is safe.
     """
+    for emoji, marker in _EMOJI_MAP.items():
+        text = text.replace(emoji, marker)
+    # Variation selector U+FE0F often trails emoji — strip it.
+    text = text.replace("\ufe0f", "")
     out: list[str] = []
     for ch in text:
         cp = ord(ch)
-        if cp in _WINANSI_SAFE or cp in _WINANSI_EXTRA:
-            out.append(ch)
-        elif cp in _MAPPED:
+        if cp in _MAPPED:
             out.append(_WINANSI_MAP[cp])
+        elif cp in _WINANSI_SAFE or cp in _WINANSI_EXTRA:
+            out.append(ch)
         else:
-            out.append("?")  # pragma: no cover – non-Latin input
+            out.append("?")
     return "".join(out)
 
 

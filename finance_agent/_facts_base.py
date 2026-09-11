@@ -136,6 +136,10 @@ def _scored_frame_json(
     cached scores instead of recomputing everything on every Streamlit rerun
     (2.8). Returns the fully-scored frame as JSON records.
     """
+    # Local import: FinanceFacts lives in tools.py, which imports this module
+    # at load time — a module-level import here would be circular.
+    from finance_agent.tools import FinanceFacts
+
     facts = FinanceFacts(cfg_path)
     return facts._compute_scored_frame().to_json(orient="records")
 

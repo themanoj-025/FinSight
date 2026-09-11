@@ -38,6 +38,7 @@ from finance_agent.api_helpers import (
     _RESPONSE_CACHES,
     FocalUser,
     NullableFloat,
+    NullableInt,
     NullableStr,
     _cached_response,
     _client_ip,
