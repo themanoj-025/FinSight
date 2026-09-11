@@ -12,6 +12,7 @@ from finance_agent.datagen_pkg.config import (
     MERCHANTS_INDEX,
     PARTIAL_COLUMNS,
 )
+from finance_agent.personas import Persona
 
 
 def focal_user_ids(n: int, existing: list[str] | None = None) -> list[str]:

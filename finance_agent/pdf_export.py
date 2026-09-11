@@ -71,11 +71,19 @@ def build_report_pdf(markdown: str) -> bytes:
         elif kind == "italic":
             lay.italic(str(data))
 
+    # Flush the final page into ``lay.pages`` — without this the last page's
+    # commands stay buffered in ``lay._cmds`` and the PDF has zero pages.
+    lay.finish(len(lay.pages))
+
     return _assemble(lay.pages)
 
 
 def _assemble(pages: list[list[bytes]]) -> bytes:
     """Turn a list of page command-lists into a complete PDF byte-string."""
+    # PDF files must open with the version header + binary-comment marker;
+    # every xref offset below is computed relative to the *file* start, so the
+    # header length is included in every offset.
+    pdf_header = b"%PDF-1.4\n%\xe2\xe3\xcf\xd3\n"
     body_parts: list[bytes] = []
     offsets: list[int] = []
     objects: list[bytes] = []
@@ -83,7 +91,7 @@ def _assemble(pages: list[list[bytes]]) -> bytes:
     def _add(raw: bytes) -> int:
         """Register a PDF object and return its byte-offset."""
         idx = len(offsets)
-        offsets.append(len(b"".join(objects)))
+        offsets.append(len(pdf_header) + len(b"".join(objects)))
         objects.append(raw)
         return idx
 
@@ -94,38 +102,47 @@ def _assemble(pages: list[list[bytes]]) -> bytes:
     kids = " ".join(f"{3 + i} 0 R" for i in range(len(pages)))
     _add(f"2 0 obj\n<< /Type /Pages /Kids [{kids}] /Count {len(pages)} >>\nendobj\n".encode())
 
-    # Objects 3..N+2 — Page objects
-    for cmds in pages:
+    # Objects 3..N+2 — Page objects with unique ids; each page's content
+    # stream object id is allocated right after the last page object id.
+    n_pages = len(pages)
+    page_obj_ids = [3 + i for i in range(n_pages)]
+    content_obj_ids = [3 + n_pages + i for i in range(n_pages)]
+    font_base = 3 + 2 * n_pages
+    font_ids = {"F1": font_base, "F2": font_base + 1, "F3": font_base + 2}
+    for i, cmds in enumerate(pages):
         stream = _content_stream_bytes(cmds)
+        page_num = page_obj_ids[i]
+        content_num = content_obj_ids[i]
         _add(
-            f"3 0 obj\n<< /Type /Page /Parent 2 0 R "
+            f"{page_num} 0 obj\n<< /Type /Page /Parent 2 0 R "
             f"/MediaBox [0 0 {PAGE_W} {PAGE_H}] "
-            f"/Contents {len(objects) + 2} 0 R "
-            f"/Resources << /Font << /F1 4 0 R /F2 5 0 R /F3 6 0 R >> >> >>\n"
+            f"/Contents {content_num} 0 R "
+            f"/Resources << /Font << /F1 {font_ids['F1']} 0 R /F2 {font_ids['F2']} 0 R "
+            f"/F3 {font_ids['F3']} 0 R >> >> >>\n"
             f"endobj\n".encode()
         )
         # Content stream (numbered sequentially after pages)
         _add(
-            f"{len(objects) + 1} 0 obj\n<< /Length {len(stream)} >>\nstream\n".encode()
+            f"{content_num} 0 obj\n<< /Length {len(stream)} >>\nstream\n".encode()
             + stream
             + b"\nendstream\nendobj\n"
         )
 
     # Standard-14 font definitions (objects are numbered dynamically)
-    for fname, style in [("F1", ""), ("F2", "/Subtype /Type1"), ("F3", "/Subtype /Type1")]:
-        subtype = "/Subtype /Type1"
-        extra = ""
+    for fname in ["F1", "F2", "F3"]:
         if fname == "F2":
             extra = " /BaseFont /Helvetica-Bold"
         elif fname == "F3":
             extra = " /BaseFont /Helvetica-Oblique"
         else:
             extra = " /BaseFont /Helvetica"
-        fobj = f"{len(objects) + 1} 0 obj\n<< /Type /Font {subtype}{extra} >>\nendobj\n"
+        fobj = (
+            f"{font_ids[fname]} 0 obj\n<< /Type /Font /Subtype /Type1{extra} >>\nendobj\n"
+        )
         _add(fobj.encode())
 
     # Build the final PDF
-    xref_offset = len(b"".join(objects))
+    xref_offset = len(pdf_header) + len(b"".join(objects))
     xref: list[bytes] = [b"xref\n", f"0 {len(objects) + 1}\n".encode()]
     xref.append(b"0000000000 65535 f \n")
     for off in offsets:
@@ -136,7 +153,7 @@ def _assemble(pages: list[list[bytes]]) -> bytes:
     xref.append(f"{xref_offset}\n".encode())
     xref.append(b"%%EOF\n")
 
-    return b"".join(objects) + b"".join(xref)
+    return pdf_header + b"".join(objects) + b"".join(xref)
 
 
 # ---------------------------------------------------------------------------
