@@ -1,8 +1,21 @@
-"""Advanced fraud pattern generators — extract from generators.py."""
+"""Advanced fraud pattern generators — hard-tier and hard-negative archetypes."""
 from __future__ import annotations
 
-from finance_agent.patterns_pkg.context import PatternCtx
-from finance_agent.personas import DISCRETIONARY_CATEGORIES
+from finance_agent.merchants import (
+    is_holiday_window,
+    sample_merchants,
+    seasonal_multiplier,
+)
+from finance_agent.patterns_pkg.ctx import (
+    PatternCtx,
+    _ATM,
+    _CASH_ACCOUNT,
+    _fraud,
+    _hard_negative,
+    _row,
+    round2,
+)
+from finance_agent.personas import DISCRETIONARY_CATEGORIES, avg_amount_by_category
 
 
 def gen_mimicry(ctx: PatternCtx, day: int | None = None) -> list[dict]:
@@ -297,25 +310,5 @@ def gen_rapid_burst(ctx: PatternCtx, day: int | None = None) -> list[dict]:
             )
         )
     return rows
-
-
-# ----------------------------------------------------------------- orchestrator
-_PATTERN_FNS: dict[str, Callable[..., list[dict]]] = {
-    "balance_drain": gen_balance_drain,
-    "duplicate_charge": gen_duplicate_charge,
-    "spend_spike": gen_spend_spike,
-    "card_testing": gen_card_testing,
-    "slow_balance_drain": gen_slow_balance_drain,
-    "new_payee_transfer": gen_new_payee_transfer,
-    "subscription_creep": gen_subscription_creep,
-    "refund_abuse": gen_refund_abuse,
-    "mimicry": gen_mimicry,
-    "account_takeover": gen_account_takeover,
-    "bust_out": gen_bust_out,
-    "seasonal_mimicry": gen_seasonal_mimicry,
-    "life_event": gen_life_event,
-    "travel": gen_travel,
-    "rapid_burst": gen_rapid_burst,
-}
 
 

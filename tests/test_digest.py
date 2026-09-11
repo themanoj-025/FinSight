@@ -138,19 +138,20 @@ def test_build_weekly_digest_empty_data(tmp_path) -> None:
 
 def test_send_slack_posts_json_payload() -> None:
     """send_slack POSTs {"text": ...} to the webhook and surfaces HTTP errors."""
-    with mock.patch("urllib.request.urlopen") as mock_open:
-        mock_resp = mock.MagicMock()
-        mock_resp.status = 200
-        mock_open.return_value.__enter__.return_value = mock_resp
+    with mock.patch("finance_agent.digest.httpx.Client") as mock_client_cls:
+        client = mock_client_cls.return_value.__enter__.return_value
+        client.post.return_value.status_code = 200
         send_slack("https://hooks.slack.com/services/X", "hello digest")
-        req = mock_open.call_args[0][0]
-        assert req.full_url == "https://hooks.slack.com/services/X"
-        assert req.data == b'{"text": "hello digest"}'
+        client.post.assert_called_once_with(
+            "https://hooks.slack.com/services/X", json={"text": "hello digest"}
+        )
 
     with (
-        mock.patch("urllib.request.urlopen", side_effect=RuntimeError("boom")),
-        pytest.raises(RuntimeError, match="boom"),
+        mock.patch("finance_agent.digest.httpx.Client") as mock_client_cls,
+        pytest.raises(RuntimeError, match="HTTP 500"),
     ):
+        client = mock_client_cls.return_value.__enter__.return_value
+        client.post.return_value.status_code = 500
         send_slack("https://hooks.slack.com/services/X", "x")
 
 

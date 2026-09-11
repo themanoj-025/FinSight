@@ -7,6 +7,8 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 
+from finance_agent import fraud_patterns as fp
+from finance_agent.datagen_pkg.balance import _bust_persona
 from finance_agent.datagen_pkg.config import _CASH_ACCOUNT, _INFLATION
 from finance_agent.datagen_pkg.helpers import _frame
 from finance_agent.merchants import sample_merchants, seasonal_multiplier
