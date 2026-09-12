@@ -141,7 +141,7 @@ def _scored_frame_json(
     from finance_agent.tools import FinanceFacts
 
     facts = FinanceFacts(cfg_path)
-    return facts._compute_scored_frame().to_json(orient="records")
+    return str(facts._compute_scored_frame().to_json(orient="records"))
 
 
 class _FinanceFactsBase:
@@ -190,7 +190,9 @@ class _FinanceFactsBase:
                     if reason != "signature OK":
                         log.warning("Model bundle %s: %s", bundle_path, reason)
                     self.bundle = joblib.load(bundle_path)
-            except (OSError, ValueError, KeyError, TypeError):
+            except (
+                Exception
+            ):  # corrupt/garbage pickles raise arbitrary exception types (IndexError, ...)
                 log.warning("Could not load model bundle %s; continuing rule-only.", bundle_path)
         # Optional SQLite persistence layer (config data.store_path). When set,
         # the expensive risk-scoring path runs once per (data, model)
@@ -201,7 +203,7 @@ class _FinanceFactsBase:
         self.store: TransactionStore | None = TransactionStore(store_path) if store_path else None
         # Memoized (data fingerprint, retrieval index) pair — see
         # `_retrieval_index` (Phase B.1).
-        self._retrieval_cache: tuple[tuple[int, int], Any] | None = None
+        self._retrieval_cache: tuple[tuple[int, int], tuple[Any, Any]] | None = None
         # Memoized month column (F.5 load-test finding): `_month_key` and
         # `_for_month` both ran `pd.to_datetime(...).dt.strftime` over the full
         # ledger on every call (~200 ms each, 2-3x per request) — that alone

@@ -10,7 +10,7 @@ This module has no LLM dependency: it is fully offline and unit-testable.
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import pandas as pd
@@ -28,6 +28,19 @@ class RetrievalTools(_FinanceFactsBase):
 
     Inherits shared state and utilities from ``_FinanceFactsBase``.
     """
+
+    # Cross-mixin surface: sibling mixins share one runtime instance (see
+    # FinanceFacts in tools.py); declare the methods this mixin calls.
+    if TYPE_CHECKING:  # pragma: no cover
+
+        def risk_scored_transactions(
+            self,
+            limit: int = 15,
+            threshold: float | None = None,
+            focal_only: bool = False,
+            include_explanations: bool = False,
+            account_type: str | None = None,
+        ) -> dict[str, Any]: ...
 
     # -------------------------------------------- similar-transaction retrieval
     def _retrieval_index(self) -> tuple[Any, pd.Index] | None:

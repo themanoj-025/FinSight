@@ -28,11 +28,12 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # allow `python model_bench/train_and_compare.py`
+sys.path.insert(
+    0, str(Path(__file__).resolve().parent.parent)
+)  # allow `python model_bench/train_and_compare.py`
 
-from model_bench.train_helpers import *  # noqa: F401,F403
+from model_bench.train_helpers import *
 from model_bench.train_helpers import main
-
 
 if __name__ == "__main__":
     main()

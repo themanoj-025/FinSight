@@ -15,7 +15,7 @@ Thin coordinator: ``FinanceFacts`` inherits from three focused modules:
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 # Re-export public helpers so existing imports keep working:
 #   from finance_agent.tools import load_config, blend_description, ...
@@ -58,6 +58,21 @@ class FinanceFacts(FactTools, RiskTools, RetrievalTools):
     three tool categories share the same config, ledger, bundle, and store.
     """
 
+    # Cross-mixin surface: every mixin shares one instance at runtime via the
+    # common _FinanceFactsBase state, but mypy only sees each mixin's own
+    # class. Declare the sibling methods so internal cross-calls type-check.
+    if TYPE_CHECKING:  # pragma: no cover
+
+        def forecast_next_month(self) -> dict[str, Any]: ...
+
+        def risk_scored_transactions(
+            self,
+            limit: int = 15,
+            threshold: float | None = None,
+            focal_only: bool = False,
+            include_explanations: bool = False,
+            account_type: str | None = None,
+        ) -> dict[str, Any]: ...
 
 
 def tool_result_payload(result: dict[str, Any]) -> str:

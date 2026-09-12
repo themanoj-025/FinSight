@@ -34,7 +34,7 @@ from __future__ import annotations
 
 import time
 from collections.abc import Callable, Mapping
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 __all__ = [
     "aggregate_readiness",
@@ -94,13 +94,11 @@ def aggregate_readiness(checks: list[dict[str, Any]]) -> dict[str, Any]:
 
 # ── FastAPI extras (optional) ─────────────────────────────────────────
 
-if TYPE_CHECKING:  # pragma: no cover
-    from fastapi import APIRouter, Response
-
 try:  # fastapi is not a hard dependency of every repo
-    from fastapi import APIRouter, Response  # noqa: F811
+    from fastapi import APIRouter, Response
 except ImportError:  # pragma: no cover
-    APIRouter = None  # noqa: F811
+    APIRouter = None  # type: ignore[misc,assignment]
+    Response = None  # type: ignore[misc,assignment]
 
 
 def create_health_router(

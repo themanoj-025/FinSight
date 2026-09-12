@@ -112,12 +112,12 @@ def predict_scores(model: BaseEstimator, X: np.ndarray) -> np.ndarray:
     if names is not None and X.ndim == 2:
         X = pd.DataFrame(X, columns=list(names))
     if hasattr(model, "predict_proba"):
-        return model.predict_proba(X)[:, 1].astype(float)
+        return np.asarray(model.predict_proba(X)[:, 1].astype(float))
     if isinstance(model, IsolationForest):
         return -np.asarray(model.score_samples(X), dtype=float)
     if isinstance(model, MLPRegressor):
         pred = model.predict(X)
-        return np.mean((np.asarray(X, dtype=float) - pred) ** 2, axis=1)
+        return np.asarray(np.mean((np.asarray(X, dtype=float) - pred) ** 2, axis=1))
     if hasattr(model, "decision_function"):
         return np.asarray(model.decision_function(X), dtype=float)
     return np.asarray(model.predict(X), dtype=float)

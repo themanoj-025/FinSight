@@ -13,13 +13,13 @@ from collections.abc import Callable
 import numpy as np
 
 from finance_agent.patterns_pkg.ctx import (
+    _MIN_DAYS,
     EASY_PATTERNS,
     HARD_NEGATIVES,
     HARD_PATTERNS,
     MEDIUM_PATTERNS,
     PATTERN_RATES,
     PatternCtx,
-    _MIN_DAYS,
 )
 from finance_agent.patterns_pkg.generators import (
     gen_balance_drain,

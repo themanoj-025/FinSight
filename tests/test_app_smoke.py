@@ -128,7 +128,8 @@ def test_agent_bootstraps_without_api_key() -> None:
 
     agent = FinanceAgent(str(ROOT / "config.yaml"), api_key="")
     assert not agent.llm_available()
-    assert agent.answer("hello").strip()
+    reply = agent.answer("hello")
+    assert isinstance(reply, str) and reply.strip()
 
 
 def test_settings_page_renders_key_and_data_tabs() -> None:

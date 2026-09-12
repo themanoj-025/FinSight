@@ -262,9 +262,7 @@ class _Layout:
     def _header_bytes(self) -> bytes:
         cmds: list[bytes] = []
         # navy band
-        cmds.append(
-            f"0.086 0.196 0.318 rg 0 {PAGE_H - 40} {PAGE_W} 40 re f\n".encode("ascii")
-        )
+        cmds.append(f"0.086 0.196 0.318 rg 0 {PAGE_H - 40} {PAGE_W} 40 re f\n".encode("ascii"))
         cmds.append(f"0.055 0.13 0.22 rg 0 {PAGE_H - 40} {PAGE_W} 3 re f\n".encode("ascii"))
         cmds.append(
             self._text_bytes(

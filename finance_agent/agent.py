@@ -162,7 +162,6 @@ NARRATOR_ROUTES: list[tuple[str, tuple[str, ...]]] = [
 _KEY_VALIDATION_CACHE: dict[str, bool] = {}
 
 
-
 class ActivityLogger:
     """Appends one JSONL record per tool call — visible proof the agent really calls tools."""
 
@@ -244,7 +243,7 @@ class FinanceAgent:
         try:
             self._anthropic.Anthropic(api_key=api_key).models.list(limit=1)
             ok = True
-        except (ValueError, OSError, ConnectionError, TimeoutError):
+        except Exception:  # any auth/transport error => key unusable, never crash
             ok = False
         _KEY_VALIDATION_CACHE[api_key] = ok
         return ok
@@ -331,7 +330,9 @@ class FinanceAgent:
                     max_tokens=int(self.agent_cfg.get("max_tokens", 1024)),
                     temperature=float(self.agent_cfg.get("temperature", 0.2)),
                     system=SYSTEM_PROMPT,
-                    tools=cast(Any, [{k: v for k, v in s.items() if k != "callable"} for s in TOOL_SPECS]),
+                    tools=cast(
+                        Any, [{k: v for k, v in s.items() if k != "callable"} for s in TOOL_SPECS]
+                    ),
                     messages=cast(Any, messages),
                 ) as stream:
                     yield from stream.text_stream
@@ -425,7 +426,7 @@ class FinanceAgent:
     def _call(self, name: str, **kwargs: Any) -> dict[str, Any]:
         """Run a facts tool through the activity log (used by the narrator)."""
         t0 = time.perf_counter()
-        result = getattr(self.facts, name)(**kwargs)
+        result: dict[str, Any] = getattr(self.facts, name)(**kwargs)
         ms = (time.perf_counter() - t0) * 1000
         self.activity.log(name, kwargs, ms)
         self.usage.record_tool(name, ms, ok=True)

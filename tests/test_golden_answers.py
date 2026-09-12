@@ -15,6 +15,7 @@ exactly. Two layers:
 import json
 import re
 from types import SimpleNamespace
+from typing import Any
 
 import pytest
 
@@ -101,7 +102,7 @@ def assert_figures_grounded(answer: str, payloads: list[str]) -> None:
 
 
 @pytest.fixture()
-def env(tmp_path) -> dict[str, object]:
+def env(tmp_path) -> dict[str, Any]:
     """Fixed dataset snapshot + config (mirrors tests/test_agent.py)."""
     import yaml
 
@@ -197,7 +198,7 @@ class GoldenMessages:
         self._n = 0
 
     @staticmethod
-    def _usage() -> None:
+    def _usage() -> Any:
         return SimpleNamespace(
             input_tokens=10,
             output_tokens=5,
@@ -205,7 +206,7 @@ class GoldenMessages:
             cache_creation_input_tokens=0,
         )
 
-    def stream(self, **kwargs) -> None:
+    def stream(self, **kwargs) -> "_GoldenStream":
         self._captured.append(kwargs)
         if self._n == 0:
             self._n += 1
@@ -226,13 +227,13 @@ class _GoldenStream:
         self.text_stream = iter([text])
         self._final = final
 
-    def __enter__(self) -> None:
+    def __enter__(self) -> "_GoldenStream":
         return self
 
-    def __exit__(self, *args) -> bool:
-        return False
+    def __exit__(self, *args: object) -> None:
+        return None
 
-    def get_final_message(self) -> None:
+    def get_final_message(self) -> object:
         return self._final
 
 
@@ -242,7 +243,7 @@ class GoldenAnthropic:
         self._tool_name = tool_name
         self._tool_input = tool_input
 
-    def Anthropic(self, api_key="") -> None:
+    def Anthropic(self, api_key: str = "") -> Any:
         return SimpleNamespace(
             messages=GoldenMessages(self.captured, self._tool_name, self._tool_input)
         )

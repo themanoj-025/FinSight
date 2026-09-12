@@ -6,6 +6,7 @@ channel is configured, and the CLI `digest` subcommand wiring.
 """
 
 import logging
+from typing import Any
 from unittest import mock
 
 import pytest
@@ -15,9 +16,8 @@ from finance_agent.digest import build_weekly_digest, run_digest, send_email, se
 pytestmark = pytest.mark.integration
 
 
-
 @pytest.fixture()
-def digest_env(tmp_path) -> dict[str, object]:
+def digest_env(tmp_path) -> dict[str, Any]:
     """Hermetic env: small multi-user ledger + config with digest settings."""
     import yaml
 

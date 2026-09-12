@@ -18,14 +18,14 @@ and the public API.
 from __future__ import annotations
 
 import os
-from typing import Any
+from typing import Any, cast
 
 from finance_agent.pdf_layout import _Layout
 from finance_agent.pdf_text import (
     PAGE_H,
     PAGE_W,
-    _parse_blocks,  # re-exported for backward compatibility
-    sanitize_winansi,  # re-exported for backward compatibility
+    _parse_blocks,
+    sanitize_winansi,
 )
 
 # ---------------------------------------------------------------------------
@@ -65,7 +65,7 @@ def build_report_pdf(markdown: str) -> bytes:
         elif kind == "bullet":
             lay.bullet(str(data))
         elif kind == "table":
-            lay.table(data)
+            lay.table(cast("list[list[str]]", data))
         elif kind == "rule":
             lay.hrule()
         elif kind == "italic":
@@ -136,9 +136,7 @@ def _assemble(pages: list[list[bytes]]) -> bytes:
             extra = " /BaseFont /Helvetica-Oblique"
         else:
             extra = " /BaseFont /Helvetica"
-        fobj = (
-            f"{font_ids[fname]} 0 obj\n<< /Type /Font /Subtype /Type1{extra} >>\nendobj\n"
-        )
+        fobj = f"{font_ids[fname]} 0 obj\n<< /Type /Font /Subtype /Type1{extra} >>\nendobj\n"
         _add(fobj.encode())
 
     # Build the final PDF
