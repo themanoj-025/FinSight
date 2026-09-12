@@ -26,3 +26,7 @@ repos:
         language: python
         types: [python]
         args: [--ignore-missing-imports]
+        # The hook's isolated env installs only mypy itself; without the stubs
+        # package every `import yaml` fails the hook even though the CI
+        # typecheck job (dev extras) has them.
+        additional_dependencies: [types-PyYAML]

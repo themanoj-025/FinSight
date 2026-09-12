@@ -10,6 +10,7 @@ incumbent must come back ``CLEAN``. The full-pipeline tests run real bundles
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 
 import joblib
 import numpy as np
@@ -79,7 +80,7 @@ def _write_config(path: Path) -> None:
 
 
 @pytest.fixture()
-def env(ledger_df, tmp_path) -> dict[str, object]:
+def env(ledger_df, tmp_path) -> dict[str, Any]:
     data_path = tmp_path / "transactions.csv"
     ledger_df.to_csv(data_path, index=False)
     cfg_path = tmp_path / "config.yaml"
@@ -231,8 +232,11 @@ def test_score_bundle_all_one_vs_all_zero(env) -> None:
     X = np.zeros((3, 4))
     _write_bundle(env["old"], 1)
     _write_bundle(env["new"], 0)
-    assert np.allclose(canary.score_bundle(env["old"], X), 1.0)
-    assert np.allclose(canary.score_bundle(env["new"], X), 0.0)
+    old_scores = canary.score_bundle(env["old"], X)
+    new_scores = canary.score_bundle(env["new"], X)
+    assert old_scores is not None and new_scores is not None
+    assert np.allclose(old_scores, 1.0)
+    assert np.allclose(new_scores, 0.0)
 
 
 # ------------------------------------------------------------ CLI (workflow path)

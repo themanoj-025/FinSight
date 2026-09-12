@@ -1,6 +1,7 @@
 """Tests for finance_agent.tools and finance_agent.agent (offline mode)."""
 
 import json
+from typing import Any
 
 import pytest
 
@@ -8,7 +9,7 @@ from generate_data import generate
 
 
 @pytest.fixture()
-def tmp_env(tmp_path) -> dict[str, object]:
+def tmp_env(tmp_path) -> dict[str, Any]:
     """A hermetic environment: fresh synthetic data + config in a temp dir."""
     import yaml
 

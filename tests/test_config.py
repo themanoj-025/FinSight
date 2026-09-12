@@ -2,12 +2,13 @@
 naming the offending key — never a bare KeyError three calls deep."""
 
 import copy
+from typing import Any
 
 import pytest
 
 from finance_agent.config_schema import ConfigError, validate_config
 
-BASE = {
+BASE: dict[str, Any] = {
     "data": {"path": "data/transactions.csv"},
     "model_bench": {
         "bundle_path": "model_bench/risk_model_bundle.joblib",

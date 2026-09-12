@@ -106,14 +106,16 @@ def _wait_rendered(page) -> None:
 
 def _axe_scan(page) -> list[dict]:
     page.add_script_tag(url=AXE_URL)
-    return page.evaluate(
-        """() => new Promise((resolve) => {
+    return list(
+        page.evaluate(
+            """() => new Promise((resolve) => {
             axe.run(document, { resultTypes: ["violations"] })
               .then(r => resolve(r.violations))
               .catch(err => resolve([{ id: 'axe-run-error',
                   impact: 'critical',
                   nodes: [{ target: ['<runner>'], failureSummary: String(err) }] }]));
         })"""
+        )
     )
 
 

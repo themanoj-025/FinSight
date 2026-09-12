@@ -192,7 +192,16 @@ class FactTools(_FinanceFactsBase):
             .apply(
                 lambda g: pd.Series(
                     {
-                        "income": float(g.loc[g["type"].isin(rules.CREDIT_TYPES if hasattr(rules, "CREDIT_TYPES") else ["CREDIT", "SALARY"]), "amount"].sum()),
+                        "income": float(
+                            g.loc[
+                                g["type"].isin(
+                                    rules.CREDIT_TYPES
+                                    if hasattr(rules, "CREDIT_TYPES")
+                                    else ["CREDIT", "SALARY"]
+                                ),
+                                "amount",
+                            ].sum()
+                        ),
                         "expenses": float(g.loc[rules.expense_rows(g), "amount"].sum()),
                     }
                 ),
@@ -206,6 +215,7 @@ class FactTools(_FinanceFactsBase):
         incomes = monthly["income"].to_numpy(dtype=float)
         expenses = monthly["expenses"].to_numpy(dtype=float)
         n = len(months)
+
         def _slope(v: np.ndarray) -> float:
             return float(np.polyfit(np.arange(n), v, 1)[0]) if n >= 2 else 0.0
 

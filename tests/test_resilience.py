@@ -20,6 +20,8 @@ pytestmark = pytest.mark.unit
 
 
 pytestmark = pytest.mark.slow
+
+
 def _write_config(tmp_path, df, *, bundle="missing.joblib", extra: dict | None = None) -> str:
 
     data_path = tmp_path / "transactions.csv"
@@ -42,7 +44,7 @@ def _write_config(tmp_path, df, *, bundle="missing.joblib", extra: dict | None =
 
 
 @pytest.fixture()
-def df() -> None:
+def df():
     from generate_data import generate
 
     return generate(
@@ -175,24 +177,24 @@ def test_no_api_key_degrades_to_offline_narrator(tmp_path, df) -> None:
     assert agent.usage_summary()["narrator_calls"] >= 1
 
 
-def test_dead_llm_client_falls_back_to_narrator(tmp_path, df) -> bool:
+def test_dead_llm_client_falls_back_to_narrator(tmp_path, df) -> None:
     """An LLM call that raises mid-stream must degrade to the narrator, and
     the failure must be visible in the usage ledger (not silent)."""
     from finance_agent.agent import FinanceAgent
 
     class BoomStream:
-        def __enter__(self) -> None:
+        def __enter__(self) -> "BoomStream":
             return self
 
-        def __exit__(self, *args) -> bool:
-            return False
+        def __exit__(self, *args: object) -> None:
+            return None
 
         @property
-        def text_stream(self) -> None:
+        def text_stream(self):
             raise RuntimeError("api down")
 
     class BoomMessages:
-        def stream(self, **kwargs) -> None:
+        def stream(self, **kwargs) -> "BoomStream":
             return BoomStream()
 
     class BoomClient:
@@ -200,7 +202,7 @@ def test_dead_llm_client_falls_back_to_narrator(tmp_path, df) -> bool:
         messages = BoomMessages()
 
     class BoomAnthropic:
-        def Anthropic(self, api_key="") -> None:
+        def Anthropic(self, api_key="") -> object:
             return BoomClient()
 
     cfg_path = _write_config(tmp_path, df)
@@ -252,7 +254,6 @@ def test_retrieval_disabled_flag_returns_clean_payload(tmp_path, df) -> None:
     """The similar-transactions tool must return a clean 'disabled' payload
     when the feature flag is off — never raise."""
     from finance_agent.tools import FinanceFacts
-
 
     cfg_path = _write_config(tmp_path, df, extra={"features": {"faiss_retrieval": False}})
     facts = FinanceFacts(cfg_path)

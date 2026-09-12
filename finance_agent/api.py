@@ -26,7 +26,7 @@ import hmac
 import logging
 import os
 import time as _time
-from typing import Any
+from typing import Any, cast
 
 from fastapi import FastAPI, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -49,9 +49,6 @@ from finance_agent.api_helpers import (
     _request_cid,
     _SlidingWindowLimiter,
 )
-from finance_agent.api_helpers import (
-    _RESPONSE_CACHES as _CACHE_LIST,
-)
 from finance_agent.health import create_health_router
 from finance_agent.observability import configure_logging, correlation, report_exception
 
@@ -66,10 +63,9 @@ def create_app(config_path: str | None = None) -> FastAPI:
     """Build the FastAPI application (used by uvicorn, compose, and tests)."""
     import yaml
 
-    from finance_agent.api_helpers import _CONFIG_PATH as _mod_cfg
-
     if config_path:
         import finance_agent.api_helpers as _helpers
+
         _helpers._CONFIG_PATH = config_path
 
     configure_logging()
@@ -102,8 +98,14 @@ def create_app(config_path: str | None = None) -> FastAPI:
         redoc_url="/redoc",
         openapi_tags=[
             {"name": "health", "description": "Service health check and readiness probes"},
-            {"name": "facts", "description": "Monthly summaries, category breakdowns, budgets, and financial health"},
-            {"name": "risk", "description": "Per-transaction risk scoring, SHAP explanations, and similar transactions"},
+            {
+                "name": "facts",
+                "description": "Monthly summaries, category breakdowns, budgets, and financial health",
+            },
+            {
+                "name": "risk",
+                "description": "Per-transaction risk scoring, SHAP explanations, and similar transactions",
+            },
             {"name": "admin", "description": "Service reload, metrics, and metadata"},
         ],
     )
@@ -111,9 +113,11 @@ def create_app(config_path: str | None = None) -> FastAPI:
     # --- OpenTelemetry distributed tracing (OTEL_ENABLED=true) ---
     try:
         from finance_agent.tracing import setup_tracing
+
         _otel_ok = setup_tracing("finsight-api")
         if _otel_ok:
             from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
             FastAPIInstrumentor.instrument_app(app)
     except ImportError:
         pass
@@ -316,7 +320,10 @@ def create_app(config_path: str | None = None) -> FastAPI:
         account_type: NullableStr = None,
         user: FocalUser = None,
     ) -> dict[str, Any]:
-        return _jsonable(_facts_or_503(user).monthly_summary(month, account_type=account_type))
+        return cast(
+            "dict[str, Any]",
+            _jsonable(_facts_or_503(user).monthly_summary(month, account_type=account_type)),
+        )
 
     @app.get("/api/v1/category-breakdown")
     @_cached_response
@@ -325,7 +332,10 @@ def create_app(config_path: str | None = None) -> FastAPI:
         account_type: NullableStr = None,
         user: FocalUser = None,
     ) -> dict[str, Any]:
-        return _jsonable(_facts_or_503(user).category_breakdown(month, account_type=account_type))
+        return cast(
+            "dict[str, Any]",
+            _jsonable(_facts_or_503(user).category_breakdown(month, account_type=account_type)),
+        )
 
     @app.get("/api/v1/budget-status")
     @_cached_response
@@ -334,27 +344,30 @@ def create_app(config_path: str | None = None) -> FastAPI:
         account_type: NullableStr = None,
         user: FocalUser = None,
     ) -> dict[str, Any]:
-        return _jsonable(_facts_or_503(user).budget_status(month, account_type=account_type))
+        return cast(
+            "dict[str, Any]",
+            _jsonable(_facts_or_503(user).budget_status(month, account_type=account_type)),
+        )
 
     @app.get("/api/v1/recurring-payments")
     @_cached_response
     def recurring_payments(user: FocalUser = None) -> dict[str, Any]:
-        return _jsonable(_facts_or_503(user).recurring_payments())
+        return cast("dict[str, Any]", _jsonable(_facts_or_503(user).recurring_payments()))
 
     @app.get("/api/v1/spend-spikes")
     @_cached_response
     def spend_spikes() -> dict[str, Any]:
-        return _jsonable(_facts_or_503().spend_spikes())
+        return cast("dict[str, Any]", _jsonable(_facts_or_503().spend_spikes()))
 
     @app.get("/api/v1/financial-health")
     @_cached_response
     def financial_health(user: FocalUser = None) -> dict[str, Any]:
-        return _jsonable(_facts_or_503(user).financial_health())
+        return cast("dict[str, Any]", _jsonable(_facts_or_503(user).financial_health()))
 
     @app.get("/api/v1/forecast")
     @_cached_response
     def forecast(user: FocalUser = None) -> dict[str, Any]:
-        return _jsonable(_facts_or_503(user).forecast_next_month())
+        return cast("dict[str, Any]", _jsonable(_facts_or_503(user).forecast_next_month()))
 
     @app.get("/api/v1/risk-scored")
     @_cached_response
@@ -366,20 +379,23 @@ def create_app(config_path: str | None = None) -> FastAPI:
         account_type: NullableStr = None,
         user: FocalUser = None,
     ) -> dict[str, Any]:
-        return _jsonable(
-            _facts_or_503(user).risk_scored_transactions(
-                limit=limit,
-                threshold=threshold,
-                focal_only=focal_only,
-                include_explanations=include_explanations,
-                account_type=account_type,
-            )
+        return cast(
+            "dict[str, Any]",
+            _jsonable(
+                _facts_or_503(user).risk_scored_transactions(
+                    limit=limit,
+                    threshold=threshold,
+                    focal_only=focal_only,
+                    include_explanations=include_explanations,
+                    account_type=account_type,
+                )
+            ),
         )
 
     @app.get("/api/v1/tips")
     @_cached_response
     def tips(user: FocalUser = None) -> dict[str, Any]:
-        return _jsonable(_facts_or_503(user).top_tips())
+        return cast("dict[str, Any]", _jsonable(_facts_or_503(user).top_tips()))
 
     @app.get("/api/v1/similar-transactions")
     @_cached_response
@@ -389,8 +405,11 @@ def create_app(config_path: str | None = None) -> FastAPI:
         user: FocalUser = None,
     ) -> dict[str, Any]:
         """Phase B.1 — nearest transactions in feature space with fraud labels."""
-        return _jsonable(
-            _facts_or_503(user).find_similar_transactions(transaction_id=transaction_id, k=k)
+        return cast(
+            "dict[str, Any]",
+            _jsonable(
+                _facts_or_503(user).find_similar_transactions(transaction_id=transaction_id, k=k)
+            ),
         )
 
     @app.post("/api/v1/reload")
@@ -405,9 +424,7 @@ def create_app(config_path: str | None = None) -> FastAPI:
     # shared/aegis_common/health.py):
     #   GET /health        — liveness, always 200
     #   GET /health/ready  — readiness, 503 until the facts snapshot loads
-    app.include_router(
-        create_health_router(checks={"facts": lambda: _facts_or_503()})
-    )
+    app.include_router(create_health_router(checks={"facts": lambda: _facts_or_503()}))
 
     return app
 

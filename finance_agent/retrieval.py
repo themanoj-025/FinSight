@@ -62,7 +62,7 @@ def build_embeddings(features: pd.DataFrame) -> np.ndarray:
     z = (arr - mu) / sd
     norms = np.linalg.norm(z, axis=1, keepdims=True)
     norms[norms == 0.0] = 1.0
-    return (z / norms).astype(np.float32)
+    return np.asarray((z / norms).astype(np.float32))
 
 
 class SimilarTransactionIndex:

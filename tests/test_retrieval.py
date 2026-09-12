@@ -7,6 +7,8 @@ L2-normalized) is what the generator's fraud patterns shape. We assert it on a
 hermetic generated ledger, never on guessed numbers.
 """
 
+from typing import Any
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -21,7 +23,7 @@ from finance_agent.retrieval import (
 
 
 @pytest.fixture()
-def env(tmp_path) -> dict[str, object]:
+def env(tmp_path) -> dict[str, Any]:
     """Hermetic generated ledger + config (mirrors tests/test_tools.py)."""
     from generate_data import generate
 
@@ -53,7 +55,7 @@ def env(tmp_path) -> dict[str, object]:
     return {"cfg_path": str(cfg_path), "tmp": tmp_path, "df": df}
 
 
-def _index(df: pd.DataFrame) -> tuple[object, ...]:
+def _index(df: pd.DataFrame) -> tuple[Any, Any]:
     from finance_agent.features import build_features
 
     features = build_features(df)

@@ -18,7 +18,6 @@ from finance_agent import alerts
 pytestmark = pytest.mark.integration
 
 
-
 class _CaptureHandler(BaseHTTPRequestHandler):
     """Captures POST (path, parsed JSON body) pairs; responds 200."""
 
@@ -42,7 +41,7 @@ def _no_webhook_env(monkeypatch) -> None:
 
 
 @pytest.fixture()
-def webhook_server() -> None:
+def webhook_server():
     server = HTTPServer(("127.0.0.1", 0), _CaptureHandler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()

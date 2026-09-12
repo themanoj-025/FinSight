@@ -38,7 +38,9 @@ class ApiClient:
         self.focal_users: list[str] = []
 
     # ------------------------------------------------------------- transport
-    def _request(self, path: str, method: str = "GET", params: dict[str, Any] | None = None) -> Any:
+    def _request(
+        self, path: str, method: str = "GET", params: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         url = f"{self.base_url}{path}"
         if params:
             query = httpx.QueryParams(self._clean(params))
@@ -52,10 +54,13 @@ class ApiClient:
             with httpx.Client(timeout=self.timeout) as client:
                 resp = client.request(method, url, headers=headers)
                 resp.raise_for_status()
-                return resp.json()
+                payload: dict[str, Any] = resp.json()
+                return payload
         except httpx.HTTPStatusError as exc:
             body = exc.response.text[:500]
-            raise ApiClientError(f"{exc.response.status_code} from {method} {path}: {body}") from exc
+            raise ApiClientError(
+                f"{exc.response.status_code} from {method} {path}: {body}"
+            ) from exc
         except (httpx.RequestError, TimeoutError) as exc:
             raise ApiClientError(f"API unreachable at {self.base_url} ({exc})") from exc
 
