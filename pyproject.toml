@@ -185,5 +185,3 @@ warn_unused_configs = true
 show_missing = true
 fail_under = 80
 skip_empty = true
-
-

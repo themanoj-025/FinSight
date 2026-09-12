@@ -175,9 +175,9 @@ _WINANSI_EXTRA = {0x2013, 0x2014, 0x2018, 0x2019, 0x201C, 0x201D, 0x2026, 0x2022
 # Map non-WinAnsi chars to a safe text marker (used in footnotes / audit).
 _WINANSI_MAP: dict[int, str] = {
     0x2030: "[per-mille]",  # ‰
-    0x2610: "[box]",        # ☐
-    0x2713: "V",            # ✓  (keep the glyph where the font has it)
-    0x2717: "X",            # ✗
+    0x2610: "[box]",  # ☐
+    0x2713: "V",  # ✓  (keep the glyph where the font has it)
+    0x2717: "X",  # ✗
 }
 
 # Sentinel for chars that are mapped via _WINANSI_MAP.
@@ -337,7 +337,13 @@ def _parse_blocks(markdown: str) -> list[tuple[str, object]]:
                 i += 1
                 break
             # Don't consume table/header/bullet/rule starts
-            if pln.startswith("#") or pln.startswith("|") or pln.startswith("---") or pln.startswith("- ") or pln.startswith("* "):
+            if (
+                pln.startswith("#")
+                or pln.startswith("|")
+                or pln.startswith("---")
+                or pln.startswith("- ")
+                or pln.startswith("* ")
+            ):
                 break
             para_lines.append(pln)
             i += 1

@@ -1,4 +1,5 @@
 """Advanced fraud pattern generators — hard-tier and hard-negative archetypes."""
+
 from __future__ import annotations
 
 from finance_agent.merchants import (
@@ -7,9 +8,9 @@ from finance_agent.merchants import (
     seasonal_multiplier,
 )
 from finance_agent.patterns_pkg.ctx import (
-    PatternCtx,
     _ATM,
     _CASH_ACCOUNT,
+    PatternCtx,
     _fraud,
     _hard_negative,
     _row,
@@ -310,5 +311,3 @@ def gen_rapid_burst(ctx: PatternCtx, day: int | None = None) -> list[dict]:
             )
         )
     return rows
-
-

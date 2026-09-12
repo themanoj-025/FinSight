@@ -1,6 +1,8 @@
 """Generator tests (Phase 3.6 / 2.1 / 2.2 / 2.3): determinism, seed 0,
 ledger balance continuity, and source-list-derived subscription totals."""
 
+from typing import Any
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -11,7 +13,9 @@ from generate_data import generate
 pytestmark = pytest.mark.unit
 
 
-SMALL = dict(days=20, seed=11, user="U_Alex", n_background_accounts=10, n_fraud_pairs=2)
+SMALL: dict[str, Any] = dict(
+    days=20, seed=11, user="U_Alex", n_background_accounts=10, n_fraud_pairs=2
+)
 
 
 def test_same_seed_is_deterministic() -> None:
@@ -171,7 +175,7 @@ def test_seed_determinism_at_scale() -> None:
 
     from finance_agent import datagen
 
-    kw = dict(days=60, seed=7, tier="demo", n_background_accounts=150)
+    kw: dict[str, Any] = dict(days=60, seed=7, tier="demo", n_background_accounts=150)
 
     def digest(df: pd.DataFrame) -> str:
         return hashlib.sha256(

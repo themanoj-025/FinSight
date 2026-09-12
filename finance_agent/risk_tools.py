@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import pandas as pd
@@ -34,6 +34,12 @@ class RiskTools(_FinanceFactsBase):
 
     Inherits shared state and utilities from ``_FinanceFactsBase``.
     """
+
+    # Cross-mixin surface: sibling mixins share one runtime instance (see
+    # FinanceFacts in tools.py); declare the methods this mixin calls.
+    if TYPE_CHECKING:  # pragma: no cover
+
+        def forecast_next_month(self) -> dict[str, Any]: ...
 
     # --------------------------------------------------------------- risk scoring
     def _compute_scored_frame(self) -> pd.DataFrame:

@@ -21,7 +21,7 @@ def _ctx(days: int = 90, seed: int = 7, scale: float = 1.0) -> fp.PatternCtx:
     )
 
 
-def persona_start() -> None:
+def persona_start():
     from datetime import datetime
 
     return datetime(2025, 1, 1)

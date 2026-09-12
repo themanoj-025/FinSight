@@ -7,7 +7,7 @@ enforces turn/token caps and survives page reloads via SQLite persistence.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 
 def estimate_tokens(text: str) -> int:
@@ -163,7 +163,7 @@ class SessionBudget:
     def _persisted(self) -> dict[str, float] | None:
         if self.store is None:
             return None
-        return self.store.totals(self.session_id)
+        return cast("dict[str, float]", self.store.totals(self.session_id))
 
     def turns_used(self) -> int:
         p = self._persisted()

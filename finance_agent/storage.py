@@ -266,8 +266,10 @@ class TransactionStore:
             cur = conn.cursor()
             cur.execute("DELETE FROM risk_scores")
             cur.execute("DELETE FROM transactions")
+            # Column names come from the fixed TX_COLUMNS schema; values are parameterized.
             cur.executemany(
-                f"INSERT INTO transactions(id, {cols}) VALUES ({placeholders})", payload
+                f"INSERT INTO transactions(id, {cols}) VALUES ({placeholders})",  # nosec B608
+                payload,
             )
             self._set_meta(conn, "csv_fingerprint", csv_fingerprint)
             conn.commit()
@@ -288,8 +290,11 @@ class TransactionStore:
     def transactions_df(self) -> pd.DataFrame:
         conn = self._connect()
         try:
+            # Column list is the module-level TX_COLUMNS constant.
             df = _fetchall_df(
-                conn, f"SELECT id, {', '.join(TX_COLUMNS)} FROM transactions ORDER BY id", []
+                conn,
+                f"SELECT id, {', '.join(TX_COLUMNS)} FROM transactions ORDER BY id",  # nosec B608
+                [],
             )
             return df.drop(columns=["id"]) if "id" in df.columns else df
         finally:
@@ -357,7 +362,7 @@ class TransactionStore:
         """
         cols = [f"t.{c} AS {c}" for c in TX_COLUMNS] + [f"r.{c}" for c in _SCORE_COLUMNS]
         sql = (
-            f"SELECT t.id AS _row_index, {', '.join(cols)}"
+            f"SELECT t.id AS _row_index, {', '.join(cols)}"  # nosec B608 - column names come from fixed schemas, values are parameterized
             " FROM risk_scores r JOIN transactions t ON t.id = r.transaction_id"
             " WHERE r.risk_score >= ?"
         )

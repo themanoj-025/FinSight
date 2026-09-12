@@ -240,8 +240,8 @@ def main() -> None:
                 hpo_best = candidate
                 log.info(
                     "Using HPO-tuned LightGBM params (study id %s): %s",
-                    hpo_best["study_id"],
-                    hpo_best["best_params"],
+                    candidate["study_id"],
+                    candidate["best_params"],
                 )
             else:
                 log.info("Ignoring %s: not an adopted HPO record.", hpo_best_path)

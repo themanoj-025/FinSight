@@ -33,6 +33,11 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+# Runnable both as `python scripts/check_docs_consistency.py` (sys.path[0] is
+# scripts/, so the repo root — home of generate_data.py — must be added) and
+# from an importable context.
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 RESULTS: list[tuple[str, bool]] = []
 
@@ -149,7 +154,13 @@ def main() -> int:
         ),
         ("agent.py ships a system prompt", "finance_agent/agent.py", "SYSTEM_PROMPT ="),
         ("agent.py validates API keys", "finance_agent/agent.py", "def validate_api_key"),
-        ("tools.py documents the joblib pickle risk", "finance_agent/tools.py", "untrusted"),
+        # (Phase mixin refactor) bundle loading moved from tools.py into the
+        # shared base; the pickle-risk note lives there now.
+        (
+            "_facts_base.py documents the joblib pickle risk",
+            "finance_agent/_facts_base.py",
+            "untrusted",
+        ),
         ("api.py implements the X-API-Key gate", "finance_agent/api.py", "X-API-Key"),
         ("CI runs pip-audit", ".github/workflows/ci.yml", "pip-audit"),
         (

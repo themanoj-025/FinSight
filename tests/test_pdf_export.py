@@ -41,7 +41,9 @@ def test_pdf_starts_and_ends_correctly() -> None:
 def test_pdf_xref_offsets_are_byte_correct() -> None:
     """Every xref entry must point exactly at its 'N 0 obj' header."""
     pdf = build_report_pdf(SAMPLE_MD)
-    startxref = int(re.search(rb"startxref\n(\d+)", pdf).group(1))
+    m = re.search(rb"startxref\n(\d+)", pdf)
+    assert m is not None
+    startxref = int(m.group(1))
     assert startxref > 0
     header, count_line, *entries = pdf[startxref:].splitlines()
     assert header == b"xref"

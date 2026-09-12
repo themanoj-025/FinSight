@@ -40,7 +40,7 @@ def _raise_multipliers(years_since: np.ndarray, raises: list[float]) -> np.ndarr
     for i, r in enumerate(raises):
         mult[i + 1] = mult[i] * (1.0 + r)
     idx = np.clip(years_since, 0, len(raises)).astype(int)
-    return mult[idx]
+    return np.asarray(mult[idx])
 
 
 def _pick_merchant(rng: np.random.Generator, category: str, subcategory: str) -> dict[str, str]:
@@ -86,14 +86,14 @@ def _payday_mask(
     p: Persona, day_idx: np.ndarray, dom: np.ndarray, weekday: np.ndarray, rng: np.random.Generator
 ) -> np.ndarray:
     if p.income_cadence == "monthly":
-        return dom == p.payday_dom
+        return np.asarray(dom == p.payday_dom)
     if p.income_cadence == "semimonthly":
         second = min(28, int(p.payday_dom or 1) + 14)
-        return (dom == p.payday_dom) | (dom == second)
+        return np.asarray((dom == p.payday_dom) | (dom == second))
     if p.income_cadence == "weekly":
-        return weekday == p.payday_weekday
+        return np.asarray(weekday == p.payday_weekday)
     offset = int(rng.integers(0, 14))  # biweekly anchor (deterministic order)
-    return (day_idx - offset) % 14 == 0
+    return np.asarray((day_idx - offset) % 14 == 0)
 
 
 _PERIODS = {"monthly": 12, "semimonthly": 24, "biweekly": 26, "weekly": 52}
@@ -105,7 +105,7 @@ def _days_since_payday(payday_days: np.ndarray, day_idx: np.ndarray) -> np.ndarr
         return np.full(day_idx.size, 6, dtype=int)
     pos = np.searchsorted(payday_days, day_idx, side="right") - 1
     out = day_idx - np.where(pos >= 0, payday_days[np.clip(pos, 0, None)], day_idx - 6)
-    return np.clip(out, 0, 6)
+    return np.asarray(np.clip(out, 0, 6))
 
 
 _CLUSTER = {0: 0.55, 1: 2.0, 2: 1.6, 3: 1.35, 4: 1.15, 5: 1.0, 6: 0.95}

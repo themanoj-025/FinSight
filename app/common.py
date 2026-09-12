@@ -92,7 +92,7 @@ def finsight_api_key() -> str:
 
 def _selected_focal_user() -> str:
     """The focal user selected in the sidebar ('' = config default)."""
-    return st.session_state.get("focal_user", "")
+    return str(st.session_state.get("focal_user", ""))
 
 
 @st.cache_resource(show_spinner=False)
@@ -256,11 +256,11 @@ def ensure_model() -> None:
 
 
 def api_key() -> str:
-    return st.session_state.get("api_key", "")
+    return str(st.session_state.get("api_key", ""))
 
 
 def theme() -> str:
-    return st.session_state.get("theme", "dark")
+    return str(st.session_state.get("theme", "dark"))
 
 
 # ------------------------------------------------------------------------ auth

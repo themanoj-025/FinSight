@@ -5,6 +5,8 @@ system prompt, history inclusion, and the per-session budget fallback without
 any network access.
 """
 
+from typing import Any
+
 import pytest
 
 pytestmark = pytest.mark.unit
@@ -41,13 +43,13 @@ class FakeStream:
         self.text_stream = iter(["mock reply "])
         self._i = 0
 
-    def __enter__(self) -> None:
+    def __enter__(self) -> "FakeStream":
         return self
 
-    def __exit__(self, *args) -> bool:
-        return False
+    def __exit__(self, *args: object) -> None:
+        return None
 
-    def get_final_message(self) -> None:
+    def get_final_message(self):
         msg = self._replies[min(self._i, len(self._replies) - 1)]
         self._i += 1
         return msg
@@ -58,13 +60,13 @@ class FakeMessages:
         self._captured = captured
         self._replies = replies
 
-    def stream(self, **kwargs) -> None:
+    def stream(self, **kwargs) -> "FakeStream":
         self._captured.append(kwargs)
         return FakeStream(self._replies)
 
 
 class FakeModels:
-    def list(self, _limit: int = 1) -> dict[str, list[object]]:
+    def list(self, limit: int = 1) -> dict[str, list[object]]:
         return {"data": []}
 
 
@@ -75,7 +77,7 @@ class FakeClient:
         self.models = FakeModels()
 
     @property
-    def messages(self) -> None:
+    def messages(self) -> "FakeMessages":
         return FakeMessages(self._captured, self._replies)
 
 
@@ -86,12 +88,12 @@ class FakeAnthropic:
         self.captured: list[dict] = []
         self.replies = [FakeFinalMessage()]
 
-    def Anthropic(self, api_key="") -> None:
+    def Anthropic(self, api_key: str = "") -> "FakeClient":
         return FakeClient(self.captured, self.replies)
 
 
 @pytest.fixture()
-def llm_env(tmp_path) -> dict[str, object]:
+def llm_env(tmp_path) -> dict[str, Any]:
     """A config pointing at generated data with a real agent (offline)."""
     import yaml
 
@@ -276,7 +278,6 @@ def test_narrator_ignores_injected_instructions(llm_env) -> None:
 def test_validate_api_key_cached_per_key(llm_env) -> None:
     from finance_agent.agent import _KEY_VALIDATION_CACHE
 
-
     agent, fake = _fake_agent(llm_env)
     assert agent.validate_api_key("sk-test") is True
     calls_before = len(fake.captured)
@@ -287,14 +288,14 @@ def test_validate_api_key_cached_per_key(llm_env) -> None:
 
 def test_llm_available_false_for_invalid_key(llm_env) -> None:
     class BadModels:
-        def list(self, _limit: int = 1) -> dict[str, list[object]]:
+        def list(self, limit: int = 1) -> dict[str, list[object]]:
             raise RuntimeError("invalid api key")
 
     class BadClient:
         models = BadModels()
 
     class BadAnthropic:
-        def Anthropic(self, api_key="") -> None:
+        def Anthropic(self, api_key: str = "") -> "BadClient":
             return BadClient()
 
     agent = FinanceAgent(llm_env["cfg_path"], api_key="sk-bad", _anthropic=BadAnthropic())
@@ -318,20 +319,20 @@ def test_llm_call_records_real_usage(llm_env) -> None:
     assert totals["est_cost"] == pytest.approx(round(120 / 1e6 * 3.0 + 45 / 1e6 * 15.0, 4))
 
 
-def test_llm_failure_records_failed_call_and_falls_back(llm_env) -> bool:
+def test_llm_failure_records_failed_call_and_falls_back(llm_env) -> None:
     class BoomStream:
-        def __enter__(self) -> None:
+        def __enter__(self) -> "BoomStream":
             return self
 
-        def __exit__(self, *args) -> bool:
-            return False
+        def __exit__(self, *args: object) -> None:
+            return None
 
         @property
-        def text_stream(self) -> None:
+        def text_stream(self):
             raise RuntimeError("api down")
 
     class BoomMessages:
-        def stream(self, **kwargs) -> None:
+        def stream(self, **kwargs) -> "BoomStream":
             return BoomStream()
 
     class BoomClient:
@@ -339,7 +340,7 @@ def test_llm_failure_records_failed_call_and_falls_back(llm_env) -> bool:
         messages = BoomMessages()
 
     class BoomAnthropic:
-        def Anthropic(self, api_key="") -> None:
+        def Anthropic(self, api_key: str = "") -> "BoomClient":
             return BoomClient()
 
     agent = FinanceAgent(llm_env["cfg_path"], api_key="sk-x", _anthropic=BoomAnthropic())

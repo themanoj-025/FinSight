@@ -28,14 +28,14 @@ COPY docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh
 
 RUN mkdir -p /app/data /app/model_bench/results /app/reports && \
-    chown -R appuser:appuser /app
+    chown -R 10001:10001 /app
 
 USER appuser
 
 EXPOSE 8501 8000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=120s --retries=3 \
-  CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8501/_stcore/health', timeout=3)" || exit 1
+  CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8501/_stcore/health', timeout=3)"]
 
 # Bootstrap data + model ONLY when the artifacts are missing (named volumes
 # persist them across restarts, so `docker compose restart` does not retrain).

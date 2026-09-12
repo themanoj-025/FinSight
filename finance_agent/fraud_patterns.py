@@ -10,13 +10,13 @@ file and broke ``generate_data.py`` at runtime).
 from __future__ import annotations
 
 from finance_agent.patterns_pkg.ctx import (
+    _MIN_DAYS,
     EASY_PATTERNS,
     HARD_NEGATIVES,
     HARD_PATTERNS,
     MEDIUM_PATTERNS,
     PATTERN_RATES,
     PatternCtx,
-    _MIN_DAYS,
 )
 from finance_agent.patterns_pkg.generators import (
     gen_balance_drain,

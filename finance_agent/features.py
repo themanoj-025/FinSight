@@ -52,7 +52,7 @@ _REGION_DIST_MAT: np.ndarray = np.asarray(
 
 def _first_seen_mask(grouped: pd.core.groupby.generic.DataFrameGroupBy, col: str) -> np.ndarray:
     """1.0 for the first occurrence of `col` within each group, else 0.0."""
-    return grouped[col].cumcount().to_numpy().astype(float) == 0.0
+    return np.asarray(grouped[col].cumcount().to_numpy().astype(float) == 0.0)
 
 
 def build_features(df: pd.DataFrame) -> pd.DataFrame:

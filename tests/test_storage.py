@@ -8,6 +8,8 @@ fingerprint-driven recomputation after the data changes.
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -16,7 +18,7 @@ from finance_agent.storage import SCHEMA_VERSION, TransactionStore
 from generate_data import generate
 
 
-def _env(tmp_path) -> dict[str, object]:
+def _env(tmp_path) -> dict[str, Any]:
     """Hermetic env with two configs: one with a store, one without (same CSV)."""
     import yaml
 
@@ -226,7 +228,7 @@ def test_store_path_matches_pandas_path_with_bundle_and_shap(tmp_path) -> None:
     assert all(r.get("explanation") for r in a["data"]["rows"])
 
 
-def test_store_recomputes_when_data_fingerprint_changes(tmp_path) -> dict[str, object]:
+def test_store_recomputes_when_data_fingerprint_changes(tmp_path) -> None:
     from finance_agent.tools import FinanceFacts
 
     env = _env(tmp_path)

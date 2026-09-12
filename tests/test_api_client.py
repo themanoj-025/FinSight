@@ -70,7 +70,12 @@ def test_client_health_tools_match_direct(api_server) -> None:
 def test_client_risk_scored_matches_direct_with_explanations(api_server) -> None:
     client = ApiClient(api_server)
     direct = _direct()
-    kwargs = {"limit": 5, "threshold": 0.5, "focal_only": True, "include_explanations": True}
+    kwargs: dict[str, Any] = {
+        "limit": 5,
+        "threshold": 0.5,
+        "focal_only": True,
+        "include_explanations": True,
+    }
     expected = _json_norm(direct.risk_scored_transactions(**kwargs))
     assert client.risk_scored_transactions(**kwargs) == expected
 

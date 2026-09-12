@@ -92,9 +92,10 @@ def main() -> int:
         if ok_flag:
             print(f"  {_OK}  /api/v1/health with X-API-Key -> 200 status ok")
         else:
+            snippet = (body or "")[:80]
             print(
                 f"  {_FAIL}  /api/v1/health with X-API-Key -> 200 but body is not "
-                f"`status: ok` (got {body[:80]!r})"
+                f"`status: ok` (got {snippet!r})"
             )
             failed += 1
     elif status == 401:
