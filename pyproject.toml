@@ -54,7 +54,7 @@ retrieval = [
 # import in the codebase is lazy. Also declared in dev so the HPO smoke test
 # (tests/test_hpo.py) actually runs in CI.
 hpo = [
-    "optuna>=3.6,<5",
+    "optuna>=3.6,<6",
 ]
 # Contract fuzzing (F.3): schemathesis runs the committed
 # docs/technical/openapi.v1.json against a live API in the nightly
@@ -84,7 +84,7 @@ dev = [
     "ruff>=0.16.2,<0.17",  # floor = the version CI resolves; 0.16.2 tightened the I001 blank-line rule
     "mypy>=1.8,<3",
     "black>=24.0,<27",
-    "optuna>=3.6,<5",  # HPO smoke test (tests/test_hpo.py) — matches the hpo extra
+    "optuna>=3.6,<6",  # HPO smoke test (tests/test_hpo.py) — matches the hpo extra
     "hypothesis>=6.100,<7",  # property-based generator invariants (tests/test_properties.py, F.2)
     "mutmut>=3.2,<4",  # mutation testing (`make mutate`, D.4) — dev-only, never a runtime dep
 ]
