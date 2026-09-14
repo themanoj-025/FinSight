@@ -32,7 +32,13 @@ sys.path.insert(
     0, str(Path(__file__).resolve().parent.parent)
 )  # allow `python model_bench/train_and_compare.py`
 
-from model_bench.train_helpers import *
+# Explicit re-exports (not `import *`, which ruff F403 rejects and mypy cannot
+# follow): tests/test_hpo.py does `from model_bench.train_and_compare import
+# hpo_provenance`, and these names were the module's pre-split public surface.
+# Redundant-alias form = deliberate re-export (satisfies ruff F401 + mypy).
+from model_bench.train_helpers import CV_FOLDS as CV_FOLDS
+from model_bench.train_helpers import hpo_provenance as hpo_provenance
+from model_bench.train_helpers import log as log
 from model_bench.train_helpers import main
 
 if __name__ == "__main__":
