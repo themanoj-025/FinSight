@@ -113,8 +113,12 @@ jobs:
       # dedicated `data-realism` job, not here on every push — it is marked
       # `slow` and the per-test timeout below would be too tight for its
       # multi-year fixture.
+      # --no-cov: the pyproject addopts coverage gate measures the FAST suite
+      # (the next step owns the 75% gate). Applying it here too made this pass
+      # fail on coverage (45% of the whole tree, since slow tests don't touch
+      # most modules) instead of its actual purpose: server boot + perf.
       - name: Slow suite (server boot + 100k-row perf, minus realism)
-        run: python -m pytest tests/ -m "slow and not data_realism" -q --timeout 300
+        run: python -m pytest tests/ -m "slow and not data_realism" -q --timeout 300 --no-cov
       - name: "Coverage report (gate: stay above 75%)"
         run: python -m pytest tests/ -m "not slow" --cov=finance_agent --cov=model_bench --cov-report=xml --cov-fail-under=75 -q
       - uses: actions/upload-artifact@v7
@@ -199,6 +203,11 @@ jobs:
       - uses: hadolint/hadolint-action@v3.5.0
         with:
           dockerfile: Dockerfile
+          # Default is `info`, which fails the job on ANY info-level hint
+          # (DL3066 for the non-numeric appuser uid is intentional here).
+          # warning keeps style noise out; error/warning still gate.
+          failure-threshold: warning
+          ignore: DL3066
 
   install-check:
     # 4.4: `pip install .` (no extras) must succeed without pulling in Anthropic.

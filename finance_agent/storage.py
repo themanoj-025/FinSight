@@ -445,16 +445,14 @@ class SessionBudgetStore:
             Path(self.path).parent.mkdir(parents=True, exist_ok=True)
         conn = sqlite3.connect(self.path)
         try:
-            conn.execute(
-                """CREATE TABLE IF NOT EXISTS session_usage (
+            conn.execute("""CREATE TABLE IF NOT EXISTS session_usage (
                        session_id   TEXT PRIMARY KEY,
                        turns        INTEGER NOT NULL DEFAULT 0,
                        input_tokens INTEGER NOT NULL DEFAULT 0,
                        output_tokens INTEGER NOT NULL DEFAULT 0,
                        est_cost     REAL NOT NULL DEFAULT 0.0,
                        updated_at   TEXT NOT NULL DEFAULT (datetime('now'))
-                   )"""
-            )
+                   )""")
             conn.commit()
         finally:
             conn.close()

@@ -468,7 +468,7 @@ make typecheck   # mypy on the whole project (finance_agent/ model_bench/ app/ t
 make docs-check  # docs-vs-code consistency gate
 ```
 
-- Type hints throughout, ruff + black formatting, structured logging (no `print` in library code).
+- Type hints throughout, ruff for lint + formatting (ruff format is the single formatter; `make lint` gates both), structured logging (no `print` in library code).
 - Config, not hardcoding: model choice, blend weights, thresholds, and the Claude model string all
   live in `config.yaml`, validated at load time by `finance_agent/config_schema.py`.
 - Tests cover rule edge cases, feature no-leakage guarantees, config validation, generator

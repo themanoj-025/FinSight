@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 import pandas as pd
 
@@ -142,10 +144,16 @@ def _balance_one(
 
 def _clamped_cumsum(delta: np.ndarray, opening: float, clamp_hi: bool) -> np.ndarray:
     """Clamped running balance (Lindley): lower-bound 0, or upper-bound 0."""
-    t = np.concatenate([[opening], opening + np.cumsum(delta)])
+    # Intermediate results are explicitly typed ndarray[Any, Any]: under the
+    # numpy 2.2 stubs (the 3.10 CI leg) the arithmetic below infers Any, which
+    # trips mypy's warn_return_any (2026-09-12/13 typecheck failure).
+    t: np.ndarray[Any, Any] = np.concatenate([[opening], opening + np.cumsum(delta)])
+    out: np.ndarray[Any, Any]
     if clamp_hi:
-        return (t - np.maximum.accumulate(np.maximum(t, 0.0)))[1:]
-    return (t - np.minimum.accumulate(np.minimum(t, 0.0)))[1:]
+        out = t - np.maximum.accumulate(np.maximum(t, 0.0))
+    else:
+        out = t - np.minimum.accumulate(np.minimum(t, 0.0))
+    return out[1:]
 
 
 def _resolve_drains(

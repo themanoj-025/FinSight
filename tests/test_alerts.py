@@ -118,7 +118,7 @@ def test_build_alert_payload_shape_and_cap() -> None:
 def test_post_webhook_posts_json(webhook_server) -> None:
     payload = alerts.build_alert_payload(_flagged_data(), focal_user="U_Alex")
     assert alerts.post_webhook(webhook_server, payload) is True
-    (path, body) = _CaptureHandler.received[0]
+    path, body = _CaptureHandler.received[0]
     assert path == "/hook"
     assert body["event"] == "risk_alert"
     assert body["focal_user"] == "U_Alex"

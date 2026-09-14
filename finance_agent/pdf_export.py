@@ -25,8 +25,14 @@ from finance_agent.pdf_text import (
     PAGE_H,
     PAGE_W,
     _parse_blocks,
-    sanitize_winansi,
 )
+from finance_agent.pdf_text import (
+    sanitize_winansi as sanitize_winansi,
+)  # re-export (F401-by-design)
+
+# Deliberate re-export of ``sanitize_winansi`` (redundant-alias form above):
+# tests/test_pdf_export.py (and any external caller) imports it from this
+# module — it lived here before the pdf_text/pdf_layout split.
 
 # ---------------------------------------------------------------------------
 # PDF emission (objects, xref, trailer)
@@ -84,7 +90,6 @@ def _assemble(pages: list[list[bytes]]) -> bytes:
     # every xref offset below is computed relative to the *file* start, so the
     # header length is included in every offset.
     pdf_header = b"%PDF-1.4\n%\xe2\xe3\xcf\xd3\n"
-    body_parts: list[bytes] = []
     offsets: list[int] = []
     objects: list[bytes] = []
 
