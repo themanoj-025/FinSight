@@ -54,7 +54,7 @@ retrieval = [
 # import in the codebase is lazy. Also declared in dev so the HPO smoke test
 # (tests/test_hpo.py) actually runs in CI.
 hpo = [
-    "optuna>=3.6,<5",
+    "optuna>=3.6,<6",
 ]
 # Contract fuzzing (F.3): schemathesis runs the committed
 # docs/technical/openapi.v1.json against a live API in the nightly
@@ -93,7 +93,7 @@ dev = [
     # 0.16.7 — no byte state satisfies both), and `make format` already used
     # ruff format. ruff-format is the single formatter: pre-commit runs the
     # ruff-format hook and the lint job gates `ruff format --check`.
-    "optuna>=3.6,<5",  # HPO smoke test (tests/test_hpo.py) — matches the hpo extra
+    "optuna>=3.6,<6",  # HPO smoke test (tests/test_hpo.py) — matches the hpo extra
     "hypothesis>=6.100,<7",  # property-based generator invariants (tests/test_properties.py, F.2)
     # <3.8: mutmut 3.8.0 changed the stats runner contract ("failed to collect
     # stats. runner returned 1"). Bump deliberately after a local `make mutate`.
