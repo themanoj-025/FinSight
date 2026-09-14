@@ -1,15 +1,15 @@
 repos:
-  - repo: https://github.com/psf/black
-    rev: 25.9.0
-    hooks:
-      - id: black
-        language_version: python3
-
+  # ruff IS the formatter (ruff-format hook below) — running black alongside it
+  # made the two formatters fight over the same files (black 25.9 and 26.x both
+  # reformat 4 test files that ruff-format accepts, and vice versa), which
+  # failed pre-commit on 2026-09-12 while the ruff-format lint gate stayed
+  # green. One formatter, both hooks, same rev as the lint gate.
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.16.4
     hooks:
       - id: ruff
         args: [--fix, --select, "E9,F,I"]
+      - id: ruff-format
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
@@ -20,7 +20,9 @@ repos:
       - id: check-added-large-files
         args: ['--maxkb=1000']
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.15.0
+    # Keep this rev inside pyproject's mypy>=1.15,<2 window (CI resolves the
+    # latest 1.x) — cross-major skew is what broke typecheck overnight.
+    rev: v1.20.2
     hooks:
       - id: mypy
         language: python
