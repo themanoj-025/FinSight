@@ -1,7 +1,7 @@
 # Pinned by digest (E.2 supply-chain hardening): python:3.12-slim as of
 # 2026-08-05 (amd64/linux). A digest pin makes the build deterministic and
 # immune to tag mutations upstream; bump it deliberately with a re-audit.
-FROM python:3.14-slim@sha256:cae66f2ef0ec51a9891263eeee7f987dacf0a9879e8aa9353d5606e0530619a5
+FROM python:3.14-slim@sha256:cad9a2c871761c413caa6fdd6441c783451e740a48aaeba60ae62a8b53525ef6
 
 ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1
