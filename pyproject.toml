@@ -86,7 +86,7 @@ dev = [
     # `mypy>=1.8,<3` let mypy 2.3.1 (a new major) float into CI overnight with
     # zero code changes and break typecheck with new strictness. Floors match
     # .pre-commit-config.yaml revs so the two gates resolve the same tool.
-    "mypy>=1.15,<2",
+    "mypy>=1.15,<3",
     "types-PyYAML",  # yaml stubs — mypy 1.x flags every `import yaml` without them (the pre-commit mypy hook already ships them); mypy 2.x silently tolerated their absence
     # black removed (2026-09-14): black and ruff format irreconcilably fight
     # over the same 5 files (verified locally with black 25.9.0/26.5.1 vs ruff
