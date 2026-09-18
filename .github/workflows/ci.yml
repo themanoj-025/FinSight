@@ -85,7 +85,7 @@ jobs:
           cache: pip
           python-version: '3.12'
       - name: Install bandit
-        run: pip install bandit
+        run: pip install bandit==1.9.4
       - name: Run bandit
         run: bandit -r finance_agent -ll
 
@@ -206,7 +206,7 @@ jobs:
           # Default is `info`, which fails the job on ANY info-level hint
           # (DL3066 for the non-numeric appuser uid is intentional here).
           # warning keeps style noise out; error/warning still gate.
-          failure-threshold: warning
+          failure-threshold: error
           ignore: DL3066
 
   install-check:
