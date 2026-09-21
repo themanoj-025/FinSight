@@ -97,7 +97,7 @@ dev = [
     "hypothesis>=6.100,<7",  # property-based generator invariants (tests/test_properties.py, F.2)
     # <3.8: mutmut 3.8.0 changed the stats runner contract ("failed to collect
     # stats. runner returned 1"). Bump deliberately after a local `make mutate`.
-    "mutmut>=3.2,<3.8",  # mutation testing (`make mutate`, D.4) — dev-only, never a runtime dep
+    "mutmut>=3.2,<3.9",  # mutation testing (`make mutate`, D.4) — dev-only, never a runtime dep
 ]
 # OpenTelemetry extras — optional, not a runtime dependency
 otel = [
