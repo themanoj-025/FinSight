@@ -1,5 +1,12 @@
 <div align="center">
 
+<p>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.svg" />
+    <img src="assets/logo.svg" width="280" alt="FinSight Agent logo — candlestick tile and wordmark" />
+  </picture>
+</p>
+
 # FinSight Agent
 
 **Turns raw bank transactions into fraud alerts, spending insight, and plain-English advice — autonomously.**
@@ -10,6 +17,14 @@
 ![Models](https://img.shields.io/badge/models-6%20benchmarked-2563EB)
 ![PR-AUC](https://img.shields.io/badge/CV%20PR--AUC-0.828%20%C2%B1%200.055-16A34A)
 ![Stack](https://img.shields.io/badge/Stack-Streamlit%20%C2%B7%20FastAPI%20%C2%B7%20LightGBM-64748B)
+
+<!--
+  Social preview (maintainer note — invisible when rendered):
+  GitHub does not use the README header image for the repo card. Upload one manually:
+  Settings → General → Social preview → Edit → upload a 1280×640 (2:1) PNG under 1 MB.
+  Good hero candidates from this repo: a capture of the Streamlit dashboard (app/), or the
+  model-benchmark chart from model_bench/. Re-upload to replace; GitHub caches the previous image.
+-->
 ![Offline](https://img.shields.io/badge/works%20offline-yes-16A34A)
 
 *An end-to-end, agentic personal-finance system: deterministic synthetic data → feature engineering →
