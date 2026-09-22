@@ -7,7 +7,7 @@ with strictly separated layers, feature-cohesive modules, and a clean root.
 
 ## 1. Current tree (canonical)
 
-```
+```text
 finsight-agent/
 ├── app/                        # Streamlit front end (presentation)
 │   ├── Home.py                 #   entry: landing page
@@ -42,7 +42,7 @@ finsight-agent/
 
 ## 2. Docs tree
 
-```
+```text
 docs/
 ├── DataGeneration.md           # tiers, personas, fraud library, reproducibility
 ├── KNOWN_LIMITATIONS.md        # honest limitations

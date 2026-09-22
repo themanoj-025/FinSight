@@ -2,7 +2,7 @@
 
 ## This pass (2026-08-11)
 
-```
+```text
 Before                                After
 ──────                                ─────
 docs/migration_summary.md      →      docs/migration/migration_summary.md

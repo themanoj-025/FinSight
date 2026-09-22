@@ -85,7 +85,7 @@ Layers are strictly separated (documented in `finance_agent/__init__.py`):
 
 ## 5. Dependency graph (intra-package, acyclic)
 
-```
+```text
 finance_agent/  module → intra-package dependencies (→ = imports)
   datagen        → constants, merchants, personas, fraud_patterns
   fraud_patterns → merchants, personas

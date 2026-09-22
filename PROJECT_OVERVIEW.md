@@ -112,7 +112,7 @@ flowchart LR
 
 ## 4. Complete Folder Structure Tree
 
-```
+```text
 finsight-agent/
 ├── .dockerignore
 ├── .gitattributes
@@ -460,7 +460,7 @@ finsight digest
 
 ## 11. Dependency Graph Summary
 
-```
+```text
 finance_agent/datagen.py → personas.py, fraud_patterns.py, merchants.py
 finance_agent/rules.py → (pure, no internal deps)
 finance_agent/features.py → rules.py
