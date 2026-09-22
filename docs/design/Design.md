@@ -54,7 +54,7 @@
 
 **KPI card:**
 
-```
+```text
 ┌───────────────────┐
 │ Balance  1,200.00  │
 │ ▲ +4.2% this month │
@@ -63,7 +63,7 @@
 
 **Risk flag:**
 
-```
+```text
 ⚠ HIGH RISK — 45,000 transfer at 2 AM
   Reasons: balance drain · new payee
 ```

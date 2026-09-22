@@ -340,7 +340,7 @@ with NumPy/pandas array operations over the whole time span:
 A single top-level `--seed` produces byte-identical output across runs because
 every stochastic consumer draws from its **own independent substream**:
 
-```
+```text
 ss = np.random.SeedSequence(seed)
 batch_rng        = default_rng(ss.spawn(1)[0])      # employer picks, shared draws
 personas         = sample_personas(users, seed2, batch_rng)   # one substream per persona
