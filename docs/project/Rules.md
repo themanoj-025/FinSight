@@ -25,7 +25,7 @@
 - Formatter: black; linter: ruff; typecheck: mypy.
 - Structure:
 
-```
+```text
 generate_data.py
 config.yaml
 finance_agent/

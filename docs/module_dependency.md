@@ -6,7 +6,7 @@ Dependencies point **strictly downward**: `app/` → `finance_agent` →
 
 ## Layer-to-layer edges
 
-```
+```text
 app/ (Streamlit pages + common.py + api_client.py)
   → finance_agent.tools, finance_agent.agent, finance_agent.storage,
     finance_agent.report, finance_agent.pdf_export, finance_agent.observability,

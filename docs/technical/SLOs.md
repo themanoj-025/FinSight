@@ -69,7 +69,7 @@ served) — the SLO is measured and met, not aspirational.
 `GET /metrics` exposes process-scoped counters in the Prometheus text format
 (zero-dependency, no `prometheus-client`):
 
-```
+```text
 finsight_http_requests_total{route="/api/v1/health"} 42
 finsight_http_latency_seconds_total{route="/api/v1/health"} 1.23
 finsight_uptime_seconds 3721.0

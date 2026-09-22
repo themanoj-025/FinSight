@@ -15,7 +15,7 @@ real personal data.
 
 ## 2. Layered model
 
-```
+```text
 ┌────────────────────────────────────────────────────────────────┐
 │  Presentation                                                    │
 │   app/ (Streamlit: Dashboard, Transactions, Fraud Detection,     │
