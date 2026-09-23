@@ -11,12 +11,12 @@
 # Usage:
 #   scripts/check_lockfile.sh                       # warn (exit 0) if uv is missing
 #   scripts/check_lockfile.sh --require-uv          # fail if uv is missing (CI)
-#   scripts/check_lockfile.sh --python-version=3.10 # target Python (default 3.10)
+#   scripts/check_lockfile.sh --python-version=3.11 # target Python (default 3.11)
 
 set -u
 
 require_uv=0
-python_version="3.10"
+python_version="3.11"
 
 for arg in "$@"; do
   case "$arg" in
