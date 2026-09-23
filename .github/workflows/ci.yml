@@ -49,7 +49,7 @@ jobs:
     timeout-minutes: 30
     strategy:
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.11", "3.12"]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
@@ -65,7 +65,7 @@ jobs:
     timeout-minutes: 30
     strategy:
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.11", "3.12"]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
@@ -94,7 +94,7 @@ jobs:
     timeout-minutes: 30
     strategy:
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.11", "3.12"]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
@@ -162,11 +162,11 @@ jobs:
       - name: Audit committed lockfile for known vulnerabilities
         run: pip-audit -r requirements.lock
       # The lockfile must actually install on the oldest supported Python
-      # (3.10), not just resolve — dry-run proves wheels exist for that target.
+      # (3.11), not just resolve — dry-run proves wheels exist for that target.
       # `--system` is required: uv refuses `pip install` outside a venv on the
       # runner (no venv exists in this job), and the dry-run touches nothing.
-      - name: Lockfile installable on Python 3.10
-        run: uv pip install --system --python-version 3.10 --dry-run -r requirements.lock
+      - name: Lockfile installable on Python 3.11
+        run: uv pip install --system --python-version 3.11 --dry-run -r requirements.lock
 
   supply-chain:
     # Phase E.2: dependency scan beyond pip-audit. Trivy scans the repo
