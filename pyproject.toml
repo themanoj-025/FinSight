@@ -7,7 +7,7 @@ name = "finsight-agent"
 version = "0.1.0"
 description = "FinSight Agent - an autonomous personal finance analyst: raw transactions in, fraud alerts, spending insight, and plain-English advice out."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = { text = "MIT" }
 authors = [{ name = "FinSight Agent contributors" }]
 # Ranges are capped at the tested major versions (deterministic within a major,
@@ -19,8 +19,8 @@ authors = [{ name = "FinSight Agent contributors" }]
 # dev machines too — otherwise Windows-only deps (colorama via click) leak
 # into the lockfile and the CI lockfile job (a Linux recompile) reports drift.
 dependencies = [
-    # numpy <2.5: numpy 2.5 dropped Python 3.10 (so `requires-python>=3.10`
-    # alone doesn't keep it off the 3.12 CI leg), and its stubs use PEP 695
+    # numpy <2.5: numpy 2.5 dropped Python 3.10 (kept here so the 3.12 CI leg
+    # can't silently pick it up), and its stubs use PEP 695
     # `type` statements that mypy's python_version=3.10 target can't parse —
     # pinning <2.5 keeps the typecheck gate green on the 3.12 leg too.
     "numpy>=1.26,<2.5",
