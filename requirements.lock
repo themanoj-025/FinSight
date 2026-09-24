@@ -34,7 +34,7 @@ cycler==0.12.1
     # via matplotlib
 fastapi==0.141.1
     # via finsight-agent (pyproject.toml)
-fonttools==4.65.0
+fonttools==4.66.0
     # via matplotlib
 h11==0.16.0
     # via
