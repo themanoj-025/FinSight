@@ -115,7 +115,13 @@ include = ["finance_agent*", "model_bench*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q -m 'not slow' --cov --cov-fail-under=50"
+# No coverage flags here: addopts applies to EVERY pytest process — including
+# mutmut's per-mutant runs and its stats collection, where only tests/test_rules.py
+# + tests/test_features.py execute (~9% whole-tree coverage). That tripped
+# --cov-fail-under=50 and failed the nightly mutation job with
+# "failed to collect stats. runner returned 1". The real gate lives in CI's
+# dedicated "Coverage report" step (--cov-fail-under=75).
+addopts = "-q -m 'not slow'"
 pythonpath = ["."]
 markers = [
     "unit: marks pure unit tests (deselect with '-m \"not unit\"')",

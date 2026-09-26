@@ -115,10 +115,9 @@ jobs:
       # dedicated `data-realism` job, not here on every push — it is marked
       # `slow` and the per-test timeout below would be too tight for its
       # multi-year fixture.
-      # --no-cov: the pyproject addopts coverage gate measures the FAST suite
-      # (the next step owns the 75% gate). Applying it here too made this pass
-      # fail on coverage (45% of the whole tree, since slow tests don't touch
-      # most modules) instead of its actual purpose: server boot + perf.
+      # --no-cov: coverage adds overhead with no value here — the next step
+      # owns the 75% gate, and slow tests don't touch most modules so a
+      # whole-tree gate would be meaningless in this pass anyway.
       - name: Slow suite (server boot + 100k-row perf, minus realism)
         run: python -m pytest tests/ -m "slow and not data_realism" -q --timeout 300 --no-cov
       - name: "Coverage report (gate: stay above 75%)"
