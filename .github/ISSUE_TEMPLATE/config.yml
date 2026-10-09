@@ -1,0 +1,10 @@
+# Issue-template configuration: keep the two templates (bug report, feature
+# request) and route specialized reports to the right place.
+blank_issues_enabled: true
+contact_links:
+  - name: Security vulnerabilities
+    url: https://github.com/themanoj-025/FinSight-Agent/security/advisories/new
+    about: Report security vulnerabilities privately — please do NOT open a public issue (see SECURITY.md).
+  - name: Documentation
+    url: https://github.com/themanoj-025/FinSight-Agent/tree/main/docs
+    about: Check docs/KNOWN_LIMITATIONS.md and docs/technical/ before reporting docs-vs-code drift.

@@ -1,0 +1,170 @@
+# FinSight Agent — central configuration.
+# Every tunable lives here so the project is designed for change, not just for the demo.
+
+features:
+  # Feature flags for the heavier optional integrations (Phase E.4): each can
+  # be toggled independently and is documented as explicitly optional.
+  # `faiss_retrieval`, the Optuna HPO step (`make hpo`), and `webhook_alerts`
+  # are implemented; the rest exist so the config surface is honest about
+  # what is and isn't wired up.
+  faiss_retrieval: true      # similar-transaction retrieval (finance_agent/retrieval.py)
+  mlflow_tracking: false     # planned, not implemented — see docs/KNOWN_LIMITATIONS.md §20
+  webhook_alerts: false      # outbound risk-alert webhook (finance_agent/alerts.py) — also set alerts.webhook_url
+
+data:
+  path: data/transactions.csv
+  # Generation tier (finance_agent/datagen.py TIER_DEFAULTS): `tiny` matches the
+  # legacy footprint (fast tests + CI), `demo` is the app / README tier, `bench`
+  # is the model-benchmark tier (writes Parquet to `bench_path`).
+  tier: demo
+  bench_path: data/transactions.parquet
+  # Optional SQLite persistence layer (finance_agent/storage.py): the ledger is
+  # synced into a transactions table and risk scores are materialized once per
+  # (data, model) fingerprint, so the interactive risk scan is a SQL point query
+  # instead of re-filtering a full in-memory scored frame on every rerun. Set to
+  # empty to disable (falls back to the in-memory path).
+  store_path: data/transactions.db
+  days: 90
+  seed: 42
+  # Multi-user mode (stretch): every account in `focal_users` gets its own full
+  # generated ledger (salary, rent, subscriptions, anomalies). The app sidebar
+  # lets you switch which one the dashboard/chat/reports view. `focal_user` is
+  # the default selection; leave `focal_users` empty to keep the classic
+  # single-focal-user dataset.
+  focal_user: "U_Alex"
+  focal_users: ["U_Alex", "U_Maria"]
+  n_background_accounts: 150
+  start_date: "2025-01-01"
+
+model_bench:
+  selection_metric: pr_auc        # pr_auc | roc_auc | f1 — PR-AUC is the default for rare-positive fraud
+  test_size: 0.25                 # temporal split: first (1 - test_size) of steps = train
+  random_state: 42
+  # Large-ledger training cap: when the temporal train window exceeds this many
+  # rows, the benchmark downsamples it (stratified by fraud class, all positives
+  # kept) so the 6-model TimeSeriesSplit CV stays practical on the multi-million
+  # row bench ledger. The temporal test window is NEVER sampled — evaluation
+  # always runs on the full holdout. 0 disables the cap (tiny/demo default).
+  max_train_rows: 600000
+  # Explainability tie-break: the fraud page ships per-transaction SHAP
+  # explanations that only LightGBM can provide natively (pred_contrib). When a
+  # SHAP-capable model's CV PR-AUC is within `shap_tolerance_std` std-devs of
+  # the CV leader, prefer it — transparent numbers over a marginal AUC gain.
+  # Set `shap_preference: false` for a pure metric pick. Recorded in metadata.
+  shap_preference: true
+  shap_tolerance_std: 1.0
+  # Phase A.3 canary tolerance (weekly retrain PR gate): a candidate that drops
+  # an archetype's recall by MORE than this (in recall units, 0.05 = 5 percentage
+  # points) on the same temporal holdout gets a `canary-regression` label on its
+  # retrain PR and needs explicit human sign-off instead of a routine merge.
+  # Consumed by model_bench/canary.py (see .github/workflows/retrain.yml).
+  canary_tolerance: 0.05
+  artifacts_dir: model_bench/results
+  best_model_path: model_bench/best_model.joblib
+  bundle_path: model_bench/risk_model_bundle.joblib
+  metadata_path: model_bench/best_model_metadata.json
+  # Optuna hyperparameter optimization (`make hpo`) — a separate, opt-in step
+  # (never part of the weekly retrain): a study over the LightGBM family's key
+  # hyperparameters (num_leaves, learning_rate, min_child_samples, reg_alpha,
+  # reg_lambda, feature_fraction) using the SAME mean-PR-AUC time-series CV
+  # objective as the benchmark. The study persists to
+  # model_bench/results/hpo_study.db (optuna-dashboard compatible) and a
+  # parameter-importance chart lands in model_bench/results/.
+  # Adoption is a documented human review: `make hpo-promote` marks the tuned
+  # params for the NEXT `make train`, but only when the best trial beats the
+  # registry defaults by >= min_improvement PR-AUC (CV-noise guard) — the
+  # decision + provenance land in best_model_metadata.json (hpo_study_id).
+  hpo:
+    n_trials: 30
+    min_improvement: 0.01       # PR-AUC gain required over the LightGBM defaults
+    n_estimators: 300           # fixed (matches the registry); only the spec'd params are tuned
+
+risk:
+  # Blended risk score = w_rules*rule_score + w_model*supervised_prob + w_iforest*iforest_score.
+  # When no model bundle is present the blend renormalizes to rule_score (weight 1.0)
+  # so rule-only mode still flags obvious fraud above the configured threshold.
+  blend:
+    rules: 0.4
+    supervised: 0.3
+    isolation_forest: 0.3
+  fraud_threshold: 0.7            # default risk score above which a transaction is "suspicious"
+  duplicate_charge_window_days: 2
+  balance_drain_window_hours: 6
+  balance_drain_min_amount: 500.0
+  spike_z_threshold: 3.0
+
+alerts:
+  # Outbound risk-alert webhook (Phase E.3): when `features.webhook_alerts`
+  # is true AND a URL is configured, a live risk scan that flags transactions
+  # above the configured threshold POSTs a small JSON payload to the endpoint
+  # (a Slack Incoming Webhook or any HTTP receiver). Stdlib-only, deduplicated
+  # per transaction (state_path below, gitignored), and failures never break
+  # the scan — they log and continue. Secrets belong in the
+  # FINSIGHT_WEBHOOK_URL env var (config is the fallback); logs print only
+  # scheme://host, never the token-bearing URL.
+  webhook_url: ""                     # e.g. https://hooks.slack.com/services/... or FINSIGHT_WEBHOOK_URL
+  state_path: data/risk_alerts_sent.jsonl  # dedup record: which row_indexes were already alerted
+
+advice:
+  # Advice thresholds used by the `top_tips` tool (config-driven, echoed in
+  # the tool payload so no number in the tips is an ungrounded constant).
+  savings_rate_goal: 0.20       # tips nudge the savings rate toward this
+  subscription_ratio_limit: 0.05 # over this share of income, subscriptions get flagged
+
+budgets:
+  # Optional per-category monthly spending goals (Dashboard budget tracker +
+  # `budget_status` tool). Categories without a goal are simply not tracked;
+  # set a value to 0 or omit a category to skip it. This is a goals tracker,
+  # not an enforcement mechanism — it never blocks or alters transactions.
+  monthly:
+    groceries: 700
+    dining: 350
+    transport: 150
+    utilities: 150
+    entertainment: 200
+    shopping: 250
+    health: 100
+    subscriptions: 120
+
+digest:
+  # Weekly digest (finance_agent/digest.py, `make digest` or the scheduled
+  # GitHub workflow): builds a Markdown summary of the trailing 7 days and
+  # delivers it through any *configured* channel. Both channels are opt-in;
+  # leave empty to write the file only. Secrets come from env vars
+  # (DIGEST_SLACK_WEBHOOK, DIGEST_SMTP_PASSWORD) so nothing sensitive lives in
+  # this file.
+  out_path: reports/weekly_digest.md
+  slack_webhook: ""            # Incoming Webhook URL, or DIGEST_SLACK_WEBHOOK env var
+  email:
+    smtp_host: ""              # e.g. smtp.gmail.com
+    smtp_port: 587
+    smtp_user: ""              # login user (usually the from address)
+    from_addr: ""
+    to_addrs: []                # list of recipient addresses
+    # smtp password comes ONLY from the DIGEST_SMTP_PASSWORD env var — never
+    # put it in this file (it is intentionally ignored here).
+
+agent:
+  model: "claude-sonnet-4-5"       # update to the model you have access to (see MODEL_ALLOWLIST)
+  max_turns: 5                     # tool-use loop bound per question
+  max_history_turns: 10            # conversation turns sent to the LLM (cap prevents unbounded tokens)
+  max_session_turns: 20            # per-session LLM call budget (0.3b / 1.3)
+  max_session_tokens: 20000        # per-session token budget (1.3) — enforced
+                                   # against the EXACT counts the API reports,
+                                   # persisted in budget_store (C.1.2)
+  # SQLite file keyed by session id where per-session turn counts + exact token
+  # usage are recorded, so a page reload can't reset the budget. Set to "" to
+  # fall back to in-memory (non-persisted) accounting.
+  budget_store: data/session_usage.db
+  temperature: 0.2
+  max_tokens: 1024
+  activity_log: data/agent_activity.jsonl
+  # List prices (USD per 1M tokens) used by the Settings session-usage dashboard
+  # to estimate cost from the API's real token counts. These are *estimates*
+  # and drift — update them if the provider's pricing changes.
+  pricing:
+    claude-sonnet-4-5: {input_per_1m: 3.0, output_per_1m: 15.0}
+    claude-sonnet-4-0: {input_per_1m: 3.0, output_per_1m: 15.0}
+    claude-opus-4-1: {input_per_1m: 15.0, output_per_1m: 75.0}
+    claude-3-5-haiku-latest: {input_per_1m: 0.8, output_per_1m: 4.0}
+    claude-3-haiku-20240307: {input_per_1m: 0.25, output_per_1m: 1.25}

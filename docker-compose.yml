@@ -1,0 +1,75 @@
+# Two services sharing the same image and artifacts volume:
+#   api      — FastAPI facts service (finance_agent/api.py) on :8000, /docs
+#   finsight — Streamlit app, a *client* of the API (FINSIGHT_API_URL)
+# The api service bootstraps data + model on first start (docker-entrypoint.sh);
+# finsight waits for `api` to be healthy, so there is no bootstrap race.
+services:
+  api:
+    build: .
+    command:
+      - /app/docker-entrypoint.sh
+      - uvicorn
+      - finance_agent.api:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+    ports:
+      - "8000:8000"
+    environment:
+      # Optional demo-grade shared secret for the API (X-API-Key header).
+      - FINSIGHT_API_KEY=${FINSIGHT_API_KEY:-}
+      # Security audit §5/§6: optional per-IP rate limit (0 = off) and CORS
+      # allow-list (unset = *). Set both when exposing the API beyond localhost.
+      - FINSIGHT_RATE_LIMIT_PER_MIN=${FINSIGHT_RATE_LIMIT_PER_MIN:-0}
+      - FINSIGHT_CORS_ORIGINS=${FINSIGHT_CORS_ORIGINS:-}
+    volumes:
+      - ./data:/app/data                      # persist generated data across restarts
+      - model_artifacts:/app/model_bench      # persist trained models — no retrain on restart
+    restart: on-failure:5
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=3)"
+      # First-run training can take ~2 min on slow hardware; give the
+      # bootstrap generous room so `finsight` (depends_on healthy) still starts.
+      interval: 30s
+      timeout: 5s
+      start_period: 300s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2g
+
+  finsight:
+    build: .
+    ports:
+      - "8501:8501"
+    environment:
+      # The app becomes a client of the facts API (fallback to local facts if unreachable).
+      - FINSIGHT_API_URL=http://api:8000
+      # Optional — without it the agent runs in offline narrator mode.
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      # Optional demo-grade password gate (see docs/KNOWN_LIMITATIONS.md).
+      - APP_PASSWORD=${APP_PASSWORD:-}
+    volumes:
+      - ./data:/app/data
+      - model_artifacts:/app/model_bench
+    depends_on:
+      api:
+        condition: service_healthy
+    # Bounded restart: a bootstrap failure exits (see entrypoint `exit 1`) and
+    # stops after 5 attempts instead of crash-looping forever.
+    restart: on-failure:5
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2g
+
+volumes:
+  model_artifacts:

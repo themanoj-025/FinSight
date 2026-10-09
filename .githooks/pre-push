@@ -1,0 +1,40 @@
+#!/bin/sh
+# Pre-push hook — catch requirements.lock drift before CI does.
+#
+# Enable once per clone with:  git config core.hooksPath .githooks  (or `make hooks`)
+#
+# Only runs the check when the pushed range touches pyproject.toml or
+# requirements.lock (compiling + resolving is network-dependent, so we keep it
+# out of the per-commit hot path). If `uv` isn't installed the check warns and
+# passes — CI's `lockfile` job is the authoritative gate.
+#
+# Runs the SAME script as CI (scripts/check_lockfile.sh), so the two checks
+# can never drift apart.
+
+ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+
+# git sends 40 zeros as the remote sha for a brand-new branch/tag.
+ZEROS="0000000000000000000000000000000000000000"
+# Diff target for new branches: the empty tree (so the full file list shows).
+EMPTY_TREE="$(git -C "$ROOT" hash-object -t tree /dev/null)"
+
+changed=0
+while read -r _local_ref local_sha _remote_ref remote_sha; do
+  if [ "$remote_sha" = "$ZEROS" ]; then
+    base="$EMPTY_TREE"
+  else
+    base="$remote_sha"
+  fi
+  if git -C "$ROOT" diff --name-only "$base" "$local_sha" 2>/dev/null |
+      grep -E '^(pyproject\.toml|requirements\.lock)$' >/dev/null; then
+    changed=1
+  fi
+done
+
+if [ "$changed" -eq 0 ]; then
+  echo "pre-push: pyproject.toml / requirements.lock unchanged — skipping lockfile check"
+  exit 0
+fi
+
+echo "pre-push: verifying requirements.lock is in sync with pyproject.toml..."
+exec "$ROOT/scripts/check_lockfile.sh"

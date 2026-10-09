@@ -1,0 +1,14 @@
+[theme]
+base = "dark"
+primaryColor = "#34D399"           # confident emerald accent — reserved for growth/positive figures
+backgroundColor = "#0A0F1E"        # deep ink navy
+secondaryBackgroundColor = "#111A2E"
+textColor = "#E7EEF9"
+font = "sans serif"
+
+[server]
+headless = true
+runOnSave = true
+
+[browser]
+gatherUsageStats = false

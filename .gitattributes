@@ -1,0 +1,23 @@
+# Binary model artifacts — never diff or apply text transforms to these.
+*.joblib binary
+*.png binary
+*.jpg binary
+*.csv text eol=lf
+*.py text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.md text eol=lf
+*.toml text eol=lf
+*.json text eol=lf
+*.jsonl text eol=lf
+*.sh text eol=lf
+*.lock text eol=lf
+*.svg text eol=lf
+*.yaml text eol=lf
+# Binary data / images — never diff or apply text transforms.
+*.db binary
+*.webp binary
+*.woff2 binary
+*.pdf binary
+# Git hooks must stay LF — a CRLF shebang breaks them on Windows.
+/.githooks/** text eol=lf
