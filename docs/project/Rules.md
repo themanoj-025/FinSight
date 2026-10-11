@@ -1,4 +1,4 @@
-# Rules — FinSight Agent: Coding Standards & AI-Agent Operating Rules
+# Rules — FinSight Agent: Coding Standards & Engineering Operating Rules
 
 | Field | Value |
 | --- | --- |
@@ -61,7 +61,7 @@ tests/
 - Docs changes MUST pass `make docs-check` (docs-vs-code consistency gate) before merging.
 - See [Testing.md](../technical/Testing.md).
 
-## 5. AI Agent Operating Rules
+## 5. Engineering Operating Rules
 
 - Always read Tracker.md and ImplementationPlan.md before starting.
 - Never mark a task 🟢 Done without tests passing.
