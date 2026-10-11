@@ -1,0 +1,14 @@
+{
+  "repository": "finsight-agent",
+  "mode": "AUDIT_ONLY",
+  "aggressiveness": 3,
+  "phase": 9,
+  "status": "COMPLETED_AUDIT",
+  "baseline_sha": "72ed48fd84ebdfde48a7ea7ba084fbb417d0142d",
+  "total_candidates": 84,
+  "t0_count": 61,
+  "t1_count": 1,
+  "t2_count": 22,
+  "t3_count": 0,
+  "updated_at": "2026-10-11T07:39:26.010Z"
+}
