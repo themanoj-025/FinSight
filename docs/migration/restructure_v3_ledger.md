@@ -1,10 +1,10 @@
 # Universal Master Restructuring Protocol v3.0 — Migration Ledger
 
-**Repository**: finsight-agent  
-**Protocol Version**: 3.0.0  
-**Base Commit**: `b1831769bb511d94ac350ba8987cbb2980b1e95d`  
-**Execution Date**: 2026-10-12  
-**Result**: ZERO REGRESSIONS, 100% BEHAVIOR PRESERVED  
+**Repository**: finsight-agent
+**Protocol Version**: 3.0.0
+**Base Commit**: `b1831769bb511d94ac350ba8987cbb2980b1e95d`
+**Execution Date**: 2026-10-12
+**Result**: ZERO REGRESSIONS, 100% BEHAVIOR PRESERVED
 
 ---
 
