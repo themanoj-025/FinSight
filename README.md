@@ -1,5 +1,3 @@
-# FinSight Agent
-
 <div align="center">
 
 <p>
@@ -9,162 +7,224 @@
   </picture>
 </p>
 
-# FinSight Agent
+<h1>FinSight Agent</h1>
 
-**Turns raw bank transactions into fraud alerts, spending insight, and plain-English advice — autonomously.**
+<p>
+  <strong>Autonomous personal finance analysis: turns raw transactions into fraud alerts, spending insights, and explainable advice.</strong>
+</p>
 
-![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.12-3776AB?logo=python&logoColor=white)
-![License](https://img.shields.io/badge/license-MIT-green)
-[![CI](https://github.com/themanoj-025/FinSight/actions/workflows/ci.yml/badge.svg)](https://github.com/themanoj-025/FinSight/actions/workflows/ci.yml)
-![Models](https://img.shields.io/badge/models-6%20benchmarked-2563EB)
-![PR-AUC](https://img.shields.io/badge/CV%20PR--AUC-0.828%20±%200.055-16A34A)
-![Stack](https://img.shields.io/badge/Stack-Streamlit%20·%20FastAPI%20·%20LightGBM-64748B)
-
-<!--
-  Social preview (maintainer note — invisible when rendered):
-  GitHub does not use the README header image for the repo card. Upload one manually:
-  Settings → General → Social preview → Edit → upload a 1280×640 (2:1) PNG under 1 MB.
-  Good hero candidates from this repo: a capture of the Streamlit dashboard (app/), or the
-  model-benchmark chart from model_bench/. Re-upload to replace; GitHub caches the previous image.
--->
-![Offline](https://img.shields.io/badge/works%20offline-yes-16A34A)
-
-*An end-to-end, agentic personal-finance system: deterministic synthetic data → feature engineering → 6-model benchmark with honest time-series CV → a hybrid **rules + ML + LLM** agent you can question in plain English — all behind a polished Streamlit app.*
+<p>
+  <a href="https://github.com/themanoj-025/FinSight/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/themanoj-025/FinSight/ci.yml?style=flat-square&label=CI" alt="CI Status" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License MIT" /></a>
+  <a href="https://github.com/themanoj-025/FinSight/stargazers"><img src="https://img.shields.io/github/stars/themanoj-025/FinSight?style=social" alt="GitHub Stars" /></a>
+  <a href="https://github.com/themanoj-025/FinSight/issues"><img src="https://img.shields.io/github/issues/themanoj-025/FinSight?style=flat-square" alt="GitHub Issues" /></a>
+  <a href="https://github.com/themanoj-025/FinSight/pulls"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square" alt="PRs Welcome" /></a>
+</p>
 
 </div>
 
 ---
 
-## 📋 Table of Contents
+## Overview
 
-- [💡 Why I Built This](#-why-i-built-this)
-- [⚠️ Known Limitations](#️-known-limitations)
-- [✨ Features](#-features)
-- [🏗️ Architecture](#️-architecture)
-- [🚀 Quick Start](#-quick-start)
-- [📁 Project structure](#-project-structure)
-- [🧪 Testing](#-testing)
-- [🤝 Contributing](#-contributing)
-- [📄 License](#-license)
+FinSight Agent provides an end-to-end, agentic financial analytics system. It transforms raw bank statements into risk-scored fraud warnings, categorized spending analytics, and natural-language financial recommendations.
+
+The architecture combines deterministic accounting validation rules, supervised gradient boosting (LightGBM with TreeSHAP explanations), and an optional LLM tool-use reasoning loop (powered by Anthropic Claude or local offline narrators).
+
+> [!NOTE]
+> FinSight Agent operates completely offline by default with zero external API credentials. External LLM capabilities (`ANTHROPIC_API_KEY`) and alerting webhooks (`ALERTS_WEBHOOK_URL`) are opt-in enhancements.
 
 ---
 
-## 💡 Why I Built This
+## Table of Contents
 
-I built FinSight because I was frustrated with fraud detection tutorials that just print a meaningless accuracy score on a static dataset. I wanted to build a true end-to-end ML pipeline with honest time-series cross-validation, while exploring how to safely integrate LLMs into a deterministic rules engine without letting them hallucinate financial data.
-
-## ⚠️ Known Limitations
-
-- **FAISS Latency:** The similar-transaction retrieval uses a local FAISS index which rebuilds in-memory. This scales poorly past 1M rows and should be replaced with pgvector in a real deployment.
-- **Synthetic Data Drift:** While the synthetic ledger generator has 15 fraud patterns, it's ultimately still synthetic. It won't capture the true adversarial drift seen in real-world credit card fraud.
-- **Agent Token Usage:** Using Claude/Gemini to narrate every single flagged transaction can quickly rack up API costs. The offline deterministic fallback helps, but the LLM route isn't cost-effective for batch processing.
+- [Key Features](#key-features)
+- [Architecture](#architecture)
+- [Project Structure](#project-structure)
+- [Prerequisites](#prerequisites)
+- [Installation & Quick Start](#installation--quick-start)
+- [Configuration](#configuration)
+- [Model Benchmarking & Reproducibility](#model-benchmarking--reproducibility)
+- [Known Limitations](#known-limitations)
+- [Testing](#testing)
+- [Contributing](#contributing)
+- [Security](#security)
+- [License](#license)
+- [Support](#support)
 
 ---
 
-## ✨ Features
+## Key Features
 
-| | Capability |
-|---|---|
-| 🧾 | **Synthetic ledger generator** — deterministic and vectorized, with **three tiers** (`tiny` for CI, `demo` for the app, `bench` for the model benchmark up to millions of rows). Multi-persona population (6 archetypes), multi-account structure (checking/savings/credit), seasonality + annual raises + drift, a geography/merchant taxonomy, and a **15-pattern difficulty-graded fraud library** with per-archetype labels. Balances always chain correctly. |
-| ⚖️ | **Hybrid risk scoring** — hand-written audit rules + a supervised model's probability + an isolation-forest anomaly score blend into one explainable risk score per transaction (`config.yaml` `risk.blend`). |
-| 🧠 | **Agentic reasoning (optional)** — a bounded Anthropic Claude tool-use loop answers questions in plain English, **only from tool outputs, never from invented numbers**; an activity log proves every claim. |
-| ⚡ | **Outbound risk-alert webhook (opt-in)** — flip `features.webhook_alerts` + set `alerts.webhook_url`, and a live risk scan that flags a transaction above the threshold POSTs a small JSON payload to your endpoint (Slack Incoming Webhook or any HTTP receiver); deduplicated per transaction so repeated scans never spam. |
-| 📴 | **Offline narrator fallback** — no `ANTHROPIC_API_KEY`? The agent degrades to a deterministic narrator that answers the same questions. Zero credentials required. |
-| 📊 | **Honest benchmarking** — 6 fraud-detection models compared by **mean PR-AUC over 5-fold time-series CV** (temporal split, strictly backward-looking features, no leakage). |
-| 🕵️ | **Per-transaction explanations** — native LightGBM TreeSHAP shows exactly *why* any flagged transaction scored the way it did (contributions + bias = log-odds). |
+- **Synthetic Ledger Generator**: Vectorized generator producing realistic transactions across 6 financial archetypes with multi-account structures and 15 distinct fraud injection patterns.
+- **Hybrid Risk Scoring Engine**: Fuses rule-based accounting guards, supervised classification probabilities, and isolation forest anomaly metrics into a single calibrated score.
+- **TreeSHAP Explainability**: Native LightGBM TreeSHAP attribution exposes the exact positive and negative feature contributions driving every fraud alert.
+- **Agentic Financial Narrator**: Autonomous tool-calling reasoning agent that reads strictly from verified tool outputs without inventing financial metrics.
+- **Real-Time Webhook Dispatch**: Optional outbound HTTP webhook that delivers deduplicated JSON payloads to Slack or incident management systems upon alert triggers.
 
-## 🏗️ Architecture
+---
+
+## Architecture
 
 ```text
-FinSight Agent/
-├── app/
-│   ├── synthetic/              # Deterministic ledger generator (3 tiers)
-│   ├── features/               # Feature engineering + fraud patterns
-│   ├── models/                 # 6 benchmarked models + TreeSHAP
-│   ├── agent/                  # Tool-use loop + narrator (LLM + offline)
-│   ├── api/                    # FastAPI facts endpoint
-│   └── app/                    # Streamlit dashboard
-├── config.yaml
-├── requirements.txt
-└── README.md
+       Raw Transaction Stream / Synthetic Generator
+                            │
+                            ▼
+               Feature Engineering Engine
+         (Temporal Split & Anti-Leakage Pipeline)
+                            │
+                            ▼
+                 Hybrid Risk Scorer
+     ┌──────────────────────┼──────────────────────┐
+     ▼                      ▼                      ▼
+Deterministic Rules    LightGBM Model       Isolation Forest
+(Audit Constraints)    (PR-AUC Tuned)       (Anomaly Detector)
+     │                      │                      │
+     └──────────────────────┼──────────────────────┘
+                            │
+                            ▼
+                 Calibrated Risk Score
+                            │
+            ┌───────────────┴───────────────┐
+            ▼                               ▼
+   TreeSHAP Attributions           Agentic Narrator
+   (Feature Drivers)               (Claude / Offline)
+            │                               │
+            └───────────────┬───────────────┘
+                            ▼
+              Streamlit Analytics Interface
+              (app/streamlit_app.py)
 ```
 
-The deterministic path runs with zero credentials. The LLM path is optional and wired behind feature flags.
+---
 
-## 🚀 Quick Start
-
-### Prerequisites
-
-- Python 3.10 or newer
-- `pip` (or a virtual environment of your choice)
-
-### Install & run
-
-```bash
-# 1. Clone the repository
-git clone https://github.com/themanoj-025/FinSight.git
-cd FinSight
-
-# 2. Create and activate a virtual environment
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-
-# 3. Install dependencies
-pip install -r requirements.txt
-
-# 4. Generate a small synthetic ledger (tiny tier, for CI/demo)
-python -m app.synthetic.generator --tier tiny --out data/synthetic_tiny.csv
-
-# 5. Train and benchmark the 6 models
-python -m app.models.benchmark --cv-folds 5 --out results/benchmark.json
-
-# 6. Run the Streamlit dashboard
-streamlit run app/streamlit_app.py
-```
-
-### Optional: LLM-driven narration
-
-Set these environment variables to enable the Claude tool-use narrator and the outbound webhook:
-
-| Variable | Default | Required | Description |
-| -------- | ------- | -------- | ----------- |
-| `ANTHROPIC_API_KEY` | — | No | Enables the agentic narrator (LLM path). Falls back to offline narrator when unset. |
-| `ALERTS_WEBHOOK_URL` | — | No | Endpoint that receives a deduplicated risk-alert JSON payload on each flagged transaction. |
-
-> [!NOTE] No LLM key is required. The app runs fully offline; features above are opt-in.
-
-## 📁 Project structure
+## Project Structure
 
 ```text
 finsight-agent/
-├── app/
-│   ├── synthetic/              # Deterministic ledger generator
-│   ├── features/               # Feature engineering + fraud patterns
-│   ├── models/                 # 6 models + TreeSHAP
-│   ├── agent/                  # Tool-use loop + narrator
-│   ├── api/                    # FastAPI facts endpoint
-│   └── streamlit_app.py        # Dashboard
-├── model_bench/                # Benchmark reproduction
-├── config.yaml
-├── requirements.txt
-└── README.md
+├── app/                    # Streamlit dashboards and visualization components
+├── finance_agent/          # Core package: synthetic generator, models, agents
+├── model_bench/            # Model benchmark suites and evaluation scripts
+├── tests/                  # Comprehensive pytest test suite
+├── config.yaml             # Application configuration, thresholds, and weights
+├── Dockerfile              # Container image build specification
+├── docker-compose.yml      # Local multi-service composition
+├── pyproject.toml          # Build configuration and dependency declarations
+├── requirements.lock       # Pinned deterministic dependencies
+└── README.md               # Project documentation
 ```
 
-## 🧪 Testing
+---
+
+## Prerequisites
+
+- **Python**: `>= 3.11` (Python 3.11 or 3.12 recommended)
+- **Anthropic API Key**: Optional, required only for agentic Claude narration
+
+---
+
+## Installation & Quick Start
+
+### 1. Clone & Setup Environment
 
 ```bash
-# Run the full suite
-pytest -q
+# Clone the repository
+git clone https://github.com/themanoj-025/FinSight.git
+cd FinSight
 
-# Reproduce the benchmark (6 models, 5-fold time-series CV)
-python -m app.models.benchmark --cv-folds 5 --out results/benchmark.json
+# Create virtual environment
+python -m venv .venv
+# Linux/macOS: source .venv/bin/activate
+# Windows: .venv\Scripts\Activate.ps1
+
+# Install dependencies
+pip install -r requirements.lock
 ```
 
-## 🤝 Contributing
+### 2. Generate Synthetic Financial Ledger
 
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md).
+```bash
+# Generate deterministic transactions (tiny tier for quick demo)
+python -m finance_agent.synthetic.generator --tier tiny --out data/synthetic_tiny.csv
+```
 
-## 📄 License
+### 3. Launch Streamlit Application
 
-MIT License — see [LICENSE](LICENSE).
+```bash
+streamlit run app/streamlit_app.py
+```
+*Open http://localhost:8501 in your browser.*
 
+---
+
+## Configuration
+
+Settings are declared in `config.yaml` and can be overridden via environment variables:
+
+| Setting / Variable | Default | Required | Purpose |
+| :--- | :--- | :--- | :--- |
+| `ANTHROPIC_API_KEY` | `""` | No | Enables the LLM tool-calling agent (falls back to offline narrator when unset) |
+| `ALERTS_WEBHOOK_URL` | `""` | No | Target HTTP endpoint for outbound risk alerts |
+| `risk.blend.rules_weight` | `0.4` | No | Relative weight for deterministic audit rules |
+| `risk.blend.ml_weight` | `0.4` | No | Relative weight for supervised model probability |
+| `risk.blend.anomaly_weight` | `0.2` | No | Relative weight for unsupervised isolation forest score |
+
+---
+
+## Model Benchmarking & Reproducibility
+
+FinSight evaluates models using strictly temporal, 5-fold cross-validation without lookahead leakage.
+
+```bash
+# Run the 6-model cross-validation benchmark
+python -m model_bench.benchmark --cv-folds 5 --out reports/benchmark.json
+```
+
+Benchmark results from the synthetic validation suite:
+- **Baseline LightGBM CV PR-AUC**: `0.828 ± 0.055`
+- Full evaluation reports and metric curves are preserved in `reports/`.
+
+---
+
+## Known Limitations
+
+- **Vector Search Scale**: Transaction similarity search utilizes an in-memory index; high-volume production deployments (> 1M records) should use pgvector or dedicated vector databases.
+- **Synthetic Distribution**: Although the synthetic generator covers 15 adversarial attack patterns, production fraud distributions exhibit evolving real-world drift.
+- **LLM Token Costs**: On-demand LLM narrative generation incurs API costs when processing high-frequency transaction volumes; use the deterministic offline narrator for batch workflows.
+
+---
+
+## Testing
+
+```bash
+# Execute standard pytest test suite
+pytest tests/ -v
+
+# Run with coverage analysis
+pytest --cov=finance_agent tests/
+```
+
+---
+
+## Contributing
+
+Contributions are welcomed! Please see [CONTRIBUTING.md](CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for workflow guidelines.
+
+---
+
+## Security
+
+Please report vulnerabilities responsibly in accordance with [SECURITY.md](SECURITY.md).
+
+---
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
+---
+
+## Support
+
+- 🐛 **Issue Tracker**: [GitHub Issues](https://github.com/themanoj-025/FinSight/issues)
+- 💡 **Discussions & Feedback**: [GitHub Pull Requests](https://github.com/themanoj-025/FinSight/pulls)
