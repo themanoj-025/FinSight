@@ -83,7 +83,7 @@ def _load_bundle(bundle_path: str) -> dict[str, Any] | None:
         return None
     try:
         bundle = joblib.load(bundle_path)
-    except (OSError, ValueError, KeyError, TypeError):
+    except (OSError, ValueError, KeyError, TypeError, EOFError, Exception):
         return None
     if not isinstance(bundle, dict) or "best_model" not in bundle:
         return None
