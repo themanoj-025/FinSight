@@ -135,7 +135,7 @@ Set these environment variables to enable the Claude tool-use narrator and the o
 
 ## 📁 Project structure
 
-```
+```text
 finsight-agent/
 ├── app/
 │   ├── synthetic/              # Deterministic ledger generator
