@@ -91,7 +91,7 @@ jobs:
       # reviewable. Download the CSV artifact from the run if you need it.
       - name: Upload regenerated ledger as artifact (repo-hygiene, G.4)
         if: steps.gate.outputs.changed == 'yes'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: retrain-ledger-${{ steps.seed.outputs.next }}
           path: data/transactions.csv
