@@ -122,7 +122,7 @@ jobs:
         run: python -m pytest tests/ -m "slow and not data_realism" -q --timeout 300 --no-cov
       - name: "Coverage report (gate: stay above 75%)"
         run: python -m pytest tests/ -m "not slow" --cov=finance_agent --cov=model_bench --cov-report=xml --cov-fail-under=75 -q
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: coverage-${{ matrix.python-version }}
           path: coverage.xml
@@ -533,7 +533,7 @@ jobs:
           EOF
       - name: Upload load-test artifacts
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: loadtest-${{ github.run_id }}
           path: |
