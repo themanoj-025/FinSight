@@ -81,7 +81,7 @@ dev = [
     "pytest>=8.0,<10",
     "pytest-cov>=5,<8",
     "pytest-timeout>=2.3,<3",  # the CI slow-suite job runs `pytest -m slow --timeout`
-    "ruff>=0.16.2,<0.17",  # floor = the version CI resolves; 0.16.2 tightened the I001 blank-line rule
+    "ruff>=0.16.2,<0.18",  # floor = the version CI resolves; 0.16.2 tightened the I001 blank-line rule
     # Floor+ceiling policy (2026-09-13 CI incident): every dev tool needs BOTH.
     # `mypy>=1.8,<3` let mypy 2.3.1 (a new major) float into CI overnight with
     # zero code changes and break typecheck with new strictness. Floors match
