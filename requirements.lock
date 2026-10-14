@@ -149,7 +149,7 @@ starlette==1.8.0
     # via
     #   fastapi
     #   streamlit
-streamlit==1.64.0
+streamlit==1.65.0
     # via finsight-agent (pyproject.toml)
 threadpoolctl==3.7.0
     # via scikit-learn
@@ -179,5 +179,5 @@ uvicorn==0.54.0
     #   streamlit
 watchdog==6.0.0
     # via streamlit
-websockets==16.1.1
+websockets==17.2
     # via streamlit
