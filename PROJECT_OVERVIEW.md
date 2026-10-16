@@ -162,7 +162,7 @@ journey
 graph TD
     User["Bank Customer / Analyst"] -->|"Web Browser HTTPS"| FinSight["FinSight Agent System Boundary"]
     BankAPI["Core Banking / Ledger Feed"] -->|"HTTP POST /transactions"| FinSight
-    
+
     FinSight -->|"Prompts with Grounded Facts"| LLM["External LLM Provider (OpenAI / Claude / Local)"]
     FinSight -->|"Telemetry Exposition"| Prometheus["Prometheus Monitoring"]
     FinSight -->|"Exports Summaries"| Reports["Financial Health Reports (PDF / JSON)"]
@@ -313,7 +313,7 @@ stateDiagram-v2
     SCORING_RISK --> HEALTH_EXCELLENT: Savings > 20% & Zero Fraud Risk
     SCORING_RISK --> HEALTH_ADEQUATE: Savings 5-20% & Low Risk
     SCORING_RISK --> HEALTH_CRITICAL: Spend > Income OR High Fraud Alert
-    
+
     HEALTH_EXCELLENT --> ADVICE_SYNTHESIZED: Wealth optimization tips
     HEALTH_ADEQUATE --> ADVICE_SYNTHESIZED: Expense reduction tips
     HEALTH_CRITICAL --> ADVICE_SYNTHESIZED: Immediate emergency alerts
@@ -688,55 +688,55 @@ Production deployment is achieved via Docker containers running Streamlit or Uvi
 
 ## <a id="exam"></a>§EXAM — Cold-Reader Verification Exam (25 Questions)
 
-1. **Q: What is the Python runtime requirement for FinSight Agent?**  
+1. **Q: What is the Python runtime requirement for FinSight Agent?**
    *A:* Python >= 3.10. Reference: [`pyproject.toml`](pyproject.toml).
-2. **Q: How many total tracked files exist in the finsight-agent repository?**  
+2. **Q: How many total tracked files exist in the finsight-agent repository?**
    *A:* 217 files. Reference: [§APP](#app).
-3. **Q: How many automated test functions exist across how many test files?**  
+3. **Q: How many automated test functions exist across how many test files?**
    *A:* 269 test functions across 26 test files. Reference: [`tests/`](tests/).
-4. **Q: Which model architecture won the 6-model benchmark?**  
+4. **Q: Which model architecture won the 6-model benchmark?**
    *A:* LightGBM (CV PR-AUC: 0.828 ± 0.055). Reference: [`README.md`](README.md).
-5. **Q: What evaluation metric is used to evaluate models without imbalance bias?**  
+5. **Q: What evaluation metric is used to evaluate models without imbalance bias?**
    *A:* Precision-Recall AUC (PR-AUC). Reference: [`README.md`](README.md).
-6. **Q: What cross-validation strategy prevents lookahead data leakage?**  
+6. **Q: What cross-validation strategy prevents lookahead data leakage?**
    *A:* 5-fold temporal time-series cross-validation. Reference: [`README.md`](README.md).
-7. **Q: How many REST endpoints are exposed by `finance_agent/api.py`?**  
+7. **Q: How many REST endpoints are exposed by `finance_agent/api.py`?**
    *A:* 18 endpoints. Reference: [§API](#api).
-8. **Q: What explainability technique computes local feature attributions?**  
+8. **Q: What explainability technique computes local feature attributions?**
    *A:* TreeSHAP. Reference: [`finance_agent/explain.py`](finance_agent/explain.py).
-9. **Q: What framework powers the interactive personal finance cockpit?**  
+9. **Q: What framework powers the interactive personal finance cockpit?**
    *A:* Streamlit. Reference: [`finance_agent/app.py`](finance_agent/app.py).
-10. **Q: What framework powers the asynchronous backend API?**  
+10. **Q: What framework powers the asynchronous backend API?**
     *A:* FastAPI. Reference: [`finance_agent/api.py`](finance_agent/api.py).
-11. **Q: What default threshold flags transactions as high-risk?**  
+11. **Q: What default threshold flags transactions as high-risk?**
     *A:* 0.45. Reference: [§ENV](#env).
-12. **Q: Which module generates realistic synthetic banking data?**  
+12. **Q: Which module generates realistic synthetic banking data?**
     *A:* `finance_agent/generate_data.py`. Reference: [`finance_agent/generate_data.py`](finance_agent/generate_data.py).
-13. **Q: What is the purpose of the deterministic facts layer?**  
+13. **Q: What is the purpose of the deterministic facts layer?**
     *A:* To calculate ground-truth mathematical sums, category totals, and budget variances, preventing LLM hallucinations. Reference: [§TLDR](#tldr).
-14. **Q: What total lines of code exist across the codebase?**  
+14. **Q: What total lines of code exist across the codebase?**
     *A:* 39,143 lines of code. Reference: [§META](#meta).
-15. **Q: What git commit hash was verified for this documentation?**  
+15. **Q: What git commit hash was verified for this documentation?**
     *A:* `091701b` (`091701b8520be0924720a870bb3f950ffdaf1bfc`). Reference: [§META](#meta).
-16. **Q: What git tree hash represents the verified codebase?**  
+16. **Q: What git tree hash represents the verified codebase?**
     *A:* `9af77b73c326d6e8908169e6f2b1ef8fe1d4ebb4`. Reference: [§META](#meta).
-17. **Q: What test file executes data realism validations?**  
+17. **Q: What test file executes data realism validations?**
     *A:* `tests/test_data_realism.py`. Reference: [`tests/test_data_realism.py`](tests/test_data_realism.py).
-18. **Q: Does FinSight require a persistent SQL database for its core analysis?**  
+18. **Q: Does FinSight require a persistent SQL database for its core analysis?**
     *A:* No, it operates as an in-memory analytical pipeline on transaction ledgers. Reference: [§ERD](#erd).
-19. **Q: What fallback occurs if an external LLM call is unavailable?**  
+19. **Q: What fallback occurs if an external LLM call is unavailable?**
     *A:* The system automatically generates deterministic rule-based advice grounded in exact arithmetic facts. Reference: [§RESILIENCE](#resilience).
-20. **Q: What endpoint returns a composite financial wellness score?**  
+20. **Q: What endpoint returns a composite financial wellness score?**
     *A:* `/api/v1/financial-health`. Reference: [§API](#api).
-21. **Q: What endpoint lists detected recurring subscription payments?**  
+21. **Q: What endpoint lists detected recurring subscription payments?**
     *A:* `/api/v1/recurring-payments`. Reference: [§API](#api).
-22. **Q: What linter is configured for the codebase?**  
+22. **Q: What linter is configured for the codebase?**
     *A:* Ruff. Reference: [`pyproject.toml`](pyproject.toml).
-23. **Q: What is the measured latency for LightGBM scoring of 1,000 items?**  
+23. **Q: What is the measured latency for LightGBM scoring of 1,000 items?**
     *A:* 11.8 ms. Reference: [§PERF](#perf).
-24. **Q: What 6 models are benchmarked in `finance_agent/evaluate.py`?**  
+24. **Q: What 6 models are benchmarked in `finance_agent/evaluate.py`?**
     *A:* LightGBM, Random Forest, Logistic Regression, SGD SVM, Isolation Forest, and MLP. Reference: [§WHAT](#what).
-25. **Q: How many files are cataloged with 100% manifest coverage in Appendix A?**  
+25. **Q: How many files are cataloged with 100% manifest coverage in Appendix A?**
     *A:* All 217 tracked files. Reference: [§APP](#app).
 
 ---
