@@ -1,23 +1,51 @@
-# Binary model artifacts — never diff or apply text transforms to these.
-*.joblib binary
-*.png binary
-*.jpg binary
-*.csv text eol=lf
-*.py text eol=lf
-*.yaml text eol=lf
-*.yml text eol=lf
+# Auto-detect text files and normalize line endings
+* text=auto eol=lf
+
+# Python source
+*.py text eol=lf diff=python
+
+# Markdown documentation
 *.md text eol=lf
+
+# Config & data files
+*.yml text eol=lf
+*.yaml text eol=lf
 *.toml text eol=lf
 *.json text eol=lf
 *.jsonl text eol=lf
-*.sh text eol=lf
+*.csv text eol=lf
 *.lock text eol=lf
 *.svg text eol=lf
-*.yaml text eol=lf
-# Binary data / images — never diff or apply text transforms.
-*.db binary
+
+# Shell / batch scripts
+*.sh text eol=lf
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+
+# Git hooks must stay LF — a CRLF shebang breaks them on Windows
+/.githooks/** text eol=lf
+
+# Security: prevent secret files from appearing in diffs if accidentally created
+*.env -diff
+*.pem -diff
+*.key -diff
+*.cert -diff
+*.p12 -diff
+*.pfx -diff
+*.pkcs12 -diff
+
+# Binary model artifacts & images — never diff or apply text transforms
+*.joblib binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
 *.webp binary
 *.woff2 binary
 *.pdf binary
-# Git hooks must stay LF — a CRLF shebang breaks them on Windows.
-/.githooks/** text eol=lf
+*.parquet binary
+*.pkl binary
+*.db binary
+*.sqlite binary
+*.sqlite3 binary
