@@ -263,7 +263,9 @@ def main() -> int:
 
     overview_file = ROOT / "PROJECT_OVERVIEW.md"
     overview_text = overview_file.read_text(encoding="utf-8") if overview_file.exists() else ""
-    techs = _techs_from_md(overview_text, "PROJECT_OVERVIEW.md") + _techs_from_md(readme, "README.md")
+    techs = _techs_from_md(overview_text, "PROJECT_OVERVIEW.md") + _techs_from_md(
+        readme, "README.md"
+    )
     bad_techs: list[str] = []
     seen: set[str] = set()
     for tech, doc in techs:
