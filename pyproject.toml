@@ -35,6 +35,8 @@ dependencies = [
     "fastapi>=0.110,<1",  # optional HTTP API (finance_agent/api.py); uvicorn already ships via streamlit
     "uvicorn>=0.27,<1",
     "httpx>=0.27,<1",  # HTTP client (replaces stdlib urllib for security scanning)
+    "Pillow>=13.0.0",  # Security CVE-2026-112895 fix
+    "certifi>=2026.10.19",  # Security PYSEC-2026-4320 fix
 ]
 
 [project.optional-dependencies]

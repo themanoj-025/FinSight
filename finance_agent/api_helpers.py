@@ -60,7 +60,7 @@ USER_ENUM: list[str] = _configured_focal_users()
 FocalUser = Annotated[
     str | None,
     BeforeValidator(_null_to_none),
-    Query(enum=USER_ENUM, description="Focal user"),
+    Query(description="Focal user", json_schema_extra={"enum": USER_ENUM}),
 ]
 
 
