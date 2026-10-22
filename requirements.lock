@@ -15,8 +15,9 @@ attrs==26.1.0
     # via
     #   jsonschema
     #   referencing
-certifi==2026.10.18
+certifi==2026.10.19
     # via
+    #   finsight-agent (pyproject.toml)
     #   httpcore
     #   httpx
     #   requests
@@ -42,8 +43,6 @@ h11==0.16.0
     #   uvicorn
 httpcore==1.0.9
     # via httpx
-httptools==0.9.0
-    # via streamlit
 httpx==0.28.1
     # via finsight-agent (pyproject.toml)
 idna==3.20
@@ -101,8 +100,9 @@ pandas==3.0.6
     # via
     #   finsight-agent (pyproject.toml)
     #   streamlit
-pillow==12.3.0
+pillow==13.0.0
     # via
+    #   finsight-agent (pyproject.toml)
     #   matplotlib
     #   streamlit
 plotly==7.1.0
@@ -149,12 +149,10 @@ starlette==1.9.0
     # via
     #   fastapi
     #   streamlit
-streamlit==1.65.0
+streamlit==1.66.1
     # via finsight-agent (pyproject.toml)
 threadpoolctl==3.7.0
     # via scikit-learn
-toml==0.10.2
-    # via streamlit
 typing-extensions==4.16.0
     # via
     #   altair
