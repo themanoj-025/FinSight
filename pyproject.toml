@@ -24,7 +24,7 @@ dependencies = [
     # `type` statements that mypy's python_version=3.10 target can't parse —
     # pinning <2.5 keeps the typecheck gate green on the 3.12 leg too.
     "numpy>=1.26,<2.5",
-    "pandas>=2.1,<3.1",
+    "pandas>=2.1,<3.2",
     "scikit-learn>=1.4,<1.9",
     "matplotlib>=3.8,<3.12",
     "plotly>=5.18,<8",
