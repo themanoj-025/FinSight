@@ -15,7 +15,7 @@ attrs==26.1.0
     # via
     #   jsonschema
     #   referencing
-certifi==2026.10.19
+certifi==2026.10.23
     # via
     #   finsight-agent (pyproject.toml)
     #   httpcore
@@ -33,9 +33,9 @@ contourpy==1.3.3
     # via matplotlib
 cycler==0.12.1
     # via matplotlib
-fastapi==0.146.0
+fastapi==0.162.0
     # via finsight-agent (pyproject.toml)
-fonttools==4.67.0
+fonttools==4.68.0
     # via matplotlib
 h11==0.16.0
     # via
@@ -72,7 +72,7 @@ markupsafe==3.0.4
     # via jinja2
 matplotlib==3.11.2
     # via finsight-agent (pyproject.toml)
-narwhals==2.27.1
+narwhals==2.28.0
     # via
     #   altair
     #   lightgbm
@@ -96,7 +96,7 @@ packaging==26.3
     #   matplotlib
     #   plotly
     #   streamlit
-pandas==3.0.6
+pandas==3.1.0
     # via
     #   finsight-agent (pyproject.toml)
     #   streamlit
@@ -109,7 +109,7 @@ plotly==7.1.0
     # via finsight-agent (pyproject.toml)
 protobuf==7.36.2
     # via streamlit
-pyarrow==25.0.1
+pyarrow==26.0.0
     # via streamlit
 pydantic==2.14.1
     # via fastapi
@@ -119,7 +119,7 @@ pydeck==0.9.3
     # via streamlit
 pyparsing==3.3.3
     # via matplotlib
-python-dateutil==2.9.0.post0
+python-dateutil==3.0.0
     # via
     #   matplotlib
     #   pandas
@@ -145,7 +145,7 @@ scipy==1.17.1
     #   scikit-learn
 six==1.17.0
     # via python-dateutil
-starlette==1.9.0
+starlette==1.10.0
     # via
     #   fastapi
     #   streamlit
@@ -169,6 +169,8 @@ typing-inspection==0.4.4
     # via
     #   fastapi
     #   pydantic
+tzdata==2026.6
+    # via python-dateutil
 urllib3==2.8.0
     # via requests
 uvicorn==0.54.0
@@ -177,5 +179,5 @@ uvicorn==0.54.0
     #   streamlit
 watchdog==6.0.0
     # via streamlit
-websockets==17.2
+websockets==17.3
     # via streamlit
