@@ -88,6 +88,8 @@ def _shap_explainer(rows: list[dict]) -> None:
         for r in explained
     }
     choice = st.selectbox("Transaction", list(labels.keys()), key="shap_txn")
+    if not choice or choice not in labels:
+        return
     rec = labels[choice]
     expl = rec["explanation"]
 
@@ -185,6 +187,8 @@ def _similar_transactions_explainer(facts, rows: list[dict]) -> None:
         for r in with_row
     }
     choice = st.selectbox("Transaction", list(labels.keys()), key="similar_txn")
+    if not choice or choice not in labels:
+        return
     rec = labels[choice]
     try:
         result = facts.find_similar_transactions(transaction_id=rec["row_index"], k=5)
