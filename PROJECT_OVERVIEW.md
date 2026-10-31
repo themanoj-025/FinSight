@@ -854,7 +854,7 @@ Production deployment is achieved via Docker containers running Streamlit or Uvi
 | [`app/py.typed`](app/py.typed) | `.typed` | 0 | 0 | Configuration or static asset |
 | [`assets/logo-dark.svg`](assets/logo-dark.svg) | `.svg` | 15 | 1248 | Configuration or static asset |
 | [`assets/logo.svg`](assets/logo.svg) | `.svg` | 15 | 1213 | Configuration or static asset |
-| [`audit/dependabot-agent/2026-08-15-run.md`](audit/dependabot-agent/2026-08-15-run.md) | `.md` | 19 | 1296 | Documentation asset |
+| [`docs/audit/dependabot-agent/2026-08-15-run.md`](docs/audit/dependabot-agent/2026-08-15-run.md) | `.md` | 19 | 1296 | Documentation asset |
 | [`config.yaml`](config.yaml) | `.yaml` | 170 | 9235 | Configuration or static asset |
 | [`deploy/Caddyfile.example`](deploy/Caddyfile.example) | `.example` | 66 | 2941 | Configuration or static asset |
 | [`deploy/nginx.conf.example`](deploy/nginx.conf.example) | `.example` | 82 | 3886 | Configuration or static asset |
@@ -1004,3 +1004,4 @@ Production deployment is achieved via Docker containers running Streamlit or Uvi
 | [`tests/test_storage.py`](tests/test_storage.py) | `.py` | 289 | 11255 | Automated test suite component |
 | [`tests/test_tools.py`](tests/test_tools.py) | `.py` | 490 | 19107 | Automated test suite component |
 | [`uv.lock`](uv.lock) | `.lock` | 4992 | 1102028 | Dependency manifest or lockfile |
+
