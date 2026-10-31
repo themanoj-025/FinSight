@@ -1004,4 +1004,3 @@ Production deployment is achieved via Docker containers running Streamlit or Uvi
 | [`tests/test_storage.py`](tests/test_storage.py) | `.py` | 289 | 11255 | Automated test suite component |
 | [`tests/test_tools.py`](tests/test_tools.py) | `.py` | 490 | 19107 | Automated test suite component |
 | [`uv.lock`](uv.lock) | `.lock` | 4992 | 1102028 | Dependency manifest or lockfile |
-
