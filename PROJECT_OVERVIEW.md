@@ -829,8 +829,6 @@ Production deployment is achieved via Docker containers running Streamlit or Uvi
 | [`.mailmap`](.mailmap) | `no-ext` | 6 | 298 | Configuration or static asset |
 | [`.pre-commit-config.yaml`](.pre-commit-config.yaml) | `.yaml` | 34 | 1406 | Configuration or static asset |
 | [`.streamlit/config.toml`](.streamlit/config.toml) | `.toml` | 14 | 334 | Configuration or static asset |
-| [`AGENTS.md`](AGENTS.md) | `.md` | 79 | 1892 | Documentation asset |
-| [`AI_DISCLOSURE.md`](AI_DISCLOSURE.md) | `.md` | 64 | 2581 | Documentation asset |
 | [`CHANGELOG.md`](CHANGELOG.md) | `.md` | 299 | 20701 | Documentation asset |
 | [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) | `.md` | 67 | 2882 | Documentation asset |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | `.md` | 81 | 3799 | Documentation asset |
@@ -841,7 +839,6 @@ Production deployment is achieved via Docker containers running Streamlit or Uvi
 | [`Makefile`](Makefile) | `no-ext` | 157 | 7127 | Configuration or static asset |
 | [`README.md`](README.md) | `.md` | 382 | 16366 | Documentation asset |
 | [`SECURITY.md`](SECURITY.md) | `.md` | 65 | 2923 | Documentation asset |
-| [`ai-provenance.json`](ai-provenance.json) | `.json` | 64 | 1635 | Configuration or static asset |
 | [`app/Home.py`](app/Home.py) | `.py` | 92 | 3918 | Root application runner or utility |
 | [`app/api_client.py`](app/api_client.py) | `.py` | 274 | 11049 | Root application runner or utility |
 | [`app/circuit_breaker.py`](app/circuit_breaker.py) | `.py` | 150 | 4984 | Root application runner or utility |
