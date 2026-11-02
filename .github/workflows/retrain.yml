@@ -153,11 +153,11 @@ jobs:
           echo "${{ steps.seed.outputs.next }}" > model_bench/SEED_COUNTER
           # Bundles + their C.2.4 signatures are gitignored (reproducible via
           # `make train`) but force-added here so the retrain PR carries them.
-          git add model_bench/best_model_metadata.json \
+          git add -f model_bench/best_model_metadata.json \
             model_bench/SEED_COUNTER \
             model_bench/results/ \
-            model_bench/MODEL_CARD.md
-          git add -f model_bench/best_model.joblib model_bench/best_model.joblib.sig \
+            model_bench/MODEL_CARD.md \
+            model_bench/best_model.joblib model_bench/best_model.joblib.sig \
             model_bench/risk_model_bundle.joblib model_bench/risk_model_bundle.joblib.sig
           git commit -m "chore(retrain): refresh models + metadata (seed ${{ steps.seed.outputs.next }})" || exit 0
           git push -u origin "$branch"
