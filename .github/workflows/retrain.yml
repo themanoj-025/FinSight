@@ -149,7 +149,7 @@ jobs:
           branch="retrain/$(date +%Y-%m-%d)"
           git config user.name "finsight-retrain-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout -b "$branch"
+          git checkout -B "$branch"
           echo "${{ steps.seed.outputs.next }}" > model_bench/SEED_COUNTER
           # Bundles + their C.2.4 signatures are gitignored (reproducible via
           # `make train`) but force-added here so the retrain PR carries them.
@@ -160,7 +160,7 @@ jobs:
             model_bench/best_model.joblib model_bench/best_model.joblib.sig \
             model_bench/risk_model_bundle.joblib model_bench/risk_model_bundle.joblib.sig
           git commit -m "chore(retrain): refresh models + metadata (seed ${{ steps.seed.outputs.next }})" || exit 0
-          git push -u origin "$branch"
+          git push -f -u origin "$branch"
           url=$(gh pr create --base main --head "$branch" \
             --title "chore(retrain): refresh models + metadata (PR-AUC ${{ steps.gate.outputs.pr_auc }})" \
             --body-file /tmp/retrain_pr_body.md)
