@@ -7,8 +7,8 @@ git_commit_full: "091701b8520be0924720a870bb3f950ffdaf1bfc"
 git_tree_hash: "9af77b73c326d6e8908169e6f2b1ef8fe1d4ebb4"
 document_version: "3.0.0"
 generated_at: "2026-10-15T15:45:00+05:30"
-author: "Antigravity Autonomous Forensics Engine"
-verification_status: "VERIFIED_CANONICAL"
+author: "Manoj Jana"
+verification_status: "VERIFIED"
 manifests_sha256:
   pyproject.toml: "5af5a556361ea5b7e63eae949455084971b9e1e8084288a502ac446b64351752"
 lockfiles_sha256:
@@ -835,7 +835,6 @@ Production deployment is achieved via Docker containers running Streamlit or Uvi
 | [`DEPLOY.md`](DEPLOY.md) | `.md` | 156 | 6978 | Documentation asset |
 | [`Dockerfile`](Dockerfile) | `no-ext` | 46 | 1875 | Configuration or static asset |
 | [`LICENSE`](LICENSE) | `no-ext` | 21 | 1084 | Configuration or static asset |
-| [`MODERNIZATION_AUDIT.md`](MODERNIZATION_AUDIT.md) | `.md` | 48 | 2042 | Documentation asset |
 | [`Makefile`](Makefile) | `no-ext` | 157 | 7127 | Configuration or static asset |
 | [`README.md`](README.md) | `.md` | 382 | 16366 | Documentation asset |
 | [`SECURITY.md`](SECURITY.md) | `.md` | 65 | 2923 | Documentation asset |
