@@ -1036,7 +1036,7 @@ requires-dist = [
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.16.2,<0.18" },
     { name = "schemathesis", marker = "extra == 'contract'", specifier = ">=4.0,<5" },
     { name = "scikit-learn", specifier = ">=1.4,<1.9" },
-    { name = "streamlit", specifier = ">=1.47,<1.67" },
+    { name = "streamlit", specifier = ">=1.47,<1.68" },
     { name = "types-pyyaml", marker = "extra == 'dev'" },
     { name = "uvicorn", specifier = ">=0.27,<1" },
 ]
