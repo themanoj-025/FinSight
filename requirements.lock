@@ -119,7 +119,7 @@ pydeck==0.9.3
     # via streamlit
 pyparsing==3.3.3
     # via matplotlib
-python-dateutil==4.0.0
+python-dateutil==2.9.0.post0
     # via
     #   matplotlib
     #   pandas
@@ -147,7 +147,7 @@ starlette==1.10.0
     # via
     #   fastapi
     #   streamlit
-streamlit==1.66.1
+streamlit==1.67.0
     # via finsight-agent (pyproject.toml)
 threadpoolctl==3.7.0
     # via scikit-learn
