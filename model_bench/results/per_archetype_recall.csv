@@ -1,0 +1,4 @@
+archetype,recall,precision,support
+account_takeover,0.5,0.5,2
+slow_balance_drain,0.0,0.0,2
+subscription_creep,0.0,0.0,3
