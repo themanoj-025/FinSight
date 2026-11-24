@@ -349,7 +349,7 @@ def plot_confusion_grid(y_true: np.ndarray, scores: dict[str, np.ndarray], outdi
     n = len(scores)
     fig, axes = plt.subplots(1, n, figsize=(3.4 * n, 3.2), squeeze=False)
     for ax, (name, s) in zip(axes[0], scores.items(), strict=True):
-        cm = confusion_matrix(y_true, (s >= 0.5).astype(int))
+        cm = confusion_matrix(y_true, (s >= 0.5).astype(int), labels=[0, 1])
         im = ax.imshow(cm, cmap="Greens", aspect="auto")
         ax.set_title(name, color=FG, fontsize=8)
         ax.set_xticks([0, 1], ["OK", "Fraud"], color=FG)
