@@ -2,65 +2,65 @@
   "algorithm": "Gradient Boosting (LightGBM)",
   "selection_metric": "pr_auc (mean over TimeSeriesSplit CV)",
   "metrics_on_holdout": {
-    "precision": 1.0,
-    "recall": 0.1429,
-    "f1": 0.25,
-    "roc_auc": 0.999,
-    "pr_auc": 0.5486
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1": 0.0,
+    "roc_auc": NaN,
+    "pr_auc": 0.0
   },
   "cv_folds": 5,
-  "pr_auc_mean": 0.5248,
-  "pr_auc_std": 0.2484,
-  "roc_auc_mean": 0.9981,
-  "roc_auc_std": 0.0023,
-  "f1_mean": 0.3765,
-  "f1_std": 0.2507,
+  "pr_auc_mean": 0.2435,
+  "pr_auc_std": 0.1877,
+  "roc_auc_mean": 0.9958,
+  "roc_auc_std": 0.0029,
+  "f1_mean": 0.1714,
+  "f1_std": 0.1761,
   "per_model_cv": [
     {
       "model": "Logistic Regression",
-      "pr_auc_mean": 0.2227,
-      "pr_auc_std": 0.1211,
-      "roc_auc_mean": 0.7737,
-      "f1_mean": 0.2569
+      "pr_auc_mean": 0.1295,
+      "pr_auc_std": 0.0889,
+      "roc_auc_mean": 0.7685,
+      "f1_mean": 0.1313
     },
     {
       "model": "Random Forest",
-      "pr_auc_mean": 0.5436,
-      "pr_auc_std": 0.2588,
-      "roc_auc_mean": 0.8956,
-      "f1_mean": 0.2214
+      "pr_auc_mean": 0.2913,
+      "pr_auc_std": 0.2516,
+      "roc_auc_mean": 0.8515,
+      "f1_mean": 0.05
     },
     {
       "model": "Gradient Boosting (LightGBM)",
-      "pr_auc_mean": 0.5248,
-      "pr_auc_std": 0.2484,
-      "roc_auc_mean": 0.9981,
-      "f1_mean": 0.3765
+      "pr_auc_mean": 0.2435,
+      "pr_auc_std": 0.1877,
+      "roc_auc_mean": 0.9958,
+      "f1_mean": 0.1714
     },
     {
       "model": "SGD (linear SVM)",
-      "pr_auc_mean": 0.0945,
-      "pr_auc_std": 0.0622,
-      "roc_auc_mean": 0.9922,
-      "f1_mean": 0.1656
+      "pr_auc_mean": 0.0683,
+      "pr_auc_std": 0.0383,
+      "roc_auc_mean": 0.9788,
+      "f1_mean": 0.1253
     },
     {
       "model": "Isolation Forest",
-      "pr_auc_mean": 0.1252,
-      "pr_auc_std": 0.1053,
-      "roc_auc_mean": 0.9755,
-      "f1_mean": 0.0105
+      "pr_auc_mean": 0.0882,
+      "pr_auc_std": 0.0157,
+      "roc_auc_mean": 0.9889,
+      "f1_mean": 0.0118
     },
     {
       "model": "MLP Autoencoder (recon. error)",
-      "pr_auc_mean": 0.1918,
-      "pr_auc_std": 0.0542,
-      "roc_auc_mean": 0.9973,
-      "f1_mean": 0.0407
+      "pr_auc_mean": 0.1802,
+      "pr_auc_std": 0.1014,
+      "roc_auc_mean": 0.9954,
+      "f1_mean": 0.0207
     }
   ],
-  "training_timestamp_utc": "2026-11-09T10:40:38.884702+00:00",
-  "git_commit": "43c674283f241fc73c3623a209a5cf8342ded5e2",
+  "training_timestamp_utc": "2026-11-25T09:52:38.835095+00:00",
+  "git_commit": "d486e0023da440d50148ddcb262f15d24c49bf3e",
   "feature_list": [
     "amount",
     "log_amount",
@@ -96,63 +96,40 @@
     "type_TRANSFER"
   ],
   "dataset": {
-    "rows": 61379,
-    "fraud_rate": 0.0007,
+    "rows": 61396,
+    "fraud_rate": 0.0006,
     "path": "data/transactions.csv",
-    "train_rows": 46034,
-    "test_rows": 15345,
+    "train_rows": 46047,
+    "test_rows": 15349,
     "personas": 2002,
     "focal_personas": 2
   },
-  "archetype_recall": [
-    {
-      "archetype": "account_takeover",
-      "recall": 0.5,
-      "support": 2
-    },
-    {
-      "archetype": "slow_balance_drain",
-      "recall": 0.0,
-      "support": 2
-    },
-    {
-      "archetype": "subscription_creep",
-      "recall": 0.0,
-      "support": 3
-    }
-  ],
-  "cohort_fairness": [
-    {
-      "cohort": "recent_graduate",
-      "recall": 0.1429,
-      "support": 7,
-      "disparity_ratio": 1.0
-    }
-  ],
+  "archetype_recall": [],
+  "cohort_fairness": [],
   "temporal_stability": [
     {
       "bucket": 0,
       "start_step": 1617,
-      "end_step": 1715,
+      "end_step": 1716,
       "precision": 0.0,
       "recall": 0.0,
-      "support": 2
+      "support": 0
     },
     {
       "bucket": 1,
-      "start_step": 1715,
+      "start_step": 1716,
       "end_step": 1833,
       "precision": 0.0,
       "recall": 0.0,
-      "support": 3
+      "support": 0
     },
     {
       "bucket": 2,
       "start_step": 1833,
       "end_step": 1932,
-      "precision": 1.0,
-      "recall": 0.5,
-      "support": 2
+      "precision": 0.0,
+      "recall": 0.0,
+      "support": 0
     },
     {
       "bucket": 3,
@@ -172,25 +149,19 @@
     }
   ],
   "calibration": {
-    "brier": 0.0004,
-    "expected_calibration_error": 0.0004,
+    "brier": 0.0,
+    "expected_calibration_error": 0.0,
     "curve_rows": [
       {
         "bin": 0,
         "mean_pred": 0.0,
-        "frac_pos": 0.0003,
-        "count": 15343
+        "frac_pos": 0.0,
+        "count": 15348
       },
       {
-        "bin": 2,
-        "mean_pred": 0.2082,
-        "frac_pos": 1.0,
-        "count": 1
-      },
-      {
-        "bin": 9,
-        "mean_pred": 1.0,
-        "frac_pos": 1.0,
+        "bin": 4,
+        "mean_pred": 0.4753,
+        "frac_pos": 0.0,
         "count": 1
       }
     ]
@@ -200,7 +171,7 @@
   "bundle_signature": {
     "algorithm": "hmac-sha256",
     "key_origin": "demo-default",
-    "digest_prefix": "1b0e748b63fc5202"
+    "digest_prefix": "987477d13beffe16"
   },
   "config": {
     "random_state": 42,
