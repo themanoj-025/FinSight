@@ -37,7 +37,9 @@ cycler==0.12.1
 fastapi==0.165.0
     # via finsight-agent (pyproject.toml)
 fonttools==4.68.0
-    # via matplotlib
+    # via
+    #   finsight-agent (pyproject.toml)
+    #   matplotlib
 h11==0.16.0
     # via
     #   httpcore

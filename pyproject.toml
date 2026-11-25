@@ -27,6 +27,12 @@ dependencies = [
     "pandas>=2.1,<3.2",
     "scikit-learn>=1.4,<1.9",
     "matplotlib>=3.8,<3.12",
+    # fonttools 4.69.0 shipped with only cp311 macOS/Linux wheels and no sdist,
+    # so it is installable for the lockfile's 3.11/linux target but NOT on the
+    # 3.12 legs that install from requirements.lock (pip-audit in the security
+    # job). Exclude it until upstream publishes the missing wheels; without
+    # this the drift check demands 4.69.0 and the security job can't install it.
+    "fonttools>=4.22,!=4.69.0",
     "plotly>=5.18,<8",
     "streamlit>=1.47,<1.68",  # uses width='stretch' (use_container_width is deprecated)
     "PyYAML>=6.0,<7",
